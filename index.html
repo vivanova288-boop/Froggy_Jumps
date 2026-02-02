@@ -3,172 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Froggy Jumps</title>
+    <title>Froggy Jumps Quiz</title>
     <style>
-        body, html { margin:0; padding:0; height:100%; width:100%; overflow:hidden; font-family:sans-serif; background:#1e3799; }
-        
-        /* СТАРТОВЫЙ ЭКРАН */
-        #start-screen { position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; }
-        #btn-go { padding:20px 60px; font-size:28px; font-weight:bold; background:#4cd137; color:white; border:none; border-radius:50px; cursor:pointer; box-shadow:0 10px 20px rgba(0,0,0,0.4); }
-        
+        :root { --water1: #2bbcd6; --water2: #168ea0; --ui-bg: #6ab04c; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; background: url('bg.png') no-repeat center center fixed; background-size: cover; }
+
+        /* ЭКРАН ЗАПУСКА */
+        #entry-gate { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        #entry-gate button { padding: 20px 60px; font-size: 24px; font-weight: bold; background: var(--ui-bg); color: white; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+
         /* ОБРАТНЫЙ ОТСЧЕТ */
-        #timer-screen { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9000; display:none; align-items:center; justify-content:center; color:#fff; font-size:150px; font-weight:bold; }
+        #countdown-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 4000; display: none; justify-content: center; align-items: center; }
+        #countdown-text { font-size: 150px; color: #fff; font-weight: bold; text-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .count-animate { animation: count-pulse 1s ease-out forwards; }
+        @keyframes count-pulse { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
 
-        #gm { width:100%; height:100%; position:relative; display:none; background-size:cover; background-position:center; }
-        #q-card { position:absolute; top:50px; left:50%; transform:translateX(-50%); background:#fff; border-radius:20px; padding:15px; width:60%; text-align:center; z-index:100; box-shadow:0 5px 15px rgba(0,0,0,0.3); }
-        #tm-bg { width:100%; height:8px; background:#eee; border-radius:4px; margin-top:10px; overflow:hidden; }
-        #tm-f { height:100%; width:100%; background:#e84118; transition:linear; }
+        /* UI ИГРЫ */
+        #ui-layer { position: absolute; top: 0; width: 100%; z-index: 1000; pointer-events: none; }
+        #header { background: var(--ui-bg); color: white; padding: 10px; text-align: center; font-weight: bold; pointer-events: auto; }
+        #lives-container { position: absolute; top: 50px; left: 20px; display: flex; gap: 8px; pointer-events: auto; }
+        .life-icon { width: 52px; height: 52px; background: url('3.png') no-repeat center / contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+        #question-box { background: white; width: 85%; max-width: 500px; margin: 10px auto; padding: 12px; border-radius: 18px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.25); pointer-events: auto; }
+        .timer-bar { width: 100%; height: 8px; background: #dfe6e9; border-radius: 5px; margin-top: 8px; overflow: hidden; }
+        #timer-fill { width: 100%; height: 100%; background: #eb4d4b; transition: width 0.1s linear; }
 
-        #frog { width:80px; height:80px; position:absolute; z-index:500; transition:0.6s cubic-bezier(.47,1.21,.58,1); background-size:contain; background-repeat:no-repeat; }
+        /* МИР */
+        #world { position: absolute; inset: 0; padding-top: 60px; overflow: hidden; }
+        #pond { position: relative; width: 100%; height: 100%; transition: transform 1.2s ease-in-out; }
+        .leaf { position: absolute; width: 20vw; height: 16vw; max-width: 180px; max-height: 150px; background: url('1.png') no-repeat center / contain; display: flex; align-items: center; justify-content: center; transform: scale(0.85); transition: transform 0.4s, opacity 0.4s; padding: 15px; box-sizing: border-box; text-align: center; font-size: 20px; color: white; font-weight: bold; text-shadow: 1px 1px 3px #000; }
+        .leaf.active { opacity: 1; transform: scale(1.1); z-index: 10; cursor: pointer; }
+        .leaf.active::after { content: attr(data-letter); position: absolute; top: -8px; left: 50%; transform: translateX(-50%); background: #f1c40f; width: 22px; height: 22px; border-radius: 50%; font-size: 13px; color: black; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+
+        #frog { position: absolute; width: 90px; height: 90px; background: url('2.png') no-repeat center / contain; transform: translate(-50%, -60%) scale(1.15); filter: drop-shadow(0 10px 15px rgba(0,0,0,0.4)); z-index: 999; transition: left 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), top 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; }
+        .jumping-frog { filter: drop-shadow(0 30px 20px rgba(0,0,0,0.3)) !important; transform: translate(-50%, -80%) scale(1.4) !important; }
+        .super-jump { top: -200px !important; transform: translate(-50%, -50%) scale(2) rotate(360deg) !important; transition: top 0.8s cubic-bezier(.47,1.21,.58,1), transform 0.8s !important; }
+        .shock { animation: electric-shock 0.1s infinite; z-index: 20 !important; }
+        @keyframes electric-shock { 0% { transform: translate(-50%, -60%) translate(2px, 2px); filter: brightness(1.5) hue-rotate(180deg); } 50% { transform: translate(-50%, -60%) translate(-2px, -2px); } 100% { transform: translate(-50%, -60%); } }
         
-        .leaf { position:absolute; width:120px; height:90px; background-size:contain; background-repeat:no-repeat; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-weight:bold; font-size:14px; text-shadow:1px 1px 2px #000; transition:0.3s; padding-top:10px; }
-        .leaf-active { cursor:pointer; opacity:1; }
-        .leaf-idle { opacity:0.4; cursor:default; }
-        .letter { position:absolute; top:-15px; background:#f1c40f; color:#000; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:12px; }
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 6000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
+        #fireworksCanvas { position: absolute; inset: 0; pointer-events: none; display: none; }
+        #msg { font-size: 60px; font-weight: 900; color: #ffcc00; text-shadow: 0 0 20px #ff4500; }
         
-        .shock { animation: shake 0.1s infinite; filter: brightness(2) contrast(1.5) hue-rotate(180deg); }
-        @keyframes shake { 0%, 100% { transform:translate(0); } 25% { transform:translate(4px); } 75% { transform:translate(-4px); } }
+        .pond-transition { transform: translateY(100vh); opacity: 0; }
+        .splash { position: absolute; border: 4px solid rgba(255, 255, 255, 0.6); border-radius: 50%; transform: translate(-50%, -50%); animation: splash-ani 0.6s ease-out forwards; z-index: 5; }
+        @keyframes splash-ani { 0% { width: 0; height: 0; opacity: 1; } 100% { width: 150px; height: 80px; opacity: 0; } }
+
+        #volume-control { position: absolute; top: 50px; right: 20px; background: white; padding: 8px 15px; border-radius: 25px; z-index: 2000; display: flex; align-items: center; gap: 10px; border: 2px solid var(--ui-bg); }
     </style>
 </head>
 <body>
 
-    <div id="start-screen">
-        <h1 id="title">FROGGY JUMPS</h1>
-        <button id="btn-go" onclick="launch()">ИГРАТЬ</button>
-    </div>
+<div id="entry-gate">
+    <h1 id="title-text">PAST SIMPLE CHALLENGE</h1>
+    <button onclick="pressStart()">ИГРАТЬ</button>
+</div>
 
-    <div id="timer-screen">3</div>
+<div id="countdown-overlay"><div id="countdown-text"></div></div>
 
-    <div id="gm">
-        <div id="q-card">
-            <div id="q-txt" style="font-size:20px; color:#2f3640;">Загрузка...</div>
-            <div id="tm-bg"><div id="tm-f"></div></div>
-        </div>
-        <div id="pond"></div>
-        <div id="frog"></div>
+<div id="ui-layer">
+    <div id="header">PAST SIMPLE CHALLENGE</div>
+    <div id="lives-container"></div>
+    <div id="question-box">
+        <div id="q-text"><b>Preparing...</b></div>
+        <div class="timer-bar"><div id="timer-fill"></div></div>
     </div>
+</div>
+
+<div id="volume-control">
+    <span id="speaker-icon">🔊</span>
+    <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
+</div>
+
+<div id="world">
+    <div id="pond"><div id="frog"></div></div>
+</div>
+
+<div id="overlay">
+    <canvas id="fireworksCanvas"></canvas>
+    <h1 id="msg">VICTORY!</h1>
+    <button onclick="location.reload()">Try Again</button>
+</div>
 
 <script>
-    let c, step=0, hp, lastPos={x:50,y:85}, aud={}, timer;
-    const params = new URLSearchParams(window.location.search);
-    const data = params.get('d');
+// --- ТВОЙ БАНК ВОПРОСОВ ---
+const levelsBank = { 1: [ { q: "Yesterday I ___ my room.", options: ["cleaned", "clean", "cleans"], correct: 0 }, { q: "They ___ at the cinema last Sunday.", options: ["were", "was", "are"], correct: 0 }, { q: "She ___ TV for two hours.", options: ["watched", "watch", "watches"], correct: 0 }, { q: "It ___ very cold yesterday.", options: ["was", "were", "is"], correct: 0 }, { q: "We ___ tennis in the park.", options: ["played", "play", "plays"], correct: 0 }, { q: "I ___ a loud noise.", options: ["heard", "hear", "hears"], correct: 0 } ], 2: [ { q: "I ___ to the zoo last Saturday.", options: ["went", "go", "gone"], correct: 0 }, { q: "She ___ a letter to her friend.", options: ["wrote", "write", "writes"], correct: 0 }, { q: "He ___ a new car last month.", options: ["bought", "buy", "buyed"], correct: 0 } ] };
 
-    if(data) {
-        try { 
-            c = JSON.parse(decodeURIComponent(data));
-            document.getElementById('title').innerText = c.t;
-        } catch(e) { console.error("Data error"); }
-    }
+let currentLevel = 1, step = 0, lives = 5, questions = [], timer, lastCorrectLeaf, globalVolume = 0.5;
+const sounds = { splash: new Audio('1.mp3'), shock: new Audio('2.mp3'), victory: new Audio('3.mp3'), gameOver: new Audio('4.mp3'), start: new Audio('5.mp3'), levelUp: new Audio('6.mp3'), count: new Audio('7.mp3') };
 
-    function launch() {
-        document.getElementById('start-screen').style.display = 'none';
-        const ts = document.getElementById('timer-screen');
-        ts.style.display = 'flex';
-        
-        // Инициализация звука
-        c.s.forEach((u,i)=> { if(u) { aud[i]=new Audio(u); aud[i].volume=c.vol; } });
+const pond = document.getElementById('pond');
+const frog = document.getElementById('frog');
 
-        let count = 3;
-        let itv = setInterval(() => {
-            count--;
-            if(count > 0) ts.innerText = count;
-            else {
-                clearInterval(itv);
-                ts.style.display = 'none';
-                document.getElementById('gm').style.display = 'block';
-                document.getElementById('gm').style.backgroundImage = `url(${c.bg})`;
-                document.getElementById('frog').style.backgroundImage = `url(${c.fr})`;
-                hp = c.li; 
-                if(aud[0]) aud[0].play();
-                drawWorld();
-                moveFrog(50, 85);
-                startQuestion();
-            }
-        }, 1000);
-    }
+function playSound(audio) { if(audio) { audio.currentTime = 0; audio.volume = globalVolume; audio.play().catch(()=>{}); } }
 
-    function drawWorld() {
-        const pond = document.getElementById('pond');
-        pond.innerHTML = '';
-        // Рисуем сетку 5 рядов по 3 листика сразу
-        for(let r=0; r<5; r++) {
-            for(let i=0; i<3; i++) {
-                const l = document.createElement('div');
-                l.id = `l-${r}-${i}`;
-                l.className = 'leaf leaf-idle';
-                l.style.backgroundImage = `url(${c.le})`;
-                l.style.left = (20 + i*30) + '%';
-                l.style.top = (80 - r*15) + '%';
-                l.innerHTML = `<div class="letter">${String.fromCharCode(65+i)}</div><span class="txt"></span>`;
-                pond.appendChild(l);
-            }
-        }
-    }
-
-    function startQuestion() {
-        if(step >= c.qs.length) { if(aud[3]) aud[3].play(); alert(c.win); return; }
-        clearInterval(timer);
-        
-        const q = c.qs[step];
-        document.getElementById('q-txt').innerText = q.q;
-        
-        const row = step % 5;
-        // Очищаем старые листики
-        document.querySelectorAll('.leaf').forEach(el => {
-            el.className = 'leaf leaf-idle';
-            el.onclick = null;
-            el.querySelector('.txt').innerText = '';
-        });
-
-        // Активируем текущий ряд
-        let options = q.o.map((t, idx) => ({t, ok: idx===0}));
-        options.sort(() => Math.random() - 0.5);
-
-        options.forEach((opt, i) => {
-            const el = document.getElementById(`l-${row}-${i}`);
-            el.className = 'leaf leaf-active';
-            el.querySelector('.txt').innerText = opt.t;
-            el.onclick = () => handleJump(opt.ok, 20 + i*30, 80 - row*15);
-        });
-
-        if(c.tme) startTimer();
-    }
-
-    function handleJump(isOk, x, y) {
-        moveFrog(x, y);
-        if(isOk) {
-            if(aud[1]) aud[1].play();
-            lastPos = {x, y};
-            step++;
-            setTimeout(startQuestion, 700);
+function pressStart() {
+    document.getElementById('entry-gate').style.display = 'none';
+    const ov = document.getElementById('countdown-overlay');
+    const txt = document.getElementById('countdown-text');
+    ov.style.display = 'flex';
+    
+    let steps = ['3', '2', '1', 'GO!'];
+    let i = 0;
+    
+    playSound(sounds.count);
+    const itv = setInterval(() => {
+        if(i < steps.length) {
+            txt.textContent = steps[i];
+            txt.classList.remove('count-animate');
+            void txt.offsetWidth;
+            txt.classList.add('count-animate');
+            i++;
         } else {
-            if(aud[2]) aud[2].play();
-            const f = document.getElementById('frog');
-            f.classList.add('shock'); // Механика шока [cite: 2026-01-18]
-            hp--;
-            setTimeout(() => {
-                f.classList.remove('shock');
-                moveFrog(lastPos.x, lastPos.y); // Возврат [cite: 2026-01-18]
-                if(hp <= 0) { if(aud[4]) aud[4].play(); alert(c.lose); location.reload(); }
-            }, 800);
+            clearInterval(itv);
+            ov.style.display = 'none';
+            initGame();
+        }
+    }, 1000);
+}
+
+function initGame() {
+    createPond();
+    startGameLogic();
+}
+
+function createPond() {
+    const leaves = pond.querySelectorAll('.leaf');
+    leaves.forEach(l => l.remove());
+    const rows = 7, cols = 5;
+    const horizontalSpread = 1.2;
+    for (let r = 0; r < rows; r++) {
+        for (let c = 1; c < 4; c++) {
+            const leaf = document.createElement('div');
+            leaf.className = 'leaf';
+            const colWidth = 100 / (cols - 1);
+            const rowOffset = (r % 2 === 0) ? 0 : (colWidth / 2);
+            let leftPos = 50 + (c * colWidth + rowOffset - 62.5) * horizontalSpread;
+            leaf.style.left = leftPos + '%';
+            leaf.style.top = ((r / (rows - 1)) * 68 + 12) + '%';
+            leaf.id = `leaf-${r}-${c}`;
+            pond.appendChild(leaf);
         }
     }
+}
 
-    function startTimer() {
-        let w = 100;
-        const f = document.getElementById('tm-f');
-        timer = setInterval(() => {
-            w -= 100/(c.tm*10);
-            f.style.width = w + '%';
-            if(w <= 0) { clearInterval(timer); if(aud[4]) aud[4].play(); alert(c.lose); location.reload(); }
-        }, 100);
-    }
+function startGameLogic() {
+    playSound(sounds.start);
+    document.getElementById('header').textContent = `LEVEL ${currentLevel}`;
+    questions = [...levelsBank[currentLevel]].sort(() => Math.random() - 0.5).slice(0, 6);
+    frog.classList.remove('sink', 'super-jump', 'shock');
+    frog.style.opacity = 1;
+    lastCorrectLeaf = document.getElementById('leaf-6-2');
+    updateLives();
+    updateFrog(lastCorrectLeaf);
+    setTimeout(loadLevel, 500);
+}
 
-    function moveFrog(x, y) {
-        const f = document.getElementById('frog');
-        f.style.left = `calc(${x}% - 40px)`;
-        f.style.top = `calc(${y}% - 40px)`;
+function loadLevel() {
+    if (step >= questions.length) {
+        if (levelsBank[currentLevel + 1]) {
+            frog.classList.add('super-jump');
+            playSound(sounds.levelUp);
+            setTimeout(() => {
+                pond.classList.add('pond-transition');
+                setTimeout(() => {
+                    currentLevel++; step = 0;
+                    pond.classList.remove('pond-transition');
+                    createPond();
+                    startGameLogic();
+                }, 1200);
+            }, 800);
+            return;
+        } else { showEnd("Victory!"); return; }
     }
+    
+    document.querySelectorAll('.leaf').forEach(l => {
+        l.classList.remove('active'); l.onclick = null; l.textContent = ''; delete l.dataset.letter;
+    });
+    if (lastCorrectLeaf) lastCorrectLeaf.classList.add('active');
+
+    const q = questions[step];
+    document.getElementById('q-text').innerHTML = `<b>Q${step+1}:</b> ${q.q}`;
+    const row = 5 - step;
+    [1, 2, 3].forEach((c, i) => {
+        const leaf = document.getElementById(`leaf-${row}-${c}`);
+        if(leaf) {
+            leaf.classList.add('active');
+            leaf.dataset.letter = String.fromCharCode(65+i);
+            leaf.textContent = q.options[i];
+            leaf.onclick = () => handleJump(i, leaf);
+        }
+    });
+    startTimer();
+}
+
+function handleJump(i, leaf) {
+    clearInterval(timer);
+    updateFrog(leaf);
+    if (i === questions[step].correct) {
+        lastCorrectLeaf = leaf;
+        playSound(sounds.splash);
+        createSplash(leaf.offsetLeft + leaf.offsetWidth/2, leaf.offsetTop + leaf.offsetHeight/2);
+        setTimeout(() => { step++; loadLevel(); }, 700);
+    } else {
+        playSound(sounds.shock);
+        leaf.classList.add('shock'); frog.classList.add('shock');
+        lives--; updateLives();
+        setTimeout(() => {
+            updateFrog(lastCorrectLeaf);
+            setTimeout(() => { leaf.classList.remove('shock'); frog.classList.remove('shock'); }, 300);
+            if (lives <= 0) showEnd("Game Over");
+            else setTimeout(loadLevel, 600);
+        }, 400);
+    }
+}
+
+function updateFrog(leaf) {
+    if (!leaf || frog.classList.contains('super-jump')) return;
+    frog.classList.add('jumping-frog');
+    frog.style.left = (leaf.offsetLeft + leaf.offsetWidth / 2) + 'px';
+    frog.style.top = (leaf.offsetTop + leaf.offsetHeight / 2) + 'px';
+    setTimeout(() => frog.classList.remove('jumping-frog'), 600);
+}
+
+function startTimer() {
+    let t = 100; clearInterval(timer);
+    timer = setInterval(() => {
+        t -= 0.6; document.getElementById('timer-fill').style.width = t + '%';
+        if (t <= 0) { clearInterval(timer); showEnd("Time Out!"); }
+    }, 100);
+}
+
+function updateLives() {
+    const c = document.getElementById('lives-container'); c.innerHTML = '';
+    for (let i = 0; i < lives; i++) c.innerHTML += '<div class="life-icon"></div>';
+}
+
+function createSplash(x, y) {
+    const s = document.createElement('div'); s.className = 'splash';
+    s.style.left = x + 'px'; s.style.top = y + 'px';
+    pond.appendChild(s); setTimeout(() => s.remove(), 600);
+}
+
+// --- САЛЮТЫ ---
+const canvas = document.getElementById('fireworksCanvas'), ctx = canvas.getContext('2d');
+let particles = [], animationId;
+function setSize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.onresize = setSize; setSize();
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x; this.y = y; this.color = color;
+        this.velocity = { x: (Math.random()-0.5)*10, y: (Math.random()-0.5)*10 };
+        this.alpha = 1; this.decay = Math.random()*0.02 + 0.01;
+    }
+    draw() { ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, 2, 0, Math.PI*2); ctx.fillStyle = this.color; ctx.fill(); }
+    update() { this.x += this.velocity.x; this.y += this.velocity.y; this.velocity.y += 0.05; this.alpha -= this.decay; }
+}
+
+function animateFireworks() {
+    animationId = requestAnimationFrame(animateFireworks);
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    if(Math.random() < 0.1) {
+        const color = `hsl(${Math.random()*360}, 100%, 50%)`;
+        const x = Math.random()*canvas.width, y = Math.random()*canvas.height*0.5;
+        for(let i=0; i<30; i++) particles.push(new Particle(x, y, color));
+    }
+    particles.forEach((p, i) => { p.update(); p.draw(); if(p.alpha <= 0) particles.splice(i,1); });
+}
+
+function showEnd(text) {
+    document.getElementById('msg').textContent = text;
+    document.getElementById('overlay').style.display = 'flex';
+    if(text === "Victory!") {
+        playSound(sounds.victory); canvas.style.display = 'block'; animateFireworks();
+    } else playSound(sounds.gameOver);
+}
+
+document.getElementById('volume-slider').oninput = (e) => globalVolume = e.target.value;
 </script>
 </body>
 </html>
