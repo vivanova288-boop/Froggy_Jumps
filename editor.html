@@ -1,121 +1,185 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>Froggy Constructor v2.0</title>
     <style>
-        :root { --primary: #6ab04c; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .editor-card { max-width: 800px; margin: 0 auto; background: white; border-radius: 12px; shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
-        .tabs { display: flex; background: #eee; }
-        .tab-btn { flex: 1; padding: 15px; border: none; cursor: pointer; font-weight: bold; background: #eee; transition: 0.3s; }
-        .tab-btn.active { background: white; color: var(--primary); border-bottom: 3px solid var(--primary); }
-        .tab-content { padding: 20px; display: none; }
-        .tab-content.active { display: block; }
-        .field { margin-bottom: 15px; }
-        label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #333; }
-        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .btn-generate { background: #ff4757; color: white; border: none; padding: 20px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; }
-        #output { width: 100%; height: 100px; margin-top: 15px; background: #2d3436; color: #00d8d6; font-family: monospace; font-size: 12px; }
+        body, html { margin:0; padding:0; width:100%; height:100%; overflow:hidden; font-family: sans-serif; }
+        #game-stage { width:100%; height:100%; background-size: cover; background-position: center; position: relative; }
+        #ui { position: absolute; top:0; width:100%; z-index: 100; pointer-events:none; }
+        #header { padding: 10px; color: white; text-align: center; font-weight: bold; pointer-events:auto; }
+        #lives { position: absolute; top: 50px; left: 20px; display: flex; gap: 5px; }
+        .life { width: 40px; height: 40px; background-size: contain; background-repeat: no-repeat; }
+        #q-box { background: rgba(255,255,255,0.9); width: 80%; max-width: 600px; margin: 15px auto; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.2); pointer-events:auto; }
+        .t-bar { width: 100%; height: 8px; background: #eee; margin-top: 10px; border-radius: 4px; overflow: hidden; }
+        #t-fill { width: 100%; height: 100%; background: #ff4757; transition: 0.1s linear; }
+        #pond { position: relative; width: 100%; height: 100%; }
+        .leaf { position: absolute; width: 180px; height: 140px; background-size: contain; background-repeat: no-repeat; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold; text-shadow: 1px 1px 3px #000; text-align: center; padding: 10px; box-sizing: border-box; transition: transform 0.3s; }
+        #frog { position: absolute; width: 80px; height: 80px; background-size: contain; background-repeat: no-repeat; z-index: 50; transition: all 0.6s cubic-bezier(.47,1.21,.58,1); pointer-events: none; }
+        .shock { animation: shock 0.1s infinite; filter: brightness(2) hue-rotate(90deg); }
+        @keyframes shock { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1) rotate(5deg); } }
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
+        #countdown { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; color: white; font-size: 120px; font-weight: bold; }
     </style>
 </head>
 <body>
+    <div id="countdown"></div>
+    <div id="game-stage">
+        <div id="ui">
+            <div id="header"></div>
+            <div id="lives"></div>
+            <div id="q-box">
+                <div id="q-text"></div>
+                <div class="t-bar" id="t-wrap"><div id="t-fill"></div></div>
+            </div>
+        </div>
+        <div id="pond"><div id="frog"></div></div>
+    </div>
+    <div id="overlay"><h1 id="ov-msg"></h1><button onclick="location.reload()" id="btn-restart">Retry</button></div>
 
-<div class="editor-card">
-    <div style="background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold;">🐸 FROGGY CONSTRUCTOR v2.0</div>
+<script>
+let cfg, bank = {}, currentLvl = 1, step = 0, currentLives, timer, questions = [], lastLeaf, sounds = {};
+
+window.onload = () => window.parent.postMessage('ready', '*');
+window.addEventListener('message', e => { if(e.data.qs) init(e.data); });
+
+function init(data) {
+    cfg = data;
+    currentLives = cfg.li;
+    document.getElementById('game-stage').style.backgroundImage = `url(${cfg.img.b})`;
+    document.getElementById('header').style.backgroundColor = cfg.img.c;
+    document.getElementById('header').innerText = cfg.title;
+    document.getElementById('frog').style.backgroundImage = `url(${cfg.img.f})`;
+    document.getElementById('frog').style.transitionDuration = cfg.sp + 's';
     
-    <div class="tabs">
-        <button class="tab-btn active" onclick="openTab(event, 'tab-content')">Контент</button>
-        <button class="tab-btn" onclick="openTab(event, 'tab-mech')">Механика</button>
-        <button class="tab-btn" onclick="openTab(event, 'tab-visual')">Визуал</button>
-        <button class="tab-btn" onclick="openTab(event, 'tab-audio')">Аудио</button>
-    </div>
-
-    <div id="tab-content" class="tab-content active">
-        <div class="field"><label>Заголовок игры</label><input type="text" id="title" value="PAST SIMPLE CHALLENGE"></div>
-        <div class="field">
-            <label>Список заданий (Вопрос | Ответ1 | Ответ2 | Ответ3). Первый ответ - всегда верный!</label>
-            <textarea id="questions" style="height: 150px;">Yesterday I ___ my room. | cleaned | clean | cleans
-They ___ at the cinema. | were | was | are
-It ___ a sunny day. | was | were | did</textarea>
-        </div>
-    </div>
-
-    <div id="tab-mech" class="tab-content">
-        <div class="grid">
-            <div class="field"><label>Уровней</label><input type="number" id="lvls" value="3"></div>
-            <div class="field"><label>Вопросов на уровень</label><input type="number" id="qpl" value="5"></div>
-            <div class="field"><label>Жизней</label><input type="number" id="lives" value="5"></div>
-            <div class="field"><label>Таймер (сек, 0 - выкл)</label><input type="number" id="timer" value="15"></div>
-        </div>
-        <div class="field"><input type="checkbox" id="shuffle" checked> Перемешивать вопросы</div>
-    </div>
-
-    <div id="tab-visual" class="tab-content">
-        <div class="field"><label>URL Лягушки (PNG)</label><input type="text" id="img_frog" value="2.png"></div>
-        <div class="field"><label>URL Листа (PNG)</label><input type="text" id="img_leaf" value="1.png"></div>
-        <div class="field"><label>URL Иконки жизни (PNG)</label><input type="text" id="img_life" value="3.png"></div>
-        <div class="field"><label>Цвет шапки (HEX)</label><input type="color" id="col_ui" value="#6ab04c"></div>
-    </div>
-
-    <div id="tab-audio" class="tab-content">
-        <div class="field"><label>Общая громкость (0.0 - 1.0)</label><input type="number" id="vol" step="0.1" value="0.5"></div>
-        <div class="field"><label>Фоновый звук (URL)</label><input type="text" id="snd_bg" value="7.mp3"></div>
-    </div>
-
-    <button class="btn-generate" onclick="generateCode()">✨ СГЕНЕРИРОВАТЬ КОД ДЛЯ GENIALLY</button>
-    <textarea id="output" readonly placeholder="Здесь появится код..."></textarea>
-</div>
-
-<script>
-    function openTab(evt, tabName) {
-        let contents = document.getElementsByClassName("tab-content");
-        for (let i = 0; i < contents.length; i++) contents[i].style.display = "none";
-        let buttons = document.getElementsByClassName("tab-btn");
-        for (let i = 0; i < buttons.length; i++) buttons[i].className = buttons[i].className.replace(" active", "");
-        document.getElementById(tabName).style.display = "block";
-        evt.currentTarget.className += " active";
+    for(let i=1; i<=cfg.lvls; i++) {
+        let q = cfg.qs.slice((i-1)*cfg.qpl, i*cfg.qpl);
+        if(cfg.shuf) q.sort(() => Math.random() - 0.5);
+        bank[i] = q;
     }
 
-    function generateCode() {
-        const qLines = document.getElementById('questions').value.split('\n').filter(l => l.includes('|'));
-        const qs = qLines.map(line => {
-            const p = line.split('|').map(x => x.trim());
-            return { q: p[0], options: [p[1], p[2], p[3]], correct: 0 };
-        });
+    ["s1","s2","s3","s4","s5","s6","s7"].forEach(k => {
+        sounds[k] = new Audio(cfg.snd[k]);
+        sounds[k].volume = cfg.snd.v;
+    });
 
-        const config = {
-            t: document.getElementById('title').value,
-            qs: qs,
-            lv: document.getElementById('lvls').value,
-            qp: document.getElementById('qpl').value,
-            li: document.getElementById('lives').value,
-            tm: document.getElementById('timer').value,
-            sh: document.getElementById('shuffle').checked,
-            v: {
-                f: document.getElementById('img_frog').value,
-                l: document.getElementById('img_leaf').value,
-                i: document.getElementById('img_life').value,
-                c: document.getElementById('col_ui').value
-            },
-            s: {
-                vol: document.getElementById('vol').value,
-                bg: document.getElementById('snd_bg').value
-            }
-        };
+    startCountdown();
+}
 
-        const gameUrl = window.location.href.replace('editor.html', 'index.html');
-        const finalCode = `<iframe id="frog_game" src="${gameUrl}" style="width:100%;height:600px;border:none;" allow="autoplay"></iframe>
-<script>
-window.addEventListener('message', function(e) {
-    if(e.data === 'frog_ready') {
-        document.getElementById('frog_game').contentWindow.postMessage(${JSON.stringify(config)}, '*');
+function startCountdown() {
+    const c = document.getElementById('countdown');
+    c.style.display = 'flex';
+    let steps = ['3','2','1','GO!'], i = 0;
+    sounds.s7.play();
+    let iv = setInterval(() => {
+        if(i < 4) { c.innerText = steps[i++]; }
+        else { clearInterval(iv); c.style.display = 'none'; startGame(); }
+    }, 1000);
+}
+
+function startGame() {
+    sounds.s2.play();
+    loadLevel();
+}
+
+function loadLevel() {
+    questions = bank[currentLvl];
+    if(step >= questions.length) {
+        if(currentLvl < cfg.lvls) {
+            currentLvl++; step = 0; sounds.s1.play(); loadLevel();
+        } else { finish("Victory!"); }
+        return;
     }
-});
-<\/script>`;
-        document.getElementById('output').value = finalCode;
+    drawUI();
+    drawPond();
+}
+
+function drawUI() {
+    const lBox = document.getElementById('lives');
+    lBox.innerHTML = '';
+    for(let i=0; i<currentLives; i++) {
+        let l = document.createElement('div');
+        l.className = 'life';
+        l.style.backgroundImage = `url(${cfg.img.i})`;
+        lBox.appendChild(l);
     }
+    document.getElementById('q-text').innerText = questions[step].q;
+    document.getElementById('q-text').style.fontSize = cfg.img.s + 'px';
+    startTimer();
+}
+
+function drawPond() {
+    const p = document.getElementById('pond');
+    p.querySelectorAll('.leaf').forEach(l => l.remove());
+    
+    // Начальный лист (где лягушка)
+    if(!lastLeaf) {
+        lastLeaf = createLeaf(50, 85, "");
+        moveFrog(lastLeaf);
+    }
+
+    const rowY = 85 - (step + 1) * 12;
+    questions[step].o.forEach((txt, i) => {
+        const x = 20 + i * 30;
+        const leaf = createLeaf(x, rowY, txt);
+        leaf.onclick = () => jump(i, leaf);
+    });
+}
+
+function createLeaf(x, y, txt) {
+    const l = document.createElement('div');
+    l.className = 'leaf';
+    l.style.left = x + '%'; l.style.top = y + '%';
+    l.style.backgroundImage = `url(${cfg.img.l})`;
+    l.innerText = txt;
+    document.getElementById('pond').appendChild(l);
+    return l;
+}
+
+function jump(idx, leaf) {
+    clearInterval(timer);
+    moveFrog(leaf);
+    
+    if(idx === questions[step].c) {
+        sounds.s3.play();
+        lastLeaf = leaf;
+        setTimeout(() => { step++; loadLevel(); }, 700);
+    } else {
+        sounds.s4.play();
+        leaf.classList.add('shock');
+        document.getElementById('frog').classList.add('shock');
+        currentLives--;
+        updateLivesUI();
+        setTimeout(() => {
+            leaf.classList.remove('shock');
+            document.getElementById('frog').classList.remove('shock');
+            moveFrog(lastLeaf);
+            if(currentLives <= 0) finish(cfg.tl);
+            else setTimeout(() => loadLevel(), 600);
+        }, 800);
+    }
+}
+
+function moveFrog(leaf) {
+    const f = document.getElementById('frog');
+    f.style.left = (leaf.offsetLeft + leaf.offsetWidth/2 - 40) + 'px';
+    f.style.top = (leaf.offsetTop + leaf.offsetHeight/2 - 40) + 'px';
+}
+
+function startTimer() {
+    if(cfg.tm == 0) return;
+    let time = 100;
+    timer = setInterval(() => {
+        time -= (0.1 / cfg.tm) * 100;
+        document.getElementById('t-fill').style.width = time + '%';
+        if(time <= 0) { clearInterval(timer); finish("Out of time!"); }
+    }, 100);
+}
+
+function finish(msg) {
+    sounds[msg.includes("Vic") ? 's5' : 's6'].play();
+    document.getElementById('ov-msg').innerText = msg;
+    document.getElementById('overlay').style.display = 'flex';
+}
 </script>
 </body>
 </html>
