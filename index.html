@@ -3,56 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body, html { margin:0; padding:0; height:100%; overflow:hidden; font-family:'Segoe UI', sans-serif; background:#4a90e2; }
+        body, html { margin:0; padding:0; height:100%; overflow:hidden; font-family:sans-serif; background:#000; }
         #gm { width:100%; height:100%; position:relative; background-size:cover; background-position:center; display:none; }
-        #top-bar { position:absolute; top:0; width:100%; height:35px; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; z-index:10; width:100%; }
-        #ui { position:absolute; top:45px; width:100%; display:flex; justify-content:space-between; padding:0 20px; box-sizing:border-box; z-index:10; }
-        #q-card { background:#fff; border-radius:20px; padding:15px; box-shadow:0 8px 20px rgba(0,0,0,0.3); text-align:center; width:60%; position:relative; }
-        #q-txt { font-size:18px; font-weight:bold; color:#333; margin-bottom:10px; }
-        #tm-bg { width:100%; height:8px; background:#eee; border-radius:4px; overflow:hidden; }
-        #tm-f { height:100%; width:100%; background:linear-gradient(90deg, #ff4757, #ff6b81); transition:linear; }
-        #lives { display:flex; gap:5px; }
-        .h { width:30px; height:30px; background-size:contain; background-repeat:no-repeat; }
-        #vol-box { background:#fff; padding:8px; border-radius:20px; display:flex; align-items:center; gap:8px; box-shadow:0 4px 10px rgba(0,0,0,0.2); }
-        #frog { width:100px; height:100px; position:absolute; z-index:100; transition:0.6s cubic-bezier(.47,1.21,.58,1); background-size:contain; background-repeat:no-repeat; }
-        .leaf-wrap { position:absolute; width:150px; text-align:center; cursor:pointer; z-index:5; transition: 0.2s; }
-        .leaf-wrap:hover { transform: scale(1.05); }
-        .leaf-img { width:140px; height:100px; background-size:contain; background-repeat:no-repeat; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; text-shadow:1px 1px 3px #000; padding:15px; box-sizing:border-box; font-size:16px; }
-        .letter { background:#f1c40f; width:26px; height:26px; border-radius:50%; margin:0 auto -15px; position:relative; z-index:6; font-size:14px; font-weight:bold; display:flex; align-items:center; justify-content:center; border:2px solid #fff; color:#000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        
+        /* Заставка */
+        #splash { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; display:flex; align-items:center; justify-content:center; color:#fff; font-size:120px; font-weight:bold; }
+        
+        #top-bar { position:absolute; top:0; width:100%; height:40px; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; color:#fff; z-index:10; }
+        #ui { position:absolute; top:50px; width:100%; display:flex; justify-content:space-between; padding:0 20px; box-sizing:border-box; z-index:10; }
+        #q-card { background:#fff; border-radius:20px; padding:15px; box-shadow:0 4px 15px rgba(0,0,0,0.3); text-align:center; width:50%; }
+        #tm-bg { width:100%; height:6px; background:#ddd; border-radius:3px; margin-top:8px; overflow:hidden; }
+        #tm-f { height:100%; width:100%; background:#ff4757; transition:linear; }
+        
+        .h { width:30px; height:30px; background-size:contain; background-repeat:no-repeat; display:inline-block; }
+        #frog { width:80px; height:80px; position:absolute; z-index:100; transition:0.6s cubic-bezier(.47,1.21,.58,1); background-size:contain; background-repeat:no-repeat; }
+        
+        .leaf-wrap { position:absolute; width:120px; text-align:center; transition:0.3s; opacity: 0.4; }
+        .leaf-wrap.active { opacity: 1; cursor:pointer; }
+        .leaf-img { width:100%; height:80px; background-size:contain; background-repeat:no-repeat; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; text-shadow:1px 1px 2px #000; }
+        .letter { background:#f1c40f; width:20px; height:20px; border-radius:50%; margin:0 auto -10px; position:relative; z-index:2; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; border:2px solid #fff; color:#000; }
+        
         .shock { animation: sh 0.1s infinite; filter: brightness(2) contrast(2) hue-rotate(180deg); }
-        @keyframes sh { 0% { transform:translate(3px); } 50% { transform:translate(-3px); } }
+        @keyframes sh { 0% { transform:translate(2px); } 50% { transform:translate(-2px); } }
     </style>
 </head>
 <body>
+    <div id="splash">3</div>
     <div id="gm">
         <div id="top-bar"></div>
         <div id="ui">
             <div id="lives"></div>
             <div id="q-card">
-                <div id="q-txt"></div>
+                <div id="q-txt" style="font-weight:bold;">ПОДГОТОВКА...</div>
                 <div id="tm-bg"><div id="tm-f"></div></div>
             </div>
-            <div id="vol-box">🔊<input type="range" id="vol" min="0" max="1" step="0.1" value="0.5" style="width:60px;"></div>
+            <div id="vol-box" style="background:#fff; padding:5px; border-radius:10px;">
+                🔈<input type="range" id="vol" min="0" max="1" step="0.1" value="0.5">
+            </div>
         </div>
         <div id="pond"></div>
         <div id="frog"></div>
     </div>
+
 <script>
-    let c, step=0, hp, aud={}, tmr, lastPos={x:50,y:85};
+    let c, step=0, hp, lastP={x:50,y:85}, aud={}, tmr;
     const urlP = new URLSearchParams(window.location.search);
     const d = urlP.get('d');
+
     if(d) { try { c = JSON.parse(decodeURIComponent(d)); init(); } catch(e) { console.error(e); } }
 
     function shuffle(a) { for(let i=a.length-1; i>0; i--) { const j=Math.floor(Math.random()*(i+1)); [a[i], a[j]] = [a[j], a[i]]; } }
-    function play(i) { if(aud[i]) { aud[i].currentTime=0; aud[i].play(); } }
+    function playS(i) { if(aud[i]) { aud[i].currentTime=0; aud[i].play(); } }
 
     function init(){
-        const g=document.getElementById('gm'); g.style.display='block';
+        const g=document.getElementById('gm');
         g.style.backgroundImage=`url(${c.bg})`;
         document.getElementById('frog').style.backgroundImage=`url(${c.fr})`;
         c.s.forEach((u,i)=> { if(u) { aud[i]=new Audio(u); aud[i].volume=c.vol; } });
-        document.getElementById('vol').oninput = (e) => Object.values(aud).forEach(a=>a.volume=e.target.value);
-        hp=c.li; drawHp(); move(50,85); play(0); load();
+        
+        // Старт заставки
+        let count = 3;
+        const s = document.getElementById('splash');
+        let si = setInterval(() => {
+            count--;
+            if(count > 0) s.innerText = count;
+            else {
+                clearInterval(si);
+                s.style.display = 'none';
+                g.style.display = 'block';
+                playS(0); // Звук старта
+                hp=c.li; drawHp(); move(50,85); load();
+            }
+        }, 1000);
     }
 
     function drawHp(){
@@ -61,37 +83,49 @@
     }
 
     function load(){
-        if(step >= c.qs.length) { play(3); alert(c.win); return; }
+        if(step >= c.qs.length) { playS(3); alert(c.win); return; }
         clearInterval(tmr);
         const q=c.qs[step];
-        document.getElementById('top-bar').innerText = `${c.t} | ВОПРОС ${step+1}/${c.qs.length}`;
+        const level = Math.floor(step / c.qp);
+        document.getElementById('top-bar').innerText = `${c.t} | УРОВЕНЬ ${level + 1}`;
         document.getElementById('q-txt').innerText = q.q;
+        
         const pond=document.getElementById('pond'); pond.innerHTML='';
         
-        let opts = q.o.map((t, i) => ({t, ok: i===0}));
-        shuffle(opts);
+        // Отрисовка 5 рядов (сетка озера)
+        for(let r=0; r<c.qp; r++) {
+            let isCurrentRow = r === (step % c.qp);
+            let opts = isCurrentRow ? q.o.map((t, i) => ({t, ok: i===0})) : [{t:''},{t:''},{t:''}];
+            if(isCurrentRow) shuffle(opts);
 
-        opts.forEach((o, i)=>{
-            const w=document.createElement('div'); w.className='leaf-wrap';
-            const x = 15 + i*35; const y = 70; // Фиксированный ряд лилий
-            w.style.left=x+'%'; w.style.top=y+'%';
-            w.innerHTML = `<div class="letter">${['A','B','C'][i]}</div><div class="leaf-img" style="background-image:url(${c.le})">${o.t}</div>`;
-            w.onclick=()=>jump(o.ok, x, y);
-            pond.appendChild(w);
-        });
+            opts.forEach((opt, i) => {
+                const w=document.createElement('div');
+                w.className = 'leaf-wrap' + (isCurrentRow ? ' active' : '');
+                const x = 20 + i*30;
+                const y = 75 - r*12; 
+                w.style.left=x+'%'; w.style.top=y+'%';
+                w.innerHTML = `<div class="letter">${String.fromCharCode(65+i)}</div><div class="leaf-img" style="background-image:url(${c.le})">${opt.t}</div>`;
+                if(isCurrentRow) w.onclick = () => jump(opt.ok, x, y);
+                pond.appendChild(w);
+            });
+        }
         if(c.tme) startTmr();
     }
 
     function jump(ok, x, y){
         move(x, y);
         if(ok){ 
-            play(1); step++; setTimeout(load, 800); 
+            playS(1); lastP={x,y}; step++; 
+            if(step % c.qp === 0) playS(5); // Звук нового уровня
+            setTimeout(load, 600); 
         } else {
-            play(2); const f=document.getElementById('frog'); f.classList.add('shock'); // Шок [cite: 2026-01-18]
+            playS(2); 
+            const f=document.getElementById('frog'); f.classList.add('shock'); 
             hp--; drawHp();
             setTimeout(()=>{
-                f.classList.remove('shock'); move(50, 85); // Отскок назад [cite: 2026-01-18]
-                if(hp<=0) { play(4); alert(c.lose); location.reload(); }
+                f.classList.remove('shock'); 
+                move(lastP.x, lastP.y); // Возврат [cite: 2026-01-18]
+                if(hp<=0) { playS(4); alert(c.lose); location.reload(); }
             }, 800);
         }
     }
@@ -100,14 +134,14 @@
         let w=100; const f=document.getElementById('tm-f');
         tmr=setInterval(()=>{
             w-=100/(c.tm*10); f.style.width=w+'%';
-            if(w<20) play(6);
-            if(w<=0){ clearInterval(tmr); play(4); alert(c.lose); location.reload(); }
+            if(w < 20) playS(6); 
+            if(w<=0){ clearInterval(tmr); playS(4); alert(c.lose); location.reload(); }
         }, 100);
     }
 
     function move(x,y){
         const f=document.getElementById('frog');
-        f.style.left=`calc(${x}% - 50px)`; f.style.top=`calc(${y}% - 50px)`;
+        f.style.left=`calc(${x}% - 40px)`; f.style.top=`calc(${y}% - 40px)`;
     }
 </script>
 </body>
