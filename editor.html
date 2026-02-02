@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f7f6; color: #333; }
+        .section { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h3 { margin-top: 0; color: #6ab04c; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .field { margin-bottom: 12px; display: flex; flex-direction: column; }
+        label { font-size: 12px; font-weight: bold; margin-bottom: 4px; }
+        input, select, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .row { display: flex; gap: 10px; }
+        button { background: #6ab04c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #58943f; }
+    </style>
+</head>
+<body>
+
+    <div class="section">
+        <h3>🔧 Контент игры</h3>
+        <div class="field">
+            <label>Название игры</label>
+            <input type="text" id="title" placeholder="Введите заголовок...">
+        </div>
+        <div class="field">
+            <label>Вопросы (в формате JSON или упрощенно)</label>
+            <textarea id="questions" rows="5" placeholder='[{"q":"Вопрос?", "a":["Вариант 1","2","3"], "correct":0}]'></textarea>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>🐸 Визуал</h3>
+        <div class="row">
+            <div class="field">
+                <label>Цвет интерфейса</label>
+                <input type="color" id="mainColor" value="#6ab04c">
+            </div>
+            <div class="field">
+                <label>Размер шрифта (px)</label>
+                <input type="number" id="fontSize" value="22">
+            </div>
+        </div>
+        <div class="field">
+            <label>Ссылка на картинку Лягушки</label>
+            <input type="text" id="imgFrog" placeholder="https://...">
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>⏱ Параметры</h3>
+        <div class="row">
+            <div class="field">
+                <label>Жизни</label>
+                <input type="number" id="lives" value="5">
+            </div>
+            <div class="field">
+                <label>Время (сек)</label>
+                <input type="number" id="timer" value="15">
+            </div>
+        </div>
+    </div>
+
+    <button onclick="saveSettings()">Применить настройки</button>
+
+    <script>
+        function saveSettings() {
+            const settings = {
+                title: document.getElementById('title').value,
+                lives: document.getElementById('lives').value,
+                mainColor: document.getElementById('mainColor').value,
+                fontSize: document.getElementById('fontSize').value + 'px',
+                imgFrog: document.getElementById('imgFrog').value,
+                questions: JSON.parse(document.getElementById('questions').value || '[]')
+            };
+
+            // Отправляем данные в окно игры
+            window.parent.postMessage({ type: 'config', settings: settings }, '*');
+            alert('Настройки отправлены в игру!');
+        }
+    </script>
+</body>
+</html>
