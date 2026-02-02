@@ -3,137 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; color: #333; }
-        .constructor-card { background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); overflow: hidden; max-width: 800px; margin: auto; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 15px; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 700px; margin: auto; overflow: hidden; }
         .tabs { display: flex; background: #f8f9fa; border-bottom: 2px solid #6ab04c; }
-        .tab-btn { flex: 1; padding: 15px; border: none; background: none; cursor: pointer; font-weight: bold; color: #666; transition: 0.3s; }
-        .tab-btn.active { color: #6ab04c; background: white; border-bottom: 3px solid #6ab04c; margin-bottom: -2px; }
-        .content { padding: 25px; min-height: 400px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: none; cursor: pointer; font-weight: bold; color: #666; }
+        .tab-btn.active { color: white; background: #6ab04c; }
+        .content { padding: 20px; height: 350px; overflow-y: auto; }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; }
-        
-        label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; }
-        input[type="text"], input[type="number"], select, textarea { 
-            width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; font-size: 14px;
-        }
-        textarea { height: 180px; font-family: monospace; line-height: 1.5; resize: vertical; }
-        .hint { font-size: 12px; color: #888; margin-top: -15px; margin-bottom: 15px; }
-        
-        .gen-zone { background: #2d3436; padding: 20px; color: white; }
-        .btn-main { width: 100%; padding: 15px; background: #6ab04c; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-main:hover { background: #58963f; transform: translateY(-2px); }
-        #resCode { width: 100%; height: 80px; margin-top: 15px; background: #1e272e; color: #00d8d6; border: 1px solid #444; border-radius: 6px; padding: 10px; font-size: 11px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #444; font-size: 13px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; }
+        textarea { height: 150px; font-family: monospace; resize: none; }
+        .footer { background: #2d3436; padding: 20px; text-align: center; }
+        .btn-gen { background: #ff4757; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; }
+        .btn-copy { background: #00d8d6; color: #1e272e; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; display: none; }
+        #resCode { width: 100%; height: 60px; margin-top: 15px; background: #1e272e; color: #00d8d6; border: none; font-size: 10px; padding: 8px; display: none; }
     </style>
 </head>
 <body>
 
-<div class="constructor-card">
+<div class="card">
     <div class="tabs">
-        <button class="tab-btn active" onclick="openTab(event, 't1')">📝 Вопросы</button>
-        <button class="tab-btn" onclick="openTab(event, 't2')">⚙️ Механика</button>
-        <button class="tab-btn" onclick="openTab(event, 't3')">🎨 Визуал</button>
-        <button class="tab-btn" onclick="openTab(event, 't4')">🔊 Аудио</button>
+        <button class="tab-btn active" onclick="tab(event,'t1')">📝 Задания</button>
+        <button class="tab-btn" onclick="tab(event,'t2')">⚙️ Настройки</button>
+        <button class="tab-btn" onclick="tab(event,'t3')">🔊 Звуки</button>
     </div>
 
     <div class="content">
         <div id="t1" class="tab-pane active">
-            <label>Заголовок игры</label>
-            <input type="text" id="title" value="FROGGY QUEST">
-            
-            <label>Список заданий (каждое с новой строки)</label>
-            <textarea id="q_text" placeholder="Вопрос | Верный ответ | Ложный | Ложный">I ___ to the park. | went | go | gone
-Did you ___ her? | see | saw | seen
-It ___ a sunny day. | was | were | did</textarea>
-            <p class="hint">Формат: Вопрос | Ответ1 | Ответ2 | Ответ3 (Ответ1 всегда верный)</p>
+            <label>Напишите вопросы (Вопрос | Ответ1 | Ответ2 | Ответ3)</label>
+            <textarea id="q_text" placeholder="Пример: Столица РФ? | Москва | Питер | Самара">I ___ to the park. | went | go | gone
+Did you ___ him? | see | saw | seen</textarea>
+            <p style="font-size: 11px; color: #888;">* Первый ответ после палочки всегда правильный.</p>
         </div>
 
         <div id="t2" class="tab-pane">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div><label>Жизни</label><input type="number" id="li" value="5"></div>
-                <div><label>Таймер (сек)</label><input type="number" id="tm" value="15"></div>
-            </div>
-            <label>Скорость анимации прыжка</label>
-            <select id="sp"><option value="0.4s">Быстрая</option><option value="0.6s" selected>Средняя</option><option value="1s">Плавная</option></select>
+            <label>Заголовок игры</label>
+            <input type="text" id="title" value="FROGGY QUEST">
+            <label>Цвет шапки</label>
+            <input type="color" id="clr" value="#6ab04c">
+            <label>Время на вопрос (сек)</label>
+            <input type="number" id="tm" value="15">
         </div>
 
         <div id="t3" class="tab-pane">
-            <label>Цвет интерфейса</label>
-            <input type="color" id="cl" value="#6ab04c" style="height:50px; padding:2px;">
-            <label>Ссылка на картинку Лягушки</label>
-            <input type="text" id="iFr" value="1.png">
-            <label>Ссылка на картинку Листа</label>
-            <input type="text" id="iLf" value="2.png">
-        </div>
-
-        <div id="t4" class="tab-pane">
             <label>Фоновая музыка (URL)</label><input type="text" id="s1" value="7.mp3">
-            <label>Звук старта (URL)</label><input type="text" id="s2" value="6.mp3">
-            <label>Верный ответ (URL)</label><input type="text" id="s3" value="4.mp3">
-            <label>Ошибка / Ток (URL)</label><input type="text" id="s4" value="5.mp3">
-            <label>Победа (URL)</label><input type="text" id="s5" value="win.mp3">
-            <label>Поражение (URL)</label><input type="text" id="s6" value="lose.mp3">
-            <label>Прыжок (URL)</label><input type="text" id="s7" value="jump.mp3">
+            <label>Звук ошибки / Ток (URL)</label><input type="text" id="s4" value="5.mp3">
+            <label>Звук победы (URL)</label><input type="text" id="s5" value="win.mp3">
         </div>
     </div>
 
-    <div class="gen-zone">
-        <button class="btn-main" onclick="generate()">✨ СГЕНЕРИРОВАТЬ КОД ДЛЯ GENIALLY</button>
-        <textarea id="resCode" readonly placeholder="Здесь появится код..."></textarea>
+    <div class="footer">
+        <button class="btn-gen" onclick="generate()">✨ СГЕНЕРИРОВАТЬ ИГРУ</button>
+        <textarea id="resCode" readonly></textarea>
+        <button id="copyBtn" class="btn-copy" onclick="copyCode()">📋 СКОПИРОВАТЬ КОД</button>
     </div>
 </div>
 
 <script>
-function openTab(evt, tabName) {
-    var i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("tab-pane");
-    for (i = 0; i < tabcontent.length; i++) tabcontent[i].classList.remove("active");
-    tablinks = document.getElementsByClassName("tab-btn");
-    for (i = 0; i < tablinks.length; i++) tablinks[i].classList.remove("active");
-    document.getElementById(tabName).classList.add("active");
-    evt.currentTarget.classList.add("active");
+function tab(e, id) {
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    e.currentTarget.classList.add('active');
 }
 
 function generate() {
-    // Парсим текстовое поле в JSON формат
-    const lines = document.getElementById('q_text').value.split('\n');
-    const questions = lines.filter(l => l.includes('|')).map(line => {
-        const parts = line.split('|').map(p => p.trim());
-        return {
-            q: parts[0],
-            a: parts.slice(1),
-            correct: 0 // В упрощенном вводе первый ответ всегда верный
-        };
+    const lines = document.getElementById('q_text').value.split('\n').filter(l => l.includes('|'));
+    const questions = lines.map(line => {
+        const p = line.split('|').map(x => x.trim());
+        return { q: p[0], a: p.slice(1), correct: 0 };
     });
 
     const config = {
         t: document.getElementById('title').value,
         q: questions,
-        li: document.getElementById('li').value,
         tm: document.getElementById('tm').value,
-        sp: document.getElementById('sp').value,
-        clr: document.getElementById('cl').value,
-        img: { f: document.getElementById('iFr').value, l: document.getElementById('iLf').value, b: 'bg.png', h: '3.png' },
-        snd: { 
-            on: true, v: 0.5,
-            s1: document.getElementById('s1').value, s2: document.getElementById('s2').value,
-            s3: document.getElementById('s3').value, s4: document.getElementById('s4').value,
-            s5: document.getElementById('s5').value, s6: document.getElementById('s6').value, s7: document.getElementById('s7').value
-        }
+        clr: document.getElementById('clr').value,
+        snd: { s1: document.getElementById('s1').value, s4: document.getElementById('s4').value, s5: document.getElementById('s5').value }
     };
 
     const url = "https://vivanova288-boop.github.io/Froggy_Jumps/index.html";
-    const result = `<iframe id="frog_game" src="${url}" style="width:100%;height:600px;border:none;"></iframe>
-<script>
-window.addEventListener('load', () => {
-    const game = document.getElementById('frog_game');
-    setTimeout(() => {
-        game.contentWindow.postMessage({type:'config', s:${JSON.stringify(config)}}, '*');
-    }, 2500);
-});
-<\/script>`;
+    // ВАЖНО: увеличили время ожидания до 3 секунд для надежности
+    const code = `<iframe id="fg" src="${url}" style="width:100%;height:600px;border:none;"></iframe>\n<script>\nsetTimeout(()=>{document.getElementById('fg').contentWindow.postMessage({type:'config',s:${JSON.stringify(config)}},'*')},3000);\n<\/script>`;
     
-    document.getElementById('resCode').value = result;
-    document.getElementById('resCode').select();
+    document.getElementById('resCode').value = code;
+    document.getElementById('resCode').style.display = 'block';
+    document.getElementById('copyBtn').style.display = 'block';
+}
+
+function copyCode() {
+    const txt = document.getElementById('resCode');
+    txt.select();
+    document.execCommand('copy');
+    alert('Код скопирован! Теперь вставь его в Genially через Insert -> Others');
 }
 </script>
 </body>
