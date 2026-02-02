@@ -1,82 +1,48 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>Froggy Constructor Pro</title>
     <style>
-        :root { --accent: #6ab04c; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
-        .card { max-width: 800px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
-        .tabs { display: flex; background: #eee; }
-        .tab-btn { flex: 1; padding: 15px; border: none; cursor: pointer; font-weight: bold; }
-        .tab-btn.active { background: white; color: var(--accent); border-bottom: 3px solid var(--accent); }
-        .content { padding: 20px; display: none; }
-        .content.active { display: block; }
-        label { display: block; font-weight: bold; margin: 10px 0 5px; font-size: 14px; }
-        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn-gen { background: #ff4757; color: white; border: none; padding: 20px; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        #resCode { width: 100%; height: 120px; margin-top: 20px; background: #2d3436; color: #00d8d6; padding: 10px; font-family: monospace; font-size: 12px; display: none; }
+        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+        .card { background: #fff; padding: 20px; border-radius: 10px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        input, textarea { width: 100%; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #6ab04c; color: #fff; border: none; font-weight: bold; cursor: pointer; }
+        #link { margin-top: 20px; word-break: break-all; font-size: 10px; background: #eee; padding: 10px; display: none; }
     </style>
 </head>
 <body>
-<div class="card">
-    <div class="tabs">
-        <button class="tab-btn active" onclick="tab(event, 't1')">Контент</button>
-        <button class="tab-btn" onclick="tab(event, 't2')">Механика</button>
-        <button class="tab-btn" onclick="tab(event, 't3')">Аудио/Визуал</button>
+    <div class="card">
+        <h2>FROGGY CONSTRUCTOR</h2>
+        <label>Заголовок</label><input type="text" id="t" value="FROGGY QUEST">
+        <label>Вопросы (Вопрос|Верно|Ложь|Ложь)</label>
+        <textarea id="qs" style="height:80px;">2+2?|4|5|6</textarea>
+        <label>Жизни</label><input type="number" id="li" value="5">
+        <button onclick="build()">СОЗДАТЬ ССЫЛКУ ДЛЯ GENIALLY</button>
+        <div id="link"></div>
     </div>
-
-    <div id="t1" class="content active">
-        <label>Заголовок игры</label>
-        <input type="text" id="title" value="FROGGY QUEST">
-        <label>Вопросы (Вопрос | Верно | Ложно | Ложно)</label>
-        <textarea id="qs" style="height:150px;">Yesterday I ___ to the park. | went | go | gone
-Did they ___ the movie? | see | saw | seen</textarea>
-    </div>
-
-    <div id="t2" class="content">
-        <label>Жизней</label><input type="number" id="lives" value="5">
-        <label>Таймер (сек)</label><input type="number" id="time" value="20">
-        <label>Вопросов в уровне</label><input type="number" id="qpl" value="5">
-    </div>
-
-    <div id="t3" class="content">
-        <label>Цвет интерфейса</label><input type="color" id="color" value="#6ab04c">
-        <label>Громкость (0.1 - 1.0)</label><input type="number" id="vol" step="0.1" value="0.5">
-    </div>
-
-    <button class="btn-gen" onclick="generate()">СГЕНЕРИРОВАТЬ КОД ИГРЫ</button>
-    <textarea id="resCode" readonly></textarea>
-</div>
 
 <script>
-    function tab(e, id) {
-        document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        e.currentTarget.classList.add('active');
-    }
-
-    function generate() {
-        const qRaw = document.getElementById('qs').value.split('\n').filter(l => l.includes('|'));
-        const config = {
-            t: document.getElementById('title').value,
-            qs: qRaw.map(l => { const p = l.split('|'); return {q:p[0].trim(), o:[p[1].trim(), p[2].trim(), p[3].trim()], c:0} }),
-            li: document.getElementById('lives').value,
-            tm: document.getElementById('time').value,
-            qp: document.getElementById('qpl').value,
-            cl: document.getElementById('color').value,
-            vol: document.getElementById('vol').value
-        };
-
-        // ВНИМАНИЕ: Ссылка на твой index.html на GitHub
-        const gameUrl = "https://vivanova288-boop.github.io/Froggy_Jumps/index.html";
-        
-        const code = `<iframe id="fg" src="${gameUrl}" style="width:100%;height:600px;border:none;"></iframe>\n<script>\nwindow.addEventListener('message', e => {\n if(e.data === 'ready') document.getElementById('fg').contentWindow.postMessage(${JSON.stringify(config)}, '*');\n});\n<\/script>`;
-        
-        document.getElementById('resCode').value = code;
-        document.getElementById('resCode').style.display = 'block';
-    }
+function build() {
+    const qL = document.getElementById('qs').value.split('\n').filter(l=>l.includes('|'));
+    const config = {
+        t: document.getElementById('t').value,
+        li: document.getElementById('li').value,
+        bg: "https://vivanova288-boop.github.io/Froggy_Jumps/bg.png", // дефолтный фон
+        fr: "https://vivanova288-boop.github.io/Froggy_Jumps/2.png", // лягушка
+        le: "https://vivanova288-boop.github.io/Froggy_Jumps/1.png", // лист
+        ic: "https://vivanova288-boop.github.io/Froggy_Jumps/3.png", // жизнь
+        s: ["","https://vivanova288-boop.github.io/Froggy_Jumps/1.mp3","https://vivanova288-boop.github.io/Froggy_Jumps/2.mp3","","","",""], // звуки
+        qs: qL.map(l=>{const p=l.split('|'); return {q:p[0].trim(), o:[p[1].trim(), p[2].trim(), p[3].trim()]}})
+    };
+    
+    const encoded = encodeURIComponent(JSON.stringify(config));
+    const finalUrl = `https://vivanova288-boop.github.io/Froggy_Jumps/index.html?d=${encoded}`;
+    
+    const res = document.getElementById('link');
+    res.innerText = `<iframe src="${finalUrl}" style="width:100%;height:600px;border:none;"></iframe>`;
+    res.style.display = 'block';
+    alert("Код готов! Скопируй его из серого поля.");
+}
 </script>
 </body>
 </html>
