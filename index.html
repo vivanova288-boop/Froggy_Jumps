@@ -3,71 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: sans-serif; background: #2bbcd6; }
-        #ui { position: absolute; top: 0; width: 100%; z-index: 10; }
+        body, html { margin:0; padding:0; height:100%; overflow:hidden; background: #2bbcd6; font-family: sans-serif; }
         #header { padding: 15px; color: white; text-align: center; font-weight: bold; font-size: 20px; }
         #lives { position: absolute; top: 60px; left: 20px; display: flex; gap: 5px; }
-        .life { width: 40px; height: 40px; background-size: contain; background-repeat: no-repeat; }
-        #quest-box { background: white; width: 80%; margin: 20px auto; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        #pond { position: relative; height: 60vh; width: 100%; }
-        .leaf { position: absolute; width: 150px; height: 120px; background-size: contain; background-repeat: no-repeat; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; text-shadow: 1px 1px 2px #000; }
-        #frog { position: absolute; width: 80px; height: 80px; background-size: contain; background-repeat: no-repeat; z-index: 5; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        #waiting { position: fixed; inset: 0; background: #2bbcd6; display: flex; align-items: center; justify-content: center; color: white; font-size: 40px; z-index: 100; }
-        .shock { animation: shock 0.1s infinite; }
-        @keyframes shock { 0% { filter: invert(1); transform: scale(1.1); } 100% { filter: invert(0); } }
+        .life { width: 35px; height: 35px; background: url('3.png') no-repeat center/contain; }
+        #q-box { background: white; width: 85%; margin: 10px auto; padding: 15px; border-radius: 12px; text-align: center; }
+        #pond { position: relative; height: 100%; }
+        #frog { position: absolute; width: 80px; height: 80px; background: url('2.png') no-repeat center/contain; z-index: 50; transition: 0.6s cubic-bezier(.47,1.21,.58,1); }
+        .leaf { position: absolute; width: 160px; height: 130px; background: url('1.png') no-repeat center/contain; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; padding: 10px; text-align: center; }
+        .shock { animation: shock 0.1s infinite; filter: brightness(2) hue-rotate(90deg); }
+        @keyframes shock { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
     </style>
 </head>
 <body>
-    <div id="waiting">ОЖИДАНИЕ НАСТРОЕК...</div>
-    <div id="ui">
-        <div id="header">ЗАГРУЗКА...</div>
+    <div id="game-ui">
+        <div id="header"></div>
         <div id="lives"></div>
-        <div id="quest-box">
-            <div id="question-text">Вопрос</div>
-        </div>
+        <div id="q-box"><div id="q-text"></div></div>
     </div>
     <div id="pond"><div id="frog"></div></div>
 
-    <script>
-        let cfg;
-        let currentLives;
-        
-        // Сигнал в Genially: "Я готов, давай настройки"
-        window.onload = () => window.parent.postMessage('frog_ready', '*');
+<script>
+    let cfg, currentLives, step = 0, lastPos = {x:50, y:85};
+    const s_win = new Audio('1.mp3'), s_err = new Audio('2.mp3');
 
-        // Получение настроек
-        window.addEventListener('message', e => {
-            if (e.data.qs) {
-                cfg = e.data;
-                document.getElementById('waiting').style.display = 'none';
-                startGame();
-            }
+    // Сигнал редактору: "Я загрузился, давай данные"
+    window.onload = () => window.parent.postMessage('ready', '*');
+    
+    window.addEventListener('message', e => {
+        if(e.data.qs) {
+            cfg = e.data;
+            start();
+        }
+    });
+
+    function start() {
+        document.getElementById('header').innerText = cfg.t;
+        document.getElementById('header').style.backgroundColor = cfg.cl;
+        currentLives = cfg.li;
+        s_win.volume = s_err.volume = cfg.vol;
+        updateLives();
+        placeFrog(50, 85);
+        loadQuestion();
+    }
+
+    function updateLives() {
+        const container = document.getElementById('lives');
+        container.innerHTML = '';
+        for(let i=0; i<currentLives; i++) container.innerHTML += '<div class="life"></div>';
+    }
+
+    function loadQuestion() {
+        if(step >= cfg.qs.length) { alert("Victory!"); return; }
+        const qData = cfg.qs[step];
+        document.getElementById('q-text').innerText = qData.q;
+        renderLeaves(qData);
+    }
+
+    function renderLeaves(q) {
+        document.querySelectorAll('.leaf').forEach(l => l.remove());
+        q.o.forEach((txt, i) => {
+            const leaf = document.createElement('div');
+            leaf.className = 'leaf';
+            leaf.style.left = (15 + i*35) + '%';
+            leaf.style.top = (60 - (step % cfg.qp) * 10) + '%';
+            leaf.innerText = txt;
+            leaf.onclick = () => jump(i, 15 + i*35, 60 - (step % cfg.qp) * 10);
+            document.getElementById('pond').appendChild(leaf);
         });
+    }
 
-        function startGame() {
-            document.getElementById('header').innerText = cfg.t;
-            document.getElementById('header').style.backgroundColor = cfg.v.c;
-            currentLives = cfg.li;
+    function jump(idx, x, y) {
+        const f = document.getElementById('frog');
+        placeFrog(x, y);
+        if(idx === 0) {
+            s_win.play();
+            lastPos = {x, y};
+            step++;
+            setTimeout(loadQuestion, 700);
+        } else {
+            s_err.play();
+            f.classList.add('shock');
+            currentLives--;
             updateLives();
-            document.getElementById('frog').style.backgroundImage = `url(${cfg.v.f})`;
-            nextStep();
+            setTimeout(() => {
+                f.classList.remove('shock');
+                placeFrog(lastPos.x, lastPos.y);
+                if(currentLives <= 0) alert("Game Over");
+            }, 800);
         }
+    }
 
-        function updateLives() {
-            const container = document.getElementById('lives');
-            container.innerHTML = '';
-            for(let i=0; i<currentLives; i++) {
-                let d = document.createElement('div');
-                d.className = 'life';
-                d.style.backgroundImage = `url(${cfg.v.i})`;
-                container.appendChild(d);
-            }
-        }
-
-        function nextStep() {
-            // Тут логика отрисовки листьев и прыжка
-            // При ошибке: лягушка получает класс .shock и прыгает назад
-        }
-    </script>
+    function placeFrog(x, y) {
+        const f = document.getElementById('frog');
+        f.style.left = `calc(${x}% - 40px)`;
+        f.style.top = `calc(${y}% - 40px)`;
+    }
+</script>
 </body>
 </html>
