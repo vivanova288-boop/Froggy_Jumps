@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
-        .box { max-width: 800px; margin: auto; background: #fff; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
+        .box { max-width: 800px; margin: auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; }
         .tabs { display: flex; background: #333; }
-        .tab { flex: 1; padding: 15px; color: #aaa; text-align: center; cursor: pointer; font-size: 12px; font-weight: bold; border-right: 1px solid #444; }
+        .tab { flex: 1; padding: 15px; color: #ccc; text-align: center; cursor: pointer; font-size: 12px; font-weight: bold; }
         .tab.active { background: #6ab04c; color: #fff; }
-        .pane { padding: 30px; display: none; }
+        .pane { padding: 25px; display: none; }
         .pane.active { display: block; }
-        label { display: block; margin: 12px 0 5px; font-weight: bold; color: #555; font-size: 12px; }
-        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .res { margin-top: 20px; padding: 15px; background: #2d3436; color: #00cec9; font-family: monospace; border-radius: 10px; word-break: break-all; display: none; }
-        button { width: 100%; padding: 18px; background: #ff4757; color: #fff; border: none; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; border-radius: 10px; }
+        label { display: block; margin: 10px 0 5px; font-weight: bold; font-size: 12px; color: #555; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-main { background: #ff4757; color: #fff; }
+        .btn-copy { background: #2f3542; color: #fff; display: none; }
+        .res { margin-top: 20px; padding: 15px; background: #222; color: #0f0; font-family: monospace; border-radius: 8px; font-size: 11px; word-break: break-all; max-height: 150px; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -26,41 +29,42 @@
     </div>
 
     <div class="pane active">
-        <label>Заголовок игры</label><input type="text" id="t" value="PAST SIMPLE CHALLENGE">
-        <label>Вопросы (Вопрос | Верно | Нет | Нет)</label>
-        <textarea id="qs" style="height:120px;">You __ very late for the lesson. | were | was | are</textarea>
-        <label>Вопросов на уровень</label><input type="number" id="qp" value="5">
+        <label>Заголовок</label><input type="text" id="t" value="FROGGY QUEST">
+        <label>Вопросы (Вопрос | Верно | Ложь | Ложь)</label>
+        <textarea id="qs" style="height:100px;">2+2?|4|5|6</textarea>
     </div>
 
     <div class="pane">
         <label>Жизни</label><input type="number" id="li" value="5">
-        <label>Время на вопрос (сек)</label><input type="number" id="tm" value="20">
-        <label><input type="checkbox" id="tme" checked style="width:auto"> Включить таймер</label>
+        <label>Время (сек)</label><input type="number" id="tm" value="15">
+        <label><input type="checkbox" id="tme" checked style="width:auto"> Таймер активен</label>
     </div>
 
     <div class="pane">
-        <label>Фон (Пруд)</label><input type="text" id="bg" value="https://vivanova288-boop.github.io/Froggy_Jumps/bg.png">
+        <label>Фон</label><input type="text" id="bg" value="https://vivanova288-boop.github.io/Froggy_Jumps/bg.png">
         <label>Лягушка</label><input type="text" id="fr" value="https://vivanova288-boop.github.io/Froggy_Jumps/2.png">
-        <label>Лист</label><input type="text" id="le" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.png">
-        <label>Иконка жизни</label><input type="text" id="ic" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.png">
-        <label>Цвет шапки</label><input type="color" id="c1" value="#6ab04c">
+        <label>Лилии</label><input type="text" id="le" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.png">
+        <label>Жизнь</label><input type="text" id="ic" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.png">
     </div>
 
     <div class="pane">
-        <label>Громкость по умолчанию (0.1-1.0)</label><input type="number" id="vol" value="0.5" step="0.1">
-        <label>Текст победы</label><input type="text" id="win" value="ПОБЕДА!">
-        <label>Текст проигрыша</label><input type="text" id="lose" value="ИГРА ОКОНЧЕНА">
+        <label>Громкость (0.1-1.0)</label><input type="number" id="vol" value="0.5" step="0.1">
         <label>1. Старт</label><input type="text" id="s0" value="https://vivanova288-boop.github.io/Froggy_Jumps/5.mp3">
         <label>2. Верно</label><input type="text" id="s1" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.mp3">
         <label>3. Ошибка</label><input type="text" id="s2" value="https://vivanova288-boop.github.io/Froggy_Jumps/2.mp3">
         <label>4. Победа</label><input type="text" id="s3" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.mp3">
         <label>5. Поражение</label><input type="text" id="s4" value="https://vivanova288-boop.github.io/Froggy_Jumps/4.mp3">
         <label>6. Новый уровень</label><input type="text" id="s5" value="https://vivanova288-boop.github.io/Froggy_Jumps/6.mp3">
-        <label>7. Обратный отсчет</label><input type="text" id="s6" value="https://vivanova288-boop.github.io/Froggy_Jumps/7.mp3">
+        <label>7. Время истекает</label><input type="text" id="s6" value="https://vivanova288-boop.github.io/Froggy_Jumps/7.mp3">
     </div>
 
-    <button onclick="build()">СОЗДАТЬ КОД ДЛЯ GENIALLY</button>
-    <div id="res" class="res"></div>
+    <div style="padding: 25px;">
+        <div class="btn-group">
+            <button class="btn-main" onclick="build()">СОЗДАТЬ ССЫЛКУ</button>
+            <button id="copy-btn" class="btn-copy" onclick="copyCode()">КОПИРОВАТЬ КОД</button>
+        </div>
+        <div id="res" class="res" style="display:none;"></div>
+    </div>
 </div>
 
 <script>
@@ -71,31 +75,24 @@
     function build(){
         const qL = document.getElementById('qs').value.split('\n').filter(l=>l.includes('|'));
         const config = {
-            t:document.getElementById('t').value,
-            li:document.getElementById('li').value,
-            tm:document.getElementById('tm').value,
-            tme:document.getElementById('tme').checked,
-            qp:document.getElementById('qp').value,
-            bg:document.getElementById('bg').value,
-            fr:document.getElementById('fr').value,
-            le:document.getElementById('le').value,
-            ic:document.getElementById('ic').value,
-            c1:document.getElementById('c1').value,
-            vol:document.getElementById('vol').value,
-            win:document.getElementById('win').value,
-            lose:document.getElementById('lose').value,
-            s:[
-                document.getElementById('s0').value, document.getElementById('s1').value, 
-                document.getElementById('s2').value, document.getElementById('s3').value,
-                document.getElementById('s4').value, document.getElementById('s5').value,
-                document.getElementById('s6').value
-            ],
+            t:document.getElementById('t').value, li:document.getElementById('li').value,
+            tm:document.getElementById('tm').value, tme:document.getElementById('tme').checked,
+            bg:document.getElementById('bg').value, fr:document.getElementById('fr').value,
+            le:document.getElementById('le').value, ic:document.getElementById('ic').value,
+            vol:document.getElementById('vol').value, win:"ПОБЕДА!", lose:"ИГРА ОКОНЧЕНА",
+            s:[document.getElementById('s0').value, document.getElementById('s1').value, document.getElementById('s2').value, document.getElementById('s3').value, document.getElementById('s4').value, document.getElementById('s5').value, document.getElementById('s6').value],
             qs:qL.map(l=>{const p=l.split('|'); return {q:p[0].trim(),o:[p[1].trim(),p[2].trim(),p[3].trim()]}})
         };
         const d = encodeURIComponent(JSON.stringify(config));
         const url = `https://vivanova288-boop.github.io/Froggy_Jumps/index.html?d=${d}`;
-        document.getElementById('res').innerText = `<iframe src="${url}" style="width:100%;height:600px;border:none;" allow="autoplay"></iframe>`;
+        const code = `<iframe src="${url}" style="width:100%;height:600px;border:none;" allow="autoplay"></iframe>`;
+        document.getElementById('res').innerText = code;
         document.getElementById('res').style.display = 'block';
+        document.getElementById('copy-btn').style.display = 'block';
+    }
+    function copyCode(){
+        const txt = document.getElementById('res').innerText;
+        navigator.clipboard.writeText(txt).then(() => alert("Код скопирован!"));
     }
 </script>
 </body>
