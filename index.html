@@ -2,146 +2,172 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Froggy Jumps</title>
     <style>
-        body, html { margin:0; padding:0; height:100%; overflow:hidden; font-family:sans-serif; background:#000; }
-        #gm { width:100%; height:100%; position:relative; background-size:cover; background-position:center; display:none; }
+        body, html { margin:0; padding:0; height:100%; width:100%; overflow:hidden; font-family:sans-serif; background:#1e3799; }
         
-        /* Заставка */
-        #splash { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; display:flex; align-items:center; justify-content:center; color:#fff; font-size:120px; font-weight:bold; }
+        /* СТАРТОВЫЙ ЭКРАН */
+        #start-screen { position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; }
+        #btn-go { padding:20px 60px; font-size:28px; font-weight:bold; background:#4cd137; color:white; border:none; border-radius:50px; cursor:pointer; box-shadow:0 10px 20px rgba(0,0,0,0.4); }
         
-        #top-bar { position:absolute; top:0; width:100%; height:40px; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; color:#fff; z-index:10; }
-        #ui { position:absolute; top:50px; width:100%; display:flex; justify-content:space-between; padding:0 20px; box-sizing:border-box; z-index:10; }
-        #q-card { background:#fff; border-radius:20px; padding:15px; box-shadow:0 4px 15px rgba(0,0,0,0.3); text-align:center; width:50%; }
-        #tm-bg { width:100%; height:6px; background:#ddd; border-radius:3px; margin-top:8px; overflow:hidden; }
-        #tm-f { height:100%; width:100%; background:#ff4757; transition:linear; }
+        /* ОБРАТНЫЙ ОТСЧЕТ */
+        #timer-screen { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9000; display:none; align-items:center; justify-content:center; color:#fff; font-size:150px; font-weight:bold; }
+
+        #gm { width:100%; height:100%; position:relative; display:none; background-size:cover; background-position:center; }
+        #q-card { position:absolute; top:50px; left:50%; transform:translateX(-50%); background:#fff; border-radius:20px; padding:15px; width:60%; text-align:center; z-index:100; box-shadow:0 5px 15px rgba(0,0,0,0.3); }
+        #tm-bg { width:100%; height:8px; background:#eee; border-radius:4px; margin-top:10px; overflow:hidden; }
+        #tm-f { height:100%; width:100%; background:#e84118; transition:linear; }
+
+        #frog { width:80px; height:80px; position:absolute; z-index:500; transition:0.6s cubic-bezier(.47,1.21,.58,1); background-size:contain; background-repeat:no-repeat; }
         
-        .h { width:30px; height:30px; background-size:contain; background-repeat:no-repeat; display:inline-block; }
-        #frog { width:80px; height:80px; position:absolute; z-index:100; transition:0.6s cubic-bezier(.47,1.21,.58,1); background-size:contain; background-repeat:no-repeat; }
+        .leaf { position:absolute; width:120px; height:90px; background-size:contain; background-repeat:no-repeat; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-weight:bold; font-size:14px; text-shadow:1px 1px 2px #000; transition:0.3s; padding-top:10px; }
+        .leaf-active { cursor:pointer; opacity:1; }
+        .leaf-idle { opacity:0.4; cursor:default; }
+        .letter { position:absolute; top:-15px; background:#f1c40f; color:#000; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:12px; }
         
-        .leaf-wrap { position:absolute; width:120px; text-align:center; transition:0.3s; opacity: 0.4; }
-        .leaf-wrap.active { opacity: 1; cursor:pointer; }
-        .leaf-img { width:100%; height:80px; background-size:contain; background-repeat:no-repeat; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; text-shadow:1px 1px 2px #000; }
-        .letter { background:#f1c40f; width:20px; height:20px; border-radius:50%; margin:0 auto -10px; position:relative; z-index:2; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; border:2px solid #fff; color:#000; }
-        
-        .shock { animation: sh 0.1s infinite; filter: brightness(2) contrast(2) hue-rotate(180deg); }
-        @keyframes sh { 0% { transform:translate(2px); } 50% { transform:translate(-2px); } }
+        .shock { animation: shake 0.1s infinite; filter: brightness(2) contrast(1.5) hue-rotate(180deg); }
+        @keyframes shake { 0%, 100% { transform:translate(0); } 25% { transform:translate(4px); } 75% { transform:translate(-4px); } }
     </style>
 </head>
 <body>
-    <div id="splash">3</div>
+
+    <div id="start-screen">
+        <h1 id="title">FROGGY JUMPS</h1>
+        <button id="btn-go" onclick="launch()">ИГРАТЬ</button>
+    </div>
+
+    <div id="timer-screen">3</div>
+
     <div id="gm">
-        <div id="top-bar"></div>
-        <div id="ui">
-            <div id="lives"></div>
-            <div id="q-card">
-                <div id="q-txt" style="font-weight:bold;">ПОДГОТОВКА...</div>
-                <div id="tm-bg"><div id="tm-f"></div></div>
-            </div>
-            <div id="vol-box" style="background:#fff; padding:5px; border-radius:10px;">
-                🔈<input type="range" id="vol" min="0" max="1" step="0.1" value="0.5">
-            </div>
+        <div id="q-card">
+            <div id="q-txt" style="font-size:20px; color:#2f3640;">Загрузка...</div>
+            <div id="tm-bg"><div id="tm-f"></div></div>
         </div>
         <div id="pond"></div>
         <div id="frog"></div>
     </div>
 
 <script>
-    let c, step=0, hp, lastP={x:50,y:85}, aud={}, tmr;
-    const urlP = new URLSearchParams(window.location.search);
-    const d = urlP.get('d');
+    let c, step=0, hp, lastPos={x:50,y:85}, aud={}, timer;
+    const params = new URLSearchParams(window.location.search);
+    const data = params.get('d');
 
-    if(d) { try { c = JSON.parse(decodeURIComponent(d)); init(); } catch(e) { console.error(e); } }
+    if(data) {
+        try { 
+            c = JSON.parse(decodeURIComponent(data));
+            document.getElementById('title').innerText = c.t;
+        } catch(e) { console.error("Data error"); }
+    }
 
-    function shuffle(a) { for(let i=a.length-1; i>0; i--) { const j=Math.floor(Math.random()*(i+1)); [a[i], a[j]] = [a[j], a[i]]; } }
-    function playS(i) { if(aud[i]) { aud[i].currentTime=0; aud[i].play(); } }
-
-    function init(){
-        const g=document.getElementById('gm');
-        g.style.backgroundImage=`url(${c.bg})`;
-        document.getElementById('frog').style.backgroundImage=`url(${c.fr})`;
-        c.s.forEach((u,i)=> { if(u) { aud[i]=new Audio(u); aud[i].volume=c.vol; } });
+    function launch() {
+        document.getElementById('start-screen').style.display = 'none';
+        const ts = document.getElementById('timer-screen');
+        ts.style.display = 'flex';
         
-        // Старт заставки
+        // Инициализация звука
+        c.s.forEach((u,i)=> { if(u) { aud[i]=new Audio(u); aud[i].volume=c.vol; } });
+
         let count = 3;
-        const s = document.getElementById('splash');
-        let si = setInterval(() => {
+        let itv = setInterval(() => {
             count--;
-            if(count > 0) s.innerText = count;
+            if(count > 0) ts.innerText = count;
             else {
-                clearInterval(si);
-                s.style.display = 'none';
-                g.style.display = 'block';
-                playS(0); // Звук старта
-                hp=c.li; drawHp(); move(50,85); load();
+                clearInterval(itv);
+                ts.style.display = 'none';
+                document.getElementById('gm').style.display = 'block';
+                document.getElementById('gm').style.backgroundImage = `url(${c.bg})`;
+                document.getElementById('frog').style.backgroundImage = `url(${c.fr})`;
+                hp = c.li; 
+                if(aud[0]) aud[0].play();
+                drawWorld();
+                moveFrog(50, 85);
+                startQuestion();
             }
         }, 1000);
     }
 
-    function drawHp(){
-        const b=document.getElementById('lives'); b.innerHTML='';
-        for(let i=0; i<hp; i++) b.innerHTML+=`<div class="h" style="background-image:url(${c.ic})"></div>`;
+    function drawWorld() {
+        const pond = document.getElementById('pond');
+        pond.innerHTML = '';
+        // Рисуем сетку 5 рядов по 3 листика сразу
+        for(let r=0; r<5; r++) {
+            for(let i=0; i<3; i++) {
+                const l = document.createElement('div');
+                l.id = `l-${r}-${i}`;
+                l.className = 'leaf leaf-idle';
+                l.style.backgroundImage = `url(${c.le})`;
+                l.style.left = (20 + i*30) + '%';
+                l.style.top = (80 - r*15) + '%';
+                l.innerHTML = `<div class="letter">${String.fromCharCode(65+i)}</div><span class="txt"></span>`;
+                pond.appendChild(l);
+            }
+        }
     }
 
-    function load(){
-        if(step >= c.qs.length) { playS(3); alert(c.win); return; }
-        clearInterval(tmr);
-        const q=c.qs[step];
-        const level = Math.floor(step / c.qp);
-        document.getElementById('top-bar').innerText = `${c.t} | УРОВЕНЬ ${level + 1}`;
+    function startQuestion() {
+        if(step >= c.qs.length) { if(aud[3]) aud[3].play(); alert(c.win); return; }
+        clearInterval(timer);
+        
+        const q = c.qs[step];
         document.getElementById('q-txt').innerText = q.q;
         
-        const pond=document.getElementById('pond'); pond.innerHTML='';
-        
-        // Отрисовка 5 рядов (сетка озера)
-        for(let r=0; r<c.qp; r++) {
-            let isCurrentRow = r === (step % c.qp);
-            let opts = isCurrentRow ? q.o.map((t, i) => ({t, ok: i===0})) : [{t:''},{t:''},{t:''}];
-            if(isCurrentRow) shuffle(opts);
+        const row = step % 5;
+        // Очищаем старые листики
+        document.querySelectorAll('.leaf').forEach(el => {
+            el.className = 'leaf leaf-idle';
+            el.onclick = null;
+            el.querySelector('.txt').innerText = '';
+        });
 
-            opts.forEach((opt, i) => {
-                const w=document.createElement('div');
-                w.className = 'leaf-wrap' + (isCurrentRow ? ' active' : '');
-                const x = 20 + i*30;
-                const y = 75 - r*12; 
-                w.style.left=x+'%'; w.style.top=y+'%';
-                w.innerHTML = `<div class="letter">${String.fromCharCode(65+i)}</div><div class="leaf-img" style="background-image:url(${c.le})">${opt.t}</div>`;
-                if(isCurrentRow) w.onclick = () => jump(opt.ok, x, y);
-                pond.appendChild(w);
-            });
-        }
-        if(c.tme) startTmr();
+        // Активируем текущий ряд
+        let options = q.o.map((t, idx) => ({t, ok: idx===0}));
+        options.sort(() => Math.random() - 0.5);
+
+        options.forEach((opt, i) => {
+            const el = document.getElementById(`l-${row}-${i}`);
+            el.className = 'leaf leaf-active';
+            el.querySelector('.txt').innerText = opt.t;
+            el.onclick = () => handleJump(opt.ok, 20 + i*30, 80 - row*15);
+        });
+
+        if(c.tme) startTimer();
     }
 
-    function jump(ok, x, y){
-        move(x, y);
-        if(ok){ 
-            playS(1); lastP={x,y}; step++; 
-            if(step % c.qp === 0) playS(5); // Звук нового уровня
-            setTimeout(load, 600); 
+    function handleJump(isOk, x, y) {
+        moveFrog(x, y);
+        if(isOk) {
+            if(aud[1]) aud[1].play();
+            lastPos = {x, y};
+            step++;
+            setTimeout(startQuestion, 700);
         } else {
-            playS(2); 
-            const f=document.getElementById('frog'); f.classList.add('shock'); 
-            hp--; drawHp();
-            setTimeout(()=>{
-                f.classList.remove('shock'); 
-                move(lastP.x, lastP.y); // Возврат [cite: 2026-01-18]
-                if(hp<=0) { playS(4); alert(c.lose); location.reload(); }
+            if(aud[2]) aud[2].play();
+            const f = document.getElementById('frog');
+            f.classList.add('shock'); // Механика шока [cite: 2026-01-18]
+            hp--;
+            setTimeout(() => {
+                f.classList.remove('shock');
+                moveFrog(lastPos.x, lastPos.y); // Возврат [cite: 2026-01-18]
+                if(hp <= 0) { if(aud[4]) aud[4].play(); alert(c.lose); location.reload(); }
             }, 800);
         }
     }
 
-    function startTmr(){
-        let w=100; const f=document.getElementById('tm-f');
-        tmr=setInterval(()=>{
-            w-=100/(c.tm*10); f.style.width=w+'%';
-            if(w < 20) playS(6); 
-            if(w<=0){ clearInterval(tmr); playS(4); alert(c.lose); location.reload(); }
+    function startTimer() {
+        let w = 100;
+        const f = document.getElementById('tm-f');
+        timer = setInterval(() => {
+            w -= 100/(c.tm*10);
+            f.style.width = w + '%';
+            if(w <= 0) { clearInterval(timer); if(aud[4]) aud[4].play(); alert(c.lose); location.reload(); }
         }, 100);
     }
 
-    function move(x,y){
-        const f=document.getElementById('frog');
-        f.style.left=`calc(${x}% - 40px)`; f.style.top=`calc(${y}% - 40px)`;
+    function moveFrog(x, y) {
+        const f = document.getElementById('frog');
+        f.style.left = `calc(${x}% - 40px)`;
+        f.style.top = `calc(${y}% - 40px)`;
     }
 </script>
 </body>
