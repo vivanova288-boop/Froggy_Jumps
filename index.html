@@ -6,16 +6,20 @@
         body, html { margin:0; padding:0; height:100%; overflow:hidden; font-family:sans-serif; background:#000; }
         #gm { width:100%; height:100%; position:relative; background-size:cover; background-position:center; display:none; }
         #top-bar { position:absolute; top:0; width:100%; height:40px; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; color:#fff; z-index:10; }
-        #ui { position:absolute; top:50px; width:100%; display:flex; justify-content:space-between; padding:0 20px; box-sizing:border-box; z-index:10; }
-        #q-card { background:#fff; border-radius:20px; padding:15px; box-shadow:0 4px 15px rgba(0,0,0,0.3); text-align:center; width:50%; }
-        #tm-bg { width:100%; height:6px; background:#ddd; border-radius:3px; margin-top:8px; overflow:hidden; }
+        #ui { position:absolute; top:50px; width:100%; display:flex; justify-content:space-between; padding:0 20px; box-sizing:border-box; z-index:10; width:100%; }
+        #q-card { background:#fff; border-radius:30px; padding:15px; box-shadow:0 4px 15px rgba(0,0,0,0.4); text-align:center; width:50%; min-height:60px; }
+        #tm-bg { width:100%; height:8px; background:#ddd; border-radius:4px; margin-top:10px; overflow:hidden; }
         #tm-f { height:100%; width:100%; background:#ff4757; transition:linear; }
-        .h { width:30px; height:30px; background-size:contain; background-repeat:no-repeat; display:inline-block; }
-        #frog { width:80px; height:80px; position:absolute; z-index:100; transition:0.5s; background-size:contain; background-repeat:no-repeat; }
-        .leaf-wrap { position:absolute; width:120px; text-align:center; cursor:pointer; transition:0.3s; }
-        .leaf-img { width:100%; height:80px; background-size:contain; background-repeat:no-repeat; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; text-shadow:1px 1px 2px #000; }
-        .letter { background:#f1c40f; width:20px; height:20px; border-radius:50%; margin:0 auto -10px; position:relative; z-index:2; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; border:2px solid #fff; }
-        .shock { animation: sh 0.1s infinite; filter: invert(1); }
+        #lives { display:flex; gap:5px; align-items:center; }
+        .h { width:30px; height:30px; background-size:contain; background-repeat:no-repeat; }
+        #frog { width:100px; height:100px; position:absolute; z-index:100; transition:0.6s cubic-bezier(.47,1.21,.58,1); background-size:contain; background-repeat:no-repeat; }
+        
+        .leaf-wrap { position:absolute; width:140px; text-align:center; cursor:pointer; z-index:5; }
+        .leaf-img { width:130px; height:90px; background-size:contain; background-repeat:no-repeat; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; text-shadow:1px 1px 3px #000; padding:10px; box-sizing:border-box; }
+        .letter { background:#f1c40f; width:24px; height:24px; border-radius:50%; margin:0 auto -12px; position:relative; z-index:6; font-size:14px; font-weight:bold; display:flex; align-items:center; justify-content:center; border:2px solid #fff; color:#000; }
+        
+        #vol-box { background:#fff; padding:10px; border-radius:20px; display:flex; align-items:center; gap:10px; box-shadow:0 2px 10px rgba(0,0,0,0.2); }
+        .shock { animation: sh 0.1s infinite; filter: brightness(2) contrast(2) hue-rotate(180deg); }
         @keyframes sh { 0% { transform:translate(2px); } 50% { transform:translate(-2px); } }
     </style>
 </head>
@@ -25,16 +29,17 @@
         <div id="ui">
             <div id="lives"></div>
             <div id="q-card">
-                <div id="q-txt" style="font-weight:bold;"></div>
+                <div id="q-txt" style="font-weight:bold; font-size:18px; color:#333;"></div>
                 <div id="tm-bg"><div id="tm-f"></div></div>
             </div>
-            <div id="vol-box" style="background:#fff; padding:5px; border-radius:10px;">
-                🔈<input type="range" id="vol" min="0" max="1" step="0.1" value="0.5">
+            <div id="vol-box">
+                🔊 <input type="range" id="vol" min="0" max="1" step="0.1" value="0.5" style="width:60px;">
             </div>
         </div>
         <div id="pond"></div>
         <div id="frog"></div>
     </div>
+
 <script>
     let c, step=0, hp, lastP={x:50,y:85}, aud={}, tmr;
     const urlP = new URLSearchParams(window.location.search);
@@ -43,7 +48,6 @@
     if(d) { try { c = JSON.parse(decodeURIComponent(d)); if(c.sh) shuffle(c.qs); init(); } catch(e) { console.error(e); } }
 
     function shuffle(a) { for(let i=a.length-1; i>0; i--) { const j=Math.floor(Math.random()*(i+1)); [a[i], a[j]] = [a[j], a[i]]; } }
-
     function play(i) { if(aud[i]) { aud[i].currentTime=0; aud[i].play(); } }
 
     function init(){
@@ -51,7 +55,10 @@
         g.style.backgroundImage=`url(${c.bg})`;
         document.getElementById('frog').style.backgroundImage=`url(${c.fr})`;
         c.s.forEach((u,i)=> { if(u) { aud[i]=new Audio(u); aud[i].volume=c.vol; } });
-        document.getElementById('vol').oninput = (e) => Object.values(aud).forEach(a=>a.volume=e.target.value);
+        document.getElementById('vol').oninput = (e) => {
+            const v = e.target.value;
+            Object.values(aud).forEach(a=>a.volume=v);
+        };
         hp=c.li; drawHp(); move(50,85); play(0); load();
     }
 
@@ -68,30 +75,40 @@
         document.getElementById('q-txt').innerText = q.q;
         
         const pond=document.getElementById('pond'); pond.innerHTML='';
-        // Перемешиваем варианты ответов внутри вопроса
-        let options = q.o.map((t, i) => ({t, id: i}));
+        
+        // Создаем массив ответов, где первый — всегда правильный
+        let options = q.o.map((t, i) => ({t, isCorrect: i===0}));
+        // Перемешиваем их для отображения
         shuffle(options);
 
         options.forEach((opt, i)=>{
             const w=document.createElement('div'); w.className='leaf-wrap';
-            const x = 15 + i*35;
-            const y = 70 - (step % c.qp) * 12; // Исправленная вертикальная сетка
+            // Фиксированные координаты X: 20%, 50%, 80%
+            const x = 20 + i*30; 
+            // Фиксированная координата Y: чуть ниже центра
+            const y = 65; 
             w.style.left=x+'%'; w.style.top=y+'%';
             w.innerHTML = `<div class="letter">${String.fromCharCode(65+i)}</div><div class="leaf-img" style="background-image:url(${c.le})">${opt.t}</div>`;
-            w.onclick=()=>jump(opt.id, x, y);
+            w.onclick=()=>jump(opt.isCorrect, x, y);
             pond.appendChild(w);
         });
         if(c.tme) startTmr();
     }
 
-    function jump(id, x, y){
+    function jump(isCorrect, x, y){
         move(x, y);
-        if(id===0){ 
-            play(1); lastP={x,y}; step++; setTimeout(load, 600); 
+        if(isCorrect){ 
+            play(1); 
+            // Лягушка остается на месте на полсекунды, потом следующий вопрос
+            step++; setTimeout(load, 800); 
         } else {
-            play(2); const f=document.getElementById('frog'); f.classList.add('shock'); hp--; drawHp();
+            play(2); 
+            const f=document.getElementById('frog'); 
+            f.classList.add('shock'); // Шок при неверном ответе [cite: 2026-01-18]
+            hp--; drawHp();
             setTimeout(()=>{
-                f.classList.remove('shock'); move(lastP.x, lastP.y); // Возврат на старую лилию [cite: 2026-01-18]
+                f.classList.remove('shock'); 
+                move(50, 85); // Отскакивает в начало (в нижнюю часть пруда) [cite: 2026-01-18]
                 if(hp<=0) { play(4); alert(c.lose); location.reload(); }
             }, 800);
         }
@@ -108,7 +125,7 @@
 
     function move(x,y){
         const f=document.getElementById('frog');
-        f.style.left=`calc(${x}% - 40px)`; f.style.top=`calc(${y}% - 40px)`;
+        f.style.left=`calc(${x}% - 50px)`; f.style.top=`calc(${y}% - 50px)`;
     }
 </script>
 </body>
