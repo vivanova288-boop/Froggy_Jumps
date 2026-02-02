@@ -3,42 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body, html { margin:0; padding:0; height:100%; overflow:hidden; background:#2bbcd6; font-family:sans-serif; }
-        #gm { width:100%; height:100%; position:relative; background-size:cover; display:none; }
-        #hd { padding:10px; color:#fff; text-align:center; font-weight:bold; font-size:24px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        body, html { margin:0; padding:0; height:100%; overflow:hidden; background:#000; font-family:sans-serif; }
+        #gm { width:100%; height:100%; position:relative; background-size:cover; background-position:center; display:none; }
+        #hd { padding:10px; color:#fff; text-align:center; font-weight:bold; box-shadow:0 2px 10px rgba(0,0,0,0.3); }
         #frog { width:80px; height:80px; position:absolute; z-index:100; background-size:contain; background-repeat:no-repeat; transition:0.6s cubic-bezier(.47,1.21,.58,1); }
-        .leaf { position:absolute; width:150px; height:120px; background-size:contain; background-repeat:no-repeat; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer; text-align:center; padding:15px; box-sizing:border-box; font-weight:bold; font-size:18px; text-shadow: 1px 1px 2px #000; }
-        .shock { animation: sk 0.1s infinite; filter: brightness(2) contrast(2) hue-rotate(180deg); }
+        .leaf { position:absolute; width:150px; height:110px; background-size:contain; background-repeat:no-repeat; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer; text-align:center; padding:15px; box-sizing:border-box; font-weight:bold; }
+        .shock { animation: sk 0.1s infinite; filter: brightness(2) contrast(2) sepia(1) hue-rotate(140deg); }
         @keyframes sk { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.1) rotate(5deg); } }
-        #lives { position:absolute; top:60px; left:20px; display:flex; gap:8px; }
+        #lives { position:absolute; top:60px; left:20px; display:flex; gap:5px; }
         .h { width:30px; height:30px; background-size:contain; background-repeat:no-repeat; }
+        #tm-w { position:absolute; top:0; left:0; width:100%; height:6px; background:rgba(0,0,0,0.2); }
+        #tm-f { height:100%; width:100%; background:#ff4757; transition:linear; }
     </style>
 </head>
 <body>
     <div id="gm">
+        <div id="tm-w"><div id="tm-f"></div></div>
         <div id="hd"></div>
         <div id="lives"></div>
         <div id="pond"><div id="frog"></div></div>
     </div>
 <script>
-    let c, step=0, hp, last={x:50,y:85}, aud={};
-    const params = new URLSearchParams(window.location.search);
-    const data = params.get('d');
+    let c, step=0, hp, last={x:50,y:85}, aud={}, tmr;
+    const p = new URLSearchParams(window.location.search);
+    const d = p.get('d');
 
-    if(data) {
-        try {
-            c = JSON.parse(decodeURIComponent(data));
-            init();
-        } catch(e) { document.body.innerHTML = "ERROR DATA"; }
+    if(d) {
+        try { c = JSON.parse(decodeURIComponent(d)); init(); } 
+        catch(e) { document.body.innerHTML = "DATA ERROR"; }
     }
 
     function init(){
         const g=document.getElementById('gm'); g.style.display='block';
         g.style.backgroundImage=`url(${c.bg})`;
-        document.getElementById('hd').innerText=c.t;
+        const h=document.getElementById('hd'); h.innerText=c.t; h.style.backgroundColor=c.c1; h.style.fontSize=c.fs+'px';
         document.getElementById('frog').style.backgroundImage=`url(${c.fr})`;
         hp=c.li;
-        c.s.forEach((u,i)=> { if(u) aud[i]=new Audio(u); });
+        c.s.forEach((u,i)=> { if(u) { aud[i]=new Audio(u); aud[i].volume=c.vol; } });
         updateHp(); pos(50,85); load();
     }
 
@@ -48,34 +49,43 @@
     }
 
     function load(){
-        if(step>=c.qs.length){ alert("VICTORY!"); return; }
+        if(step >= c.qs.length) { alert(c.win); return; }
+        clearInterval(tmr);
         const q=c.qs[step];
-        const p=document.getElementById('pond');
-        p.querySelectorAll('.leaf').forEach(l=>l.remove());
+        const pond=document.getElementById('pond'); pond.querySelectorAll('.leaf').forEach(l=>l.remove());
+        
         q.o.forEach((t,i)=>{
             const l=document.createElement('div'); l.className='leaf';
             l.style.backgroundImage=`url(${c.le})`;
-            l.style.left=(15+i*35)+'%'; l.style.top=(65-(step%5)*10)+'%';
-            l.innerText=t; l.onclick=()=>jump(i, 15+i*35, 65-(step%5)*10);
-            p.appendChild(l);
+            l.style.left=(15+i*35)+'%'; l.style.top=(65-(step%c.qp)*8)+'%';
+            l.style.fontSize=(c.fs-4)+'px'; l.innerText=t;
+            l.onclick=()=>jump(i, 15+i*35, 65-(step%c.qp)*8);
+            pond.appendChild(l);
         });
+        if(c.tme) startTmr();
     }
 
     function jump(i,x,y){
         pos(x,y);
         if(i===0){ 
             if(aud[1]) aud[1].play(); 
-            last={x,y}; step++; setTimeout(load,700); 
+            last={x,y}; step++; setTimeout(load, 600); 
         } else {
             if(aud[2]) aud[2].play(); 
-            const f = document.getElementById('frog');
-            f.classList.add('shock'); hp--; updateHp();
+            const f=document.getElementById('frog'); f.classList.add('shock'); hp--; updateHp();
             setTimeout(()=>{
-                f.classList.remove('shock');
-                pos(last.x, last.y);
-                if(hp<=0) { if(aud[4]) aud[4].play(); alert("GAME OVER"); location.reload(); }
-            },800);
+                f.classList.remove('shock'); pos(last.x, last.y);
+                if(hp<=0) { alert(c.lose); location.reload(); }
+            }, 800);
         }
+    }
+
+    function startTmr(){
+        let w=100; const f=document.getElementById('tm-f');
+        tmr=setInterval(()=>{
+            w-=100/(c.tm*10); f.style.width=w+'%';
+            if(w<=0){ clearInterval(tmr); alert(c.lose); location.reload(); }
+        }, 100);
     }
 
     function pos(x,y){
