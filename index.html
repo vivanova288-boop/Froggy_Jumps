@@ -1,191 +1,41 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Froggy Learning Game</title>
-    <style>
-        :root { --main-clr: #6ab04c; --speed: 0.5s; }
-        body { margin: 0; overflow: hidden; font-family: 'Arial', sans-serif; background-color: #87CEEB; background-size: cover; background-position: center; height: 100vh; }
-        #header { position: absolute; top: 0; width: 100%; height: 50px; background: var(--main-clr); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        #game-container { position: relative; width: 100vw; height: 100vh; }
-        
-        /* UI Элементы */
-        #ui { position: absolute; top: 60px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 10; }
-        #timer-wrap { width: 150px; height: 15px; background: rgba(255,255,255,0.5); border-radius: 10px; border: 2px solid #333; overflow: hidden; }
-        #timer-fill { width: 100%; height: 100%; background: #ff4757; transition: width 0.1s linear; }
-        #lives { display: flex; gap: 5px; }
-        .heart { width: 25px; height: 25px; background-size: contain; background-repeat: no-repeat; }
-
-        /* Вопросы */
-        #q-box { position: absolute; top: 110px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.9); padding: 15px; border-radius: 12px; text-align: center; width: 85%; max-width: 500px; z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        #ans-grid { display: grid; gap: 8px; margin-top: 10px; }
-        .ans-btn { padding: 10px; border: none; border-radius: 6px; background: #2f3542; color: white; cursor: pointer; font-size: 16px; transition: 0.2s; }
-        
-        /* Персонаж и объекты */
-        #frog { position: absolute; width: 80px; height: 80px; background-size: contain; background-repeat: no-repeat; z-index: 5; transition: all var(--speed) cubic-bezier(0.175, 0.885, 0.32, 1.275); bottom: 40px; left: 50px; }
-        .lily { position: absolute; width: 100px; height: 60px; background-size: contain; background-repeat: no-repeat; bottom: 35px; z-index: 4; transition: opacity 0.3s; }
-
-        /* Эффект шока */
-        .shock { animation: shake 0.1s infinite; filter: invert(1) sepia(1) saturate(20) hue-rotate(180deg); }
-        @keyframes shake { 0% { transform: translate(3px, 3px); } 50% { transform: translate(-3px, -3px); } 100% { transform: translate(3px, -3px); } }
-    </style>
+<meta charset="UTF-8">
+<title>Frog Game</title>
+<style>
+body { font-family: Arial; text-align: center; }
+</style>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="header">ЗАГРУЗКА...</div>
-    <div id="ui">
-        <div id="timer-wrap"><div id="timer-fill"></div></div>
-        <div id="lives"></div>
-    </div>
-    <div id="q-box">
-        <div id="q-text">Ожидание настроек...</div>
-        <div id="ans-grid"></div>
-    </div>
-    <div id="frog"></div>
-</div>
+<h1 id="title"></h1>
+<p id="lives"></p>
+<p id="speed"></p>
 
 <script>
-let cfg, currentQ = 0, lives, timeLeft, timerInt, bgMusic;
+let gameConfig = {
+  title: "Default",
+  lives: 3,
+  jumpSpeed: 5
+};
 
-window.addEventListener('message', (e) => {
-    if (e.data.type === 'config') {
-        cfg = e.data.s;
-        setupGame();
-    }
+window.addEventListener("message", (event) => {
+  if (event.data?.type === "GENIALLY_LOAD_CONFIG") {
+    gameConfig = event.data.config;
+    initGame();
+  }
 });
 
-function setupGame() {
-    // Визуал
-    document.body.style.backgroundImage = `url(${cfg.img.b})`;
-    document.getElementById('header').style.background = cfg.clr;
-    document.getElementById('header').innerText = cfg.t;
-    document.documentElement.style.setProperty('--main-clr', cfg.clr);
-    document.documentElement.style.setProperty('--speed', cfg.sp);
-    document.getElementById('q-text').style.fontSize = cfg.fs + 'px';
-    document.getElementById('frog').style.backgroundImage = `url(${cfg.img.f})`;
-    
-    // Механика
-    lives = parseInt(cfg.li);
-    currentQ = 0;
-    renderLives();
-    createLilies();
-    
-    // Звук
-    if(cfg.snd.on) {
-        if(bgMusic) bgMusic.pause();
-        bgMusic = new Audio(cfg.snd.s1);
-        bgMusic.loop = true;
-        bgMusic.volume = cfg.snd.v;
-        document.addEventListener('click', () => bgMusic.play(), {once: true});
-    }
-    
-    showQ();
+function initGame() {
+  document.getElementById("title").textContent = gameConfig.title;
+  document.getElementById("lives").textContent = "Lives: " + gameConfig.lives;
+  document.getElementById("speed").textContent = "Jump speed: " + gameConfig.jumpSpeed;
 }
 
-function renderLives() {
-    const container = document.getElementById('lives');
-    container.innerHTML = '';
-    for(let i=0; i<lives; i++) {
-        const h = document.createElement('div');
-        h.className = 'heart';
-        h.style.backgroundImage = `url(${cfg.img.h})`;
-        container.appendChild(h);
-    }
-}
-
-function createLilies() {
-    // Удаляем старые лилии
-    document.querySelectorAll('.lily').forEach(l => l.remove());
-    for(let i=0; i < cfg.q.length + 1; i++) {
-        const l = document.createElement('div');
-        l.className = 'lily';
-        l.style.backgroundImage = `url(${cfg.img.l})`;
-        l.style.left = (50 + i * 150) + 'px';
-        document.getElementById('game-zone')?.appendChild(l) || document.getElementById('game-container').appendChild(l);
-    }
-}
-
-function showQ() {
-    if (currentQ >= cfg.q.length) {
-        winGame();
-        return;
-    }
-    const data = cfg.q[currentQ];
-    document.getElementById('q-text').innerText = data.q;
-    const grid = document.getElementById('ans-grid');
-    grid.innerHTML = '';
-    data.a.forEach((txt, i) => {
-        const b = document.createElement('button');
-        b.className = 'ans-btn';
-        b.innerText = txt;
-        b.onclick = () => check(i);
-        grid.appendChild(b);
-    });
-    if(cfg.tmO) startTimer();
-}
-
-function startTimer() {
-    clearInterval(timerInt);
-    timeLeft = parseInt(cfg.tm);
-    const fill = document.getElementById('timer-fill');
-    timerInt = setInterval(() => {
-        timeLeft -= 0.1;
-        fill.style.width = (timeLeft / cfg.tm) * 100 + '%';
-        if(timeLeft <= 0) { clearInterval(timerInt); handleErr(); }
-    }, 100);
-}
-
-function check(idx) {
-    if(idx === cfg.q[currentQ].correct) {
-        play(cfg.snd.s3);
-        currentQ++;
-        move(true);
-        showQ();
-    } else {
-        handleErr();
-    }
-}
-
-function handleErr() {
-    play(cfg.snd.s4);
-    lives--;
-    renderLives();
-    const f = document.getElementById('frog');
-    f.classList.add('shock');
-    setTimeout(() => {
-        f.classList.remove('shock');
-        move(false);
-    }, 500);
-    if(lives <= 0) loseGame();
-}
-
-function move(fwd) {
-    const f = document.getElementById('frog');
-    let x = (50 + currentQ * 150);
-    f.style.left = x + 'px';
-    play(cfg.snd.s7);
-}
-
-function play(url) {
-    if(!cfg.snd.on) return;
-    const a = new Audio(url);
-    a.volume = cfg.snd.v;
-    a.play();
-}
-
-function winGame() {
-    clearInterval(timerInt);
-    play(cfg.snd.s5);
-    alert(cfg.fin.w);
-}
-
-function loseGame() {
-    clearInterval(timerInt);
-    play(cfg.snd.s6);
-    alert(cfg.fin.l);
-    if(cfg.fin.r) location.reload();
-}
+// fallback для локального теста
+initGame();
 </script>
+
 </body>
 </html>
