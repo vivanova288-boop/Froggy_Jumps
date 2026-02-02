@@ -489,165 +489,24 @@ button {
 </div>
 
 <script>
-const levelsBank = {
-    1: [
-        { q: "Yesterday I ___ my room after school.", options: ["clean", "cleaned", "cleans"], correct: 1 },
-        { q: "They ___ at the cinema last Sunday.", options: ["were", "was", "are"], correct: 0 },
-        { q: "She ___ TV for two hours last night.", options: ["watch", "watches", "watched"], correct: 2 },
-        { q: "It ___ very cold yesterday.", options: ["was", "were", "is"], correct: 0 },
-        { q: "We ___ tennis in the park last week.", options: ["play", "played", "plays"], correct: 1 },
-        { q: "My mum ___ a delicious cake for my birthday.", options: ["bake", "bakes", "baked"], correct: 2 },
-        { q: "The children ___ happy to see the clown.", options: ["was", "were", "are"], correct: 1 },
-        { q: "I ___ to music all evening.", options: ["listened", "listen", "listens"], correct: 0 },
-        { q: "He ___ his homework an hour ago.", options: ["finish", "finished", "finishes"], correct: 1 },
-        { q: "We ___ in London three years ago.", options: ["live", "lives", "lived"], correct: 2 },
-        { q: "___ you at school yesterday?", options: ["Was", "Were", "Did"], correct: 1 },
-        { q: "She ___ not help me with the dishes.", options: ["did", "does", "was"], correct: 0 },
-        { q: "I ___ a doctor when I was a child.", options: ["want to be", "wanted to be", "wants to be"], correct: 1 },
-        { q: "They ___ their grandparents last weekend.", options: ["visit", "visits", "visited"], correct: 2 },
-        { q: "The cat ___ on the sofa all day.", options: ["stay", "stayed", "stays"], correct: 1 },
-        { q: "___ it sunny in Moscow last week?", options: ["Was", "Were", "Did"], correct: 0 },
-        { q: "We ___ our hands before dinner.", options: ["wash", "washed", "washing"], correct: 1 },
-        { q: "I ___ my friend on the phone.", options: ["call", "calls", "called"], correct: 2 },
-        { q: "The film ___ at 7 o'clock.", options: ["start", "started", "starts"], correct: 1 },
-        { q: "You ___ very late for the lesson.", options: ["was", "were", "are"], correct: 1 },
-        { q: "I ___ a new game yesterday.", options: ["play", "played", "playing"], correct: 1 },
-        { q: "The birds ___ in the garden.", options: ["was", "were", "is"], correct: 1 },
-        { q: "He ___ his teeth in the morning.", options: ["brush", "brushed", "brushes"], correct: 1 },
-        { q: "We ___ for the bus for ten minutes.", options: ["wait", "waited", "waits"], correct: 1 },
-        { q: "She ___ a letter to her aunt.", options: ["post", "posted", "posts"], correct: 1 },
-        { q: "I ___ my room last Saturday.", options: ["tidy", "tidied", "tidies"], correct: 1 },
-        { q: "___ the weather good on your holiday?", options: ["Was", "Were", "Did"], correct: 0 },
-        { q: "They ___ to the radio last night.", options: ["listen", "listened", "listens"], correct: 1 },
-        { q: "The lesson ___ ten minutes ago.", options: ["end", "ended", "ends"], correct: 1 },
-        { q: "I ___ my bike in the park.", options: ["ride", "rode", "rides"], correct: 1 },
-        { q: "He ___ very hungry after school.", options: ["was", "were", "is"], correct: 0 },
-        { q: "We ___ the museum last month.", options: ["visit", "visited", "visits"], correct: 1 },
-        { q: "She ___ at home all day.", options: ["stay", "stayed", "stays"], correct: 1 },
-        { q: "The dog ___ in the garden.", options: ["play", "played", "plays"], correct: 1 },
-        { q: "___ you happy with your presents?", options: ["Was", "Were", "Are"], correct: 1 },
-        { q: "I ___ a loud noise in the street.", options: ["hear", "heard", "hears"], correct: 1 },
-        { q: "They ___ soccer last Friday.", options: ["play", "played", "playing"], correct: 1 },
-        { q: "My friend ___ me a secret.", options: ["tell", "told", "tells"], correct: 1 },
-        { q: "The bus ___ at the station.", options: ["stop", "stopped", "stops"], correct: 1 },
-        { q: "We ___ late for the party.", options: ["was", "were", "is"], correct: 1 },
-        { q: "She ___ her dinner very fast.", options: ["eat", "ate", "eats"], correct: 1 },
-        { q: "I ___ a beautiful bird.", options: ["see", "saw", "sees"], correct: 1 },
-        { q: "The flowers ___ very pretty.", options: ["was", "were", "is"], correct: 1 },
-        { q: "He ___ to help his father.", options: ["want", "wanted", "wants"], correct: 1 },
-        { q: "They ___ in the sea.", options: ["swim", "swam", "swims"], correct: 1 },
-        { q: "I ___ my homework on time.", options: ["do", "did", "does"], correct: 1 },
-        { q: "She ___ a new dress.", options: ["buy", "bought", "buys"], correct: 1 },
-        { q: "The coffee ___ too hot.", options: ["was", "were", "is"], correct: 0 },
-        { q: "We ___ a nice time together.", options: ["have", "had", "has"], correct: 1 },
-        { q: "___ you tired last night?", options: ["Was", "Were", "Are"], correct: 1 }
-    ],
-    2: [
-        { q: "I ___ to the zoo last Saturday.", options: ["go", "went", "gone"], correct: 1 },
-        { q: "Did you ___ your keys yesterday?", options: ["find", "found", "finds"], correct: 0 },
-        { q: "She ___ a letter to her friend.", options: ["write", "wrote", "writes"], correct: 1 },
-        { q: "We ___ not see him at the party.", options: ["do", "did", "does"], correct: 1 },
-        { q: "He ___ a new car last month.", options: ["buy", "buyed", "bought"], correct: 2 },
-        { q: "What ___ you eat for breakfast?", options: ["do", "did", "was"], correct: 1 },
-        { q: "They ___ a lot of photos on holiday.", options: ["take", "took", "taked"], correct: 1 },
-        { q: "I ___ a big pizza yesterday.", options: ["eat", "ate", "eaten"], correct: 1 },
-        { q: "She ___ to the party with us.", options: ["came", "come", "comed"], correct: 0 },
-        { q: "We ___ a famous actor in the street.", options: ["see", "seed", "saw"], correct: 2 },
-        { q: "___ they have a good time?", options: ["Did", "Do", "Were"], correct: 0 },
-        { q: "I ___ my milk this morning.", options: ["drink", "drank", "drinked"], correct: 1 },
-        { q: "He ___ the race last year.", options: ["win", "wins", "won"], correct: 2 },
-        { q: "My sister ___ her leg in the park.", options: ["break", "broke", "breaked"], correct: 1 },
-        { q: "I ___ not know the answer.", options: ["did", "do", "was"], correct: 0 },
-        { q: "They ___ the house at 8 a.m.", options: ["leave", "left", "leaved"], correct: 1 },
-        { q: "Where ___ she go last night?", options: ["does", "did", "was"], correct: 1 },
-        { q: "I ___ a beautiful song yesterday.", options: ["sing", "singed", "sang"], correct: 2 },
-        { q: "We ___ our teacher in the mall.", options: ["meet", "met", "meets"], correct: 1 },
-        { q: "He ___ me a present for Christmas.", options: ["give", "gave", "gived"], correct: 1 },
-        { q: "I ___ my book on the table.", options: ["leave", "left", "leaved"], correct: 1 },
-        { q: "Did she ___ the truth?", options: ["tell", "told", "tells"], correct: 0 },
-        { q: "We ___ a big fish in the lake.", options: ["catch", "caught", "catched"], correct: 1 },
-        { q: "They ___ to the city by train.", options: ["go", "went", "goes"], correct: 1 },
-        { q: "He ___ a tree in the garden.", options: ["cut", "cutted", "cuts"], correct: 0 },
-        { q: "I ___ a noise downstairs.", options: ["hear", "heard", "hears"], correct: 1 },
-        { q: "She ___ her bag at school.", options: ["forget", "forgot", "forgets"], correct: 1 },
-        { q: "Did you ___ the window?", options: ["shut", "shuts", "shutted"], correct: 0 },
-        { q: "We ___ our lunch early.", options: ["eat", "ate", "eaten"], correct: 1 },
-        { q: "They ___ a new house.", options: ["build", "built", "builded"], correct: 1 },
-        { q: "He ___ to the floor.", options: ["fall", "fell", "fallen"], correct: 1 },
-        { q: "I ___ some money in the street.", options: ["find", "found", "finds"], correct: 1 },
-        { q: "Did he ___ the competition?", options: ["win", "won", "wins"], correct: 0 },
-        { q: "She ___ a song for us.", options: ["sing", "sang", "sings"], correct: 1 },
-        { q: "We ___ the lesson at 9.", options: ["begin", "began", "begins"], correct: 1 },
-        { q: "They ___ a lot of water.", options: ["drink", "drank", "drinks"], correct: 1 },
-        { q: "I ___ my homework already.", options: ["do", "did", "done"], correct: 1 },
-        { q: "He ___ his friend yesterday.", options: ["meet", "met", "meets"], correct: 1 },
-        { q: "She ___ a story for the class.", options: ["write", "wrote", "writes"], correct: 1 },
-        { q: "Did they ___ you a story?", options: ["tell", "told", "tells"], correct: 0 },
-        { q: "We ___ to the park.", options: ["run", "ran", "runs"], correct: 1 },
-        { q: "I ___ a gift to my mother.", options: ["give", "gave", "gives"], correct: 1 },
-        { q: "They ___ their bags here.", options: ["put", "putted", "puts"], correct: 0 },
-        { q: "He ___ his key.", options: ["lose", "lost", "loses"], correct: 1 },
-        { q: "She ___ the car.", options: ["drive", "drove", "drives"], correct: 1 },
-        { q: "Did you ___ the news?", options: ["hear", "heard", "hears"], correct: 0 },
-        { q: "We ___ for a long time.", options: ["sleep", "slept", "sleeps"], correct: 1 },
-        { q: "I ___ a new friend.", options: ["make", "made", "makes"], correct: 1 },
-        { q: "They ___ very fast.", options: ["swim", "swam", "swims"], correct: 1 },
-        { q: "He ___ his book.", options: ["read", "readed", "reads"], correct: 0 }
-    ],
-    3: [
-        { q: "My brother ___ a lot when he was a baby.", options: ["cry", "cryed", "cried"], correct: 2 },
-        { q: "Why ___ you so angry yesterday?", options: ["did", "were", "was"], correct: 1 },
-        { q: "I ___ to bed early because I was tired.", options: ["went", "go", "was go"], correct: 0 },
-        { q: "The student ___ the difficult question.", options: ["not understood", "didn't understand", "wasn't understand"], correct: 1 },
-        { q: "___ there any people in the park?", options: ["Was", "Did", "Were"], correct: 2 },
-        { q: "She ___ her hair last night.", options: ["dry", "dried", "dryed"], correct: 1 },
-        { q: "We ___ a loud noise at midnight.", options: ["heard", "heared", "hear"], correct: 0 },
-        { q: "How much ___ that book cost?", options: ["was", "did", "were"], correct: 1 },
-        { q: "I ___ my best friend ten years ago.", options: ["meet", "met", "meeted"], correct: 1 },
-        { q: "They ___ not at home when I called.", options: ["were", "did", "was"], correct: 0 },
-        { q: "He ___ a sandwich and a glass of juice.", options: ["had", "has", "did have"], correct: 0 },
-        { q: "___ your parents busy last weekend?", options: ["Were", "Did", "Was"], correct: 0 },
-        { q: "I ___ my wallet on the bus.", options: ["lose", "losed", "lost"], correct: 2 },
-        { q: "She ___ the window because it was hot.", options: ["opened", "open", "opens"], correct: 0 },
-        { q: "___ you see the news last night?", options: ["Did", "Do", "Were"], correct: 0 },
-        { q: "The baby ___ for three hours.", options: ["sleep", "slept", "sleeped"], correct: 1 },
-        { q: "I ___ very hard for the test.", options: ["study", "studied", "studyed"], correct: 1 },
-        { q: "They ___ the game, so they were sad.", options: ["lost", "lose", "losed"], correct: 0 },
-        { q: "Who ___ you talk to yesterday?", options: ["do", "did", "was"], correct: 1 },
-        { q: "It ___ a very interesting story.", options: ["was", "were", "did"], correct: 0 },
-        { q: "___ they visit the museum?", options: ["Did", "Was", "Were"], correct: 0 },
-        { q: "I ___ not see the movie.", options: ["did", "was", "were"], correct: 0 },
-        { q: "She ___ to the market.", options: ["went", "gone", "go"], correct: 0 },
-        { q: "___ he buy a new phone?", options: ["Did", "Was", "Is"], correct: 0 },
-        { q: "We ___ not go out last night.", options: ["did", "was", "were"], correct: 0 },
-        { q: "I ___ a beautiful painting.", options: ["see", "saw", "seen"], correct: 1 },
-        { q: "___ it rain yesterday?", options: ["Did", "Was", "Does"], correct: 0 },
-        { q: "She ___ not arrive on time.", options: ["did", "was", "were"], correct: 0 },
-        { q: "They ___ a lot of photos.", options: ["take", "took", "taken"], correct: 1 },
-        { q: "___ you finish your work?", options: ["Did", "Were", "Was"], correct: 0 },
-        { q: "I ___ not feel well.", options: ["did", "was", "were"], correct: 0 },
-        { q: "He ___ a new car.", options: ["bought", "buy", "buyed"], correct: 0 },
-        { q: "___ she send the letter?", options: ["Did", "Was", "Is"], correct: 0 },
-        { q: "We ___ not play football.", options: ["did", "was", "were"], correct: 0 },
-        { q: "They ___ to the cinema.", options: ["went", "gone", "go"], correct: 0 },
-        { q: "___ you at the party?", options: ["Was", "Were", "Did"], correct: 1 },
-        { q: "I ___ a good book.", options: ["read", "readed", "reads"], correct: 0 },
-        { q: "___ it cold yesterday?", options: ["Was", "Were", "Did"], correct: 0 },
-        { q: "She ___ not eat lunch.", options: ["did", "was", "were"], correct: 0 },
-        { q: "We ___ the game.", options: ["won", "win", "wins"], correct: 0 },
-        { q: "___ you have a car?", options: ["Did", "Was", "Were"], correct: 0 },
-        { q: "They ___ not here.", options: ["was", "were", "did"], correct: 1 },
-        { q: "He ___ to school.", options: ["ran", "run", "runs"], correct: 0 },
-        { q: "___ she happy?", options: ["Was", "Were", "Is"], correct: 0 },
-        { q: "I ___ not know.", options: ["did", "was", "were"], correct: 0 },
-        { q: "They ___ a song.", options: ["sang", "sing", "sings"], correct: 0 },
-        { q: "___ it a sunny day?", options: ["Was", "Were", "Is"], correct: 0 },
-        { q: "We ___ not stay long.", options: ["did", "was", "were"], correct: 0 },
-        { q: "He ___ his tea.", options: ["drank", "drink", "drinks"], correct: 0 },
-        { q: "___ you at home?", options: ["Was", "Were", "Did"], correct: 1 }
-    ]
-};
+// Вставь это в начало своего скрипта в game.html
+let config = {}; // Изначально пусто
 
+window.addEventListener('message', (event) => {
+    // Получаем настройки из редактора Genially
+    if (event.data && event.data.type === 'config') {
+        config = event.data.settings;
+        applySettingsAndStart(); // Запускаем игру с новыми настройками
+    }
+});
+
+function applySettingsAndStart() {
+    // Здесь мы берем данные из config и подставляем в игру
+    document.getElementById('header').innerText = config.title;
+    lives = config.lives;
+    // ... и так далее для всех параметров
+    initGame(); 
+}
 let currentLevel = 1; 
 let step = 0;
 let lives = 5;
@@ -1054,3 +913,4 @@ window.onload = initGame;
 </script>
 </body>
 </html>
+
