@@ -490,15 +490,43 @@ button {
 
 <script>
 // Вставь это в начало своего скрипта в game.html
-let config = {}; // Изначально пусто
+// 1. Изначальные настройки (пустые или "заглушки")
+let config = {
+    title: "Loading...",
+    lives: 5,
+    questions: []
+};
 
+// 2. СЛУШАТЕЛЬ: Ждем данные от редактора
 window.addEventListener('message', (event) => {
-    // Получаем настройки из редактора Genially
+    // Проверяем, что пришли настройки
     if (event.data && event.data.type === 'config') {
         config = event.data.settings;
-        applySettingsAndStart(); // Запускаем игру с новыми настройками
+        applyConfig(); // Обновляем игру
     }
 });
+
+function applyConfig() {
+    // Применяем настройки из редактора к переменным игры
+    document.getElementById('header').textContent = config.title;
+    lives = parseInt(config.lives);
+    updateLives(); // твоя функция отрисовки сердечек
+    
+    // Если вопросы пришли, сохраняем их
+    if (config.questions && config.questions.length > 0) {
+        // Мы можем заменить уровни на те, что прислал пользователь
+        levelsBank[1] = config.questions; 
+    }
+
+    // Перезапуск игры с новыми данными
+    initGame(); 
+}
+
+// ТВОИ ПЕРЕМЕННЫЕ (теперь они зависят от config)
+let currentLevel = 1; 
+let step = 0;
+let globalVolume = 0.5;
+// ... дальше идет твой остальной код без изменений
 
 function applySettingsAndStart() {
     // Здесь мы берем данные из config и подставляем в игру
@@ -913,4 +941,5 @@ window.onload = initGame;
 </script>
 </body>
 </html>
+
 
