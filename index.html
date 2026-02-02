@@ -1,178 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <style>
-        :root { --clr: #6ab04c; --speed: 0.7s; }
-        body { margin: 0; overflow: hidden; font-family: sans-serif; background: #e0f7fa; }
-        #game { width: 100vw; height: 100vh; position: relative; background-size: cover; display: none; }
-        #header { height: 50px; background: var(--clr); color: white; display: flex; align-items: center; justify-content: space-around; font-weight: bold; }
-        #q-box { position: absolute; top: 70px; width: 90%; left: 5%; background: rgba(255,255,255,0.9); padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        #timer-bar { position: absolute; top: 135px; width: 90%; left: 5%; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
-        #timer-fill { height: 100%; background: #ff4757; width: 100%; transition: width 0.1s linear; }
-        #ans-zone { position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: center; gap: 40px; }
-        .lily { width: 100px; height: 60px; background-size: contain; background-repeat: no-repeat; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; padding-bottom: 10px; }
-        #frog { width: 80px; position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); transition: all var(--speed) ease; z-index: 10; }
-        .shock { animation: shake 0.1s infinite; filter: invert(1) sepia(1) saturate(10) hue-rotate(180deg); }
-        @keyframes shake { 0% { margin-left: -5px; } 100% { margin-left: 5px; } }
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; font-size: 40px; }
-        .heart { width: 30px; height: 30px; background-size: contain; background-repeat: no-repeat; display: inline-block; margin: 0 2px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Froggy Jumps Quiz</title>
+<style>
+    /* ТВОИ СТИЛИ ИЗ ЧАСТИ 1 (копируй полностью свой CSS блок сюда) */
+    :root { --water1: #2bbcd6; --water2: #168ea0; --ui-bg: #6ab04c; }
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; background: url('bg.png') no-repeat center center fixed; background-size: cover; }
+    #ui-layer { position: absolute; top: 0; width: 100%; z-index: 1000; pointer-events: none; }
+    #header { background: var(--ui-bg); color: white; padding: 10px; text-align: center; font-weight: bold; pointer-events: auto; }
+    #lives-container { position: absolute; top: 50px; left: 20px; display: flex; gap: 8px; pointer-events: auto; }
+    .life-icon { width: 52px; height: 52px; background: url('3.png') no-repeat center / contain; transition: transform 0.2s; }
+    #question-box { background: white; width: 85%; max-width: 500px; margin: 10px auto; padding: 12px; border-radius: 18px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.25); pointer-events: auto; }
+    .timer-bar { width: 100%; height: 8px; background: #dfe6e9; border-radius: 5px; margin-top: 8px; overflow: hidden; }
+    #timer-fill { width: 100%; height: 100%; background: #eb4d4b; transition: width 0.1s linear; }
+    #world { position: absolute; inset: 0; padding-top: 60px; overflow: hidden; }
+    #pond { position: relative; width: 100%; height: 100%; margin: 0 auto; }
+    .leaf { position: absolute; width: 20vw; height: 16vw; max-width: 180px; max-height: 150px; background: url('1.png') no-repeat center / contain; display: flex; align-items: center; justify-content: center; transform: scale(0.85); transition: transform 0.4s, opacity 0.4s; padding: 15px; box-sizing: border-box; text-align: center; font-size: 22px; color: white; font-weight: bold; text-shadow: 1px 1px 3px #000; }
+    .leaf.active { opacity: 1; transform: scale(1.1); z-index: 10; cursor: pointer; filter: drop-shadow(0 0 15px #fff); }
+    #frog { opacity: 0; position: absolute; width: 10vw; height: 10vw; max-width: 90px; background: url('2.png') no-repeat center / contain; transform: translate(-50%, -60%) scale(1.15); z-index: 999; pointer-events: none; }
+    .shock { animation: electric-shock 0.1s infinite; z-index: 20 !important; }
+    @keyframes electric-shock { 0% { filter: brightness(1.5) hue-rotate(180deg); transform: scale(1.1) translate(2px, 2px); } 100% { filter: brightness(1); } }
+    #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
+    .splash { position: absolute; border: 4px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); animation: splash-ani 0.6s forwards; }
+    @keyframes splash-ani { 0% { width: 0; height: 0; opacity: 1; } 100% { width: 150px; height: 80px; opacity: 0; } }
+    .jumping-frog { transform: translate(-50%, -80%) scale(1.4) !important; filter: drop-shadow(0 30px 20px rgba(0,0,0,0.3)) !important; }
+</style>
 </head>
 <body>
-    <div id="overlay">ОЖИДАНИЕ...</div>
-    <div id="game">
-        <div id="header">
-            <div id="title">FROGGY</div>
-            <div id="life-container"></div>
-            <div id="lvl-info">LVL 1</div>
+    <div id="countdown-overlay" style="display: flex; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; justify-content: center; align-items: center; color: white; font-size: 100px; font-weight: bold;">ОЖИДАНИЕ...</div>
+    <div id="ui-layer">
+        <div id="header">ЗАГРУЗКА...</div>
+        <div id="lives-container"></div>
+        <div id="question-box">
+            <div id="q-text">Подготовка...</div>
+            <div class="timer-bar"><div id="timer-fill"></div></div>
         </div>
-        <div id="q-box"></div>
-        <div id="timer-bar"><div id="timer-fill"></div></div>
-        <img id="frog" src="">
-        <div id="ans-zone"></div>
     </div>
+    <div id="world"><div id="pond"><div id="frog"></div></div></div>
+    <div id="overlay"><h1 id="msg"></h1><button onclick="location.reload()">Try Again</button></div>
 
 <script>
-let cfg, curQ = 0, curLvl = 1, lives, timer, timeLimit, bgSnd;
+let cfg, levelsBank = {}, currentLevel = 1, step = 0, lives = 5, timer, questions = [], globalVolume = 0.5;
+const sounds = {};
 
+// ЖДЕМ ДАННЫЕ ОТ GENIALLY
 window.onload = () => window.parent.postMessage('ready', '*');
-window.addEventListener('message', e => { if(e.data.questions) { cfg = e.data; init(); }});
+window.addEventListener('message', e => { 
+    if(e.data.questions) { cfg = e.data; setupGame(); } 
+});
 
-function init() {
-    document.body.style.setProperty('--clr', cfg.clr);
-    document.body.style.setProperty('--speed', cfg.speed);
-    document.getElementById('game').style.backgroundImage = `url(${cfg.img.bg})`;
-    document.getElementById('frog').src = cfg.img.frog;
-    document.getElementById('q-box').style.fontSize = cfg.fs + 'px';
+function setupGame() {
+    globalVolume = parseFloat(cfg.snd.v);
     lives = parseInt(cfg.lives);
-    countdown();
-}
-
-function countdown() {
-    let count = 3;
-    const ov = document.getElementById('overlay');
-    play(cfg.snd.s2);
-    let int = setInterval(() => {
-        ov.innerText = count > 0 ? count : "GO!";
-        if(count < 0) {
-            clearInterval(int);
-            ov.style.display = 'none';
-            document.getElementById('game').style.display = 'block';
-            startBg();
-            render();
-        }
-        count--;
-    }, 1000);
-}
-
-function startBg() {
-    if(!cfg.snd.on) return;
-    bgSnd = new Audio(cfg.snd.s1);
-    bgSnd.loop = true;
-    bgSnd.volume = cfg.snd.v;
-    bgSnd.play();
-}
-
-function render() {
-    updateUI();
-    let q = cfg.questions[curQ];
-    document.getElementById('q-box').innerText = q.q;
-    let zone = document.getElementById('ans-zone');
-    zone.innerHTML = '';
+    document.getElementById('header').innerText = cfg.title;
     
-    let answers = q.a.map((text, i) => ({ text, ok: i === q.c }));
-    if(cfg.shuf) answers.sort(() => Math.random() - 0.5);
-
-    answers.forEach(ans => {
-        let l = document.createElement('div');
-        l.className = 'lily';
-        l.style.backgroundImage = `url(${cfg.img.leaf})`;
-        l.innerText = ans.text;
-        l.onclick = () => check(ans.ok, l);
-        zone.appendChild(l);
-    });
-    startTimer();
-}
-
-function check(ok, el) {
-    const f = document.getElementById('frog');
-    const rect = el.getBoundingClientRect();
-    f.style.left = (rect.left + rect.width/2) + 'px';
-    f.style.bottom = '100px';
-
-    if(ok) {
-        play(cfg.snd.s3);
-        clearInterval(timer);
-        setTimeout(() => {
-            curQ++;
-            if(curQ % cfg.qpl === 0) nextLevel();
-            else { resetFrog(); render(); }
-        }, 800);
-    } else {
-        play(cfg.snd.s4);
-        f.classList.add('shock');
-        lives--;
-        setTimeout(() => {
-            f.classList.remove('shock');
-            resetFrog();
-            if(lives <= 0) endGame(false);
-        }, 600);
+    // Распределяем вопросы по уровням
+    for(let i=1; i<=cfg.lvls; i++) {
+        levelsBank[i] = cfg.questions.slice((i-1)*cfg.qpl, i*cfg.qpl);
     }
+    
+    // Инициализируем звуки
+    sounds.splash = new Audio(cfg.snd.s3);
+    sounds.shock = new Audio(cfg.snd.s4);
+    sounds.victory = new Audio(cfg.snd.s5);
+    sounds.gameOver = new Audio(cfg.snd.s6);
+    sounds.start = new Audio(cfg.snd.s2);
+    sounds.levelUp = new Audio(cfg.snd.s1);
+    sounds.count = new Audio(cfg.snd.s7);
+
+    initGame();
 }
 
-function nextLevel() {
-    play(cfg.snd.s7);
-    const f = document.getElementById('frog');
-    f.style.bottom = '1000px'; // "Супер-прыжок"
-    setTimeout(() => {
-        curLvl++;
-        if(curQ >= cfg.questions.length) endGame(true);
-        else { resetFrog(); render(); }
-    }, 1000);
-}
-
-function startTimer() {
-    if(!cfg.tmOn) return;
-    clearInterval(timer);
-    timeLimit = cfg.time;
-    let current = timeLimit;
-    timer = setInterval(() => {
-        current -= 0.1;
-        document.getElementById('timer-fill').style.width = (current/timeLimit)*100 + '%';
-        if(current <= 0) { clearInterval(timer); endGame(false); }
-    }, 100);
-}
-
-function updateUI() {
-    document.getElementById('lvl-info').innerText = `LVL ${curLvl}`;
-    let h = '';
-    for(let i=0; i<lives; i++) h += `<div class="heart" style="background-image:url(${cfg.img.heart})"></div>`;
-    document.getElementById('life-container').innerHTML = h;
-}
-
-function resetFrog() {
-    const f = document.getElementById('frog');
-    f.style.left = '50%';
-    f.style.bottom = '50px';
-}
-
-function play(u) { if(cfg.snd.on) { let a = new Audio(u); a.volume = cfg.snd.v; a.play(); }}
-
-function endGame(win) {
-    clearInterval(timer);
-    if(bgSnd) bgSnd.pause();
-    play(win ? cfg.snd.s5 : cfg.snd.s6);
-    const ov = document.getElementById('overlay');
-    ov.style.display = 'flex';
-    ov.innerHTML = `<div>${win ? cfg.fin.w : cfg.fin.l}</div>`;
-    if(cfg.fin.r) {
-        let b = document.createElement('button');
-        b.innerText = "RETRY";
-        b.onclick = () => location.reload();
-        ov.appendChild(b);
-    }
-}
+// (Далее вставь всю свою логику из Части 2: createPond, initGame, handleJump и т.д.)
+// ВАЖНО: В handleJump при ошибке лягушка должна прыгать на lastCorrectLeaf!
 </script>
 </body>
 </html>
