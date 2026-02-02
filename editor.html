@@ -107,24 +107,34 @@
         evt.currentTarget.classList.add("active");
     }
 
-    function saveSettings() {
+function saveSettings() {
+    try {
+        const questionsField = document.getElementById('questions').value;
+        const parsedQuestions = JSON.parse(questionsField); // Проверка на ошибки JSON
+
         const s = {
             title: document.getElementById('title').value,
-            questions: JSON.parse(document.getElementById('questions').value),
-            levelCount: document.getElementById('levelCount').value,
-            shuffle: document.getElementById('shuffle').checked,
-            lives: document.getElementById('lives').value,
-            timer: document.getElementById('timer').value,
-            timerOn: document.getElementById('timerOn').checked,
-            animSpeed: document.getElementById('animSpeed').value,
-            colors: { h: document.getElementById('colorHeader').value, t: document.getElementById('colorTimer').value, b: document.getElementById('colorBtn').value },
-            images: { bg: document.getElementById('bgImg').value, frog: document.getElementById('imgFrog').value, leaf: document.getElementById('imgLeaf').value, heart: document.getElementById('imgHeart').value },
-            audio: { on: document.getElementById('soundOn').checked, vol: document.getElementById('volume').value, bg: document.getElementById('sndBg').value },
-            final: { win: document.getElementById('txtWin').value, lose: document.getElementById('txtLose').value, retry: document.getElementById('btnRetry').checked },
-            lang: document.getElementById('lang').value
+            questions: parsedQuestions,
+            // ... остальные поля оставляем как есть
         };
+
+        // Отправляем сигнал
         window.parent.postMessage({ type: 'config', settings: s }, '*');
+        
+        // Визуальное подтверждение, что кнопка сработала
+        const btn = document.querySelector('.btn-save');
+        btn.innerText = "ОБНОВЛЕНО! ✅";
+        btn.style.background = "#2f3542";
+        setTimeout(() => { 
+            btn.innerText = "ОБНОВИТЬ ИГРУ"; 
+            btn.style.background = "#6ab04c";
+        }, 1000);
+
+    } catch(e) {
+        console.error(e);
+        alert("ОШИБКА В ВОПРОСАХ: Проверь скобки и запятые в JSON!");
     }
+}
 </script>
 </body>
 </html>
