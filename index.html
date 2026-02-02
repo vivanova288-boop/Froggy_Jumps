@@ -1,126 +1,482 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Froggy Jumps Quiz</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Froggy Jumps Quiz</title>
 
-    <style>
-        :root {
-            --water1: #2bbcd6;
-            --water2: #168ea0;
-            --ui-bg: #6ab04c;
-        }
+<style>
+:root {
+    --water1: #2bbcd6;
+    --water2: #168ea0;
+    --ui-bg: #6ab04c;
+}
 
-        html, body {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
-            overflow: hidden;
-            font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
-            background: #2bbcd6 url('bg.png') no-repeat center center fixed;
-            background-size: cover;
-        }
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    /* Добавляем фоновое изображение */
+    background: url('bg.png') no-repeat center center fixed;
+    background-size: cover;
+}
 
-        /* ---------- UI ---------- */
-        #ui-layer {
-            position: absolute; top: 0; width: 100%; z-index: 1000; pointer-events: none;
-        }
-        #header {
-            background: var(--ui-bg); color: white; padding: 10px;
-            text-align: center; font-weight: bold; pointer-events: auto;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-        #lives-container {
-            position: absolute; top: 50px; left: 20px;
-            display: flex; gap: 8px; pointer-events: auto;
-        }
-        .life-icon {
-            width: 40px; height: 40px;
-            background: url('3.png') no-repeat center / contain;
-        }
-        #question-box {
-            background: white; width: 85%; max-width: 500px;
-            margin: 15px auto; padding: 15px; border-radius: 18px;
-            text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-            pointer-events: auto;
-        }
-        .timer-bar { width: 100%; height: 10px; background: #dfe6e9; border-radius: 5px; margin-top: 10px; overflow: hidden; }
-        #timer-fill { width: 100%; height: 100%; background: #eb4d4b; transition: width 0.1s linear; }
+/* ---------- UI ---------- */
+#ui-layer {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    pointer-events: none;
+}
 
-        /* ---------- WORLD ---------- */
-        #world { position: absolute; inset: 0; padding-top: 120px; }
-        #pond { position: relative; width: 100%; height: 100%; }
+#header {
+    background: var(--ui-bg);
+    color: white;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    pointer-events: auto;
+}
 
-        /* ---------- LEAVES ---------- */
-        .leaf {
-            position: absolute; width: 120px; height: 100px;
-            background: url('1.png') no-repeat center / contain;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: bold; color: white; text-align: center;
-            font-size: 18px; text-shadow: 1px 1px 2px black;
-            transition: transform 0.3s, filter 0.3s;
-            cursor: pointer; padding: 10px; box-sizing: border-box;
-        }
-        .leaf.active { transform: scale(1.1); filter: drop-shadow(0 0 10px gold); }
-        .leaf.active::after {
-            content: attr(data-letter); position: absolute; top: -10px;
-            background: #f1c40f; color: black; border-radius: 50%;
-            width: 25px; height: 25px; display: flex; align-items: center; justify-content: center;
-        }
+#lives-container {
+    position: absolute;
+    top: 50px;
+    left: 20px;
+    display: flex;
+    gap: 8px;
+    pointer-events: auto;
+}
 
-        /* ---------- FROG ---------- */
-        #frog {
-            position: absolute; width: 80px; height: 80px;
-            background: url('2.png') no-repeat center / contain;
-            z-index: 999; pointer-events: none;
-            transform: translate(-50%, -60%);
-            transition: left 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-                        top 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+.life-icon {
+    width: 52px;
+    height: 52px;
+    background: url('3.png') no-repeat center / contain;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    transition: transform 0.2s;
+}
 
-        /* ШОК И ОШИБКА */
-        @keyframes electric-shock {
-            0% { filter: brightness(2) hue-rotate(180deg); transform: translate(-50%, -60%) scale(1.2) rotate(5deg); }
-            50% { filter: brightness(3) hue-rotate(0deg); transform: translate(-50%, -60%) scale(1.2) rotate(-5deg); }
-            100% { filter: brightness(1); }
-        }
-        .shock { animation: electric-shock 0.1s infinite; }
+.life-icon:last-child {
+    animation: pulse-life 0.8s ease-in-out infinite alternate;
+}
 
-        /* ---------- OVERLAY ---------- */
-        #overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
-            z-index: 2000; display: none; flex-direction: column;
-            justify-content: center; align-items: center; color: white;
-        }
-        button {
-            padding: 15px 40px; font-size: 20px; border-radius: 30px;
-            border: none; background: var(--ui-bg); color: white; cursor: pointer;
-        }
+@keyframes pulse-life {
+    from { transform: scale(1); }
+    to   { transform: scale(1.15); }
+}
 
-        /* VOLUME */
-        #volume-control {
-            position: absolute; bottom: 20px; right: 20px;
-            background: white; padding: 10px; border-radius: 20px;
-            display: flex; align-items: center; gap: 10px; z-index: 1001;
-        }
-    </style>
+
+#question-box {
+    background: white;
+    width: 85%;
+    max-width: 500px;
+    margin: 10px auto;
+    padding: 12px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    pointer-events: auto;
+}
+
+.timer-bar {
+    width: 100%;
+    height: 8px;
+    background: #dfe6e9;
+    border-radius: 5px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+#timer-fill {
+    width: 100%;
+    height: 100%;
+    background: #eb4d4b;
+    transition: width 0.1s linear;
+}
+
+/* ---------- GAME WORLD ---------- */
+#world {
+    position: absolute;
+    inset: 0;
+    /* Уменьшаем отступ сверху, чтобы поднять всё выше к вопросу */
+    padding-top: 60px; 
+    overflow: hidden;
+}
+
+#pond {
+    position: relative;
+    width: 100%; /* Можно поставить 98%, если листья слишком близко к краям */
+    height: 100%;
+    margin: 0 auto;
+    overflow: hidden; 
+}
+
+/* ---------- LEAVES ---------- */
+.leaf {
+    position: absolute;
+   width: 20vw;         /* Было 15vw */
+    height: 16vw;        /* Было 12vw */
+    max-width: 180px;    /* Было 140px */
+    max-height: 150px;   /* Было 115px */
+    background: url('1.png') no-repeat center / contain;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1; 
+    transform: scale(0.85); 
+    transition: transform 0.4s, opacity 0.4s;
+    
+    /* Улучшаем отображение текста внутри */
+    padding: 15px;       /* Немного больше отступ для текста */
+    box-sizing: border-box;
+    text-align: center;
+    font-size: 22px;     /* Увеличили шрифт для больших листьев */
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8), -1px -1px 3px rgba(0,0,0,0.8);
+}
+
+.leaf.active {
+    opacity: 1;
+    transform: scale(1.1); /* Сделаем активный листик чуть больше */
+    z-index: 10;
+    cursor: pointer;
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.9));
+}
+
+.leaf.active::after {
+    content: attr(data-letter);
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #f1c40f;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    text-shadow: none;
+    color: black;
+}
+
+/* Анимация покачивания листика при приземлении */
+@keyframes leaf-bounce {
+    0% { transform: scale(1.1) translateY(0); }
+    50% { transform: scale(1.1) translateY(5px); }
+    100% { transform: scale(1.1) translateY(0); }
+}
+
+.leaf-landed {
+    animation: leaf-bounce 0.4s ease-out;
+}
+
+/* ---------- FROG ---------- */
+/* Изменяем положение лягушки, чтобы лапки не висели в воздухе */
+#frog {
+    opacity: 0;
+    position: absolute;
+    width: 10vw;         /* Было 90px */
+    height: 10vw;        /* Было 90px */
+    max-width: 90px;
+    max-height: 90px;
+    background: url('2.png') no-repeat center / contain;
+    /* Сдвигаем лягушку чуть ниже (на 60% вместо 50%), чтобы она была в центре листа */
+    transform: translate(-50%, -60%) scale(1.15); 
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.4));
+    z-index: 999 !important; /* Делаем лягушку самым верхним слоем */
+    transition: left 0.6s cubic-bezier(.47,1.21,.58,1), 
+                top 0.6s cubic-bezier(.47,1.21,.58,1), 
+                transform 0.3s ease-out;
+    pointer-events: none;
+	transition: left 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                top 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.shock {
+    animation: electric-shock 0.1s infinite;
+    /* Убедитесь, что у листка под током z-index меньше, чем 999 */
+    z-index: 10 !important; 
+}
+
+.sink {
+    transform: translate(-50%, -50%) scale(0) !important;
+    opacity: 0 !important;
+}
+
+/* ---------- OVERLAY ---------- */
+#overlay {
+    position: fixed;
+    inset: 0;
+    /* Убираем темный фон. Если нужно оставить небольшое затемнение, можно сделать rgba(0,0,0,0.3) */
+    background: transparent; 
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white; /* Цвет текста, возможно, придется изменить на черный, если фон очень светлый */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Тень для читаемости на любом фоне */
+}
+
+/* Добавим стили для сообщения о победе, чтобы оно было заметнее */
+#msg {
+    font-size: 3em;
+    animation: bounceIn 1s ease-out; /* Анимация появления текста */
+}
+
+@keyframes bounceIn {
+    0%, 20%, 40%, 60%, 80%, 100% {
+        -webkit-transition-timing-function: cubic-bezier(0.215, .61, .355, 1);
+        transition-timing-function: cubic-bezier(0.215, .61, .355, 1);
+    }
+    0% {
+        opacity: 0;
+        -webkit-transform: scale3d(.3, .3, .3);
+        transform: scale3d(.3, .3, .3);
+    }
+    20% {
+        -webkit-transform: scale3d(1.1, 1.1, 1.1);
+        transform: scale3d(1.1, 1.1, 1.1);
+    }
+    40% {
+        -webkit-transform: scale3d(.9, .9, .9);
+        transform: scale3d(.9, .9, .9);
+    }
+    60% {
+        opacity: 1;
+        -webkit-transform: scale3d(1.03, 1.03, 1.03);
+        transform: scale3d(1.03, 1.03, 1.03);
+    }
+    80% {
+        -webkit-transform: scale3d(.97, .97, .97);
+        transform: scale3d(.97, .97, .97);
+    }
+    100% {
+        opacity: 1;
+        -webkit-transform: scale3d(1, 1, 1);
+        transform: scale3d(1, 1, 1);
+    }
+}
+
+button {
+    padding: 15px 45px;
+    border-radius: 30px;
+    border: none;
+    background: var(--ui-bg);
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+    /* Удаляет желтый кружок, если у листа нет атрибута data-letter */
+.leaf.active:not([data-letter])::after {
+    display: none;
+}
+/* Анимация удара током (тряска и изменение цвета) */
+@keyframes electric-shock {
+    0% { transform: scale(1.1) translate(2px, 2px); filter: brightness(1.5) hue-rotate(180deg); }
+    25% { transform: scale(1.1) translate(-2px, -2px); }
+    50% { transform: scale(1.1) translate(2px, -2px); }
+    75% { transform: scale(1.1) translate(-2px, 2px); }
+    100% { transform: scale(1.1) translate(0, 0); filter: brightness(1); }
+}
+
+.shock {
+    animation: electric-shock 0.1s infinite;
+    z-index: 20 !important;
+}
+
+#fireworksCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2001; /* Чуть выше фона */
+    pointer-events: none; /* Чтобы не мешал нажимать на кнопку */
+}
+
+#msg {
+    position: relative;
+    z-index: 2005;
+    font-size: 80px; /* Очень крупно */
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #ffcc00; /* Золотистый цвет */
+    text-shadow: 0 0 20px #ff4500, 4px 4px 0px #333; /* Двойное свечение */
+    margin-bottom: 30px;
+    letter-spacing: 5px;
+}
+
+#overlay button {
+    position: relative;
+    z-index: 2005;
+    padding: 20px 60px;
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: uppercase;
+    background: linear-gradient(145deg, #ff4e50, #f9d423); /* Градиент */
+    border: 4px solid #fff;
+    border-radius: 50px;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4), inset 0 0 10px rgba(255,255,255,0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#overlay button:hover {
+    transform: scale(1.1) translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+}
+/* Анимация "проплывания" пруда вниз */
+@keyframes pond-slide {
+    0% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(100vh); opacity: 0; }
+    51% { transform: translateY(-100vh); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+.pond-transition {
+    animation: pond-slide 1.2s ease-in-out;
+}
+
+/* Эффект супер-прыжка для лягушки */
+.super-jump {
+    top: -200px !important;
+    transform: translate(-50%, -50%) scale(2) rotate(360deg) !important;
+    transition: top 0.8s cubic-bezier(.47,1.21,.58,1), transform 0.8s !important;
+}
+/* Эффект всплеска воды */
+.splash {
+    position: absolute;
+    border: 4px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: splash-ani 0.6s ease-out forwards;
+    z-index: 5;
+}
+
+@keyframes splash-ani {
+    0% { width: 0; height: 0; opacity: 1; border-width: 4px; }
+    100% { width: 150px; height: 80px; opacity: 0; border-width: 1px; }
+}
+#volume-control {
+    position: absolute;
+    top: 50px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 8px 15px;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* Увеличиваем z-index, чтобы он был выше всех UI слоев */
+    z-index: 2000; 
+    /* Явно разрешаем клики */
+    pointer-events: auto; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    border: 2px solid var(--ui-bg);
+}
+
+#volume-slider {
+    cursor: pointer;
+    accent-color: var(--ui-bg);
+    width: 80px;
+}
+/* Цветная активная иконка */
+#speaker-icon {
+    font-size: 20px;
+    transition: filter 0.3s, opacity 0.3s;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.2));
+    display: inline-block;
+    position: relative;
+}
+
+/* Эффект перечеркивания для выключенного звука */
+.muted-icon {
+    filter: grayscale(1) !important; /* Делаем черно-белой */
+    opacity: 0.6;
+}
+
+.muted-icon::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -2px;
+    width: 110%;
+    height: 3px;
+    background-color: #eb4d4b; /* Красная линия */
+    transform: rotate(-45deg);
+    border-radius: 2px;
+}
+/* Цвет самого корпуса динамика */
+.speaker-body {
+    fill: #6ab04c; /* Зеленый под стиль игры */
+    transition: fill 0.3s;
+}
+
+/* Цвет звуковых волн */
+.speaker-waves {
+    transition: opacity 0.3s, stroke 0.3s;
+}
+
+/* Когда звук выключен (через класс muted-icon) */
+.muted-icon .speaker-body {
+    fill: #95a5a6; /* Серый корпус */
+}
+.muted-icon .speaker-waves {
+    opacity: 0; /* Волны исчезают */
+}
+/* Класс, который будет включаться только во время полета */
+.jumping-frog {
+    filter: drop-shadow(0 30px 20px rgba(0,0,0,0.3)) !important;
+    transform: translate(-50%, -80%) scale(1.4) !important; /* Взлетает выше и становится больше */
+}
+@keyframes count-pulse {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0; }
+}
+
+.count-animate {
+    animation: count-pulse 1s ease-out forwards;
+}
+
+</style>
 </head>
+
 <body>
+
+<div id="countdown-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 3000; justify-content: center; align-items: center; pointer-events: auto;">
+    <div id="countdown-text" style="font-size: 150px; color: #fff; font-weight: bold; text-shadow: 0 0 20px rgba(0,0,0,0.5); font-family: Arial, sans-serif;"></div>
+</div>
 
 <div id="ui-layer">
     <div id="header">PAST SIMPLE CHALLENGE</div>
     <div id="lives-container"></div>
     <div id="question-box">
-        <div id="q-text"><b>Get Ready!</b></div>
+        <div id="q-text"><b>Preparing...</b></div>
         <div class="timer-bar"><div id="timer-fill"></div></div>
     </div>
 </div>
-
 <div id="volume-control">
-    <span>🔊</span>
+    <div id="speaker-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path class="speaker-body" d="M11 5L6 9H2V15H6L11 19V5Z" fill="#6ab04c" stroke="#2d3436" stroke-width="1.5"/>
+            <path class="speaker-waves" d="M15.54 8.46C16.5 9.42 17.04 10.72 17.04 12C17.04 13.28 16.5 14.58 15.54 15.54" stroke="#2bbcd6" stroke-width="2" stroke-linecap="round"/>
+            <path class="speaker-waves" d="M19.07 4.93C21.02 6.88 22.12 9.44 22.12 12C22.12 14.56 21.02 17.12 19.07 19.07" stroke="#2bbcd6" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </div> 
     <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
 </div>
-
 <div id="world">
     <div id="pond">
         <div id="frog"></div>
@@ -128,214 +484,573 @@
 </div>
 
 <div id="overlay">
-    <h1 id="msg">GAME OVER</h1>
-    <button onclick="location.reload()">Restart Game</button>
+    <h1 id="msg">Game Over</h1>
+    <canvas id="fireworksCanvas"></canvas> <button onclick="initGame()">Try Again</button>
 </div>
 
 <script>
-const userConfig = window.frogGameConfig || {
-    lives: 5,
-    timer: 15,
-    rawQuestions: `
-        I ___ to the park yesterday | went | go | gone
-        She ___ a song last night | sang | sing | sung
-        They ___ at home | were | was | are
-        We ___ football | played | play | plays
-        He ___ a new car | bought | buy | buyed
-    `
+const levelsBank = {
+    1: [
+        { q: "Yesterday I ___ my room after school.", options: ["clean", "cleaned", "cleans"], correct: 1 },
+        { q: "They ___ at the cinema last Sunday.", options: ["were", "was", "are"], correct: 0 },
+        { q: "She ___ TV for two hours last night.", options: ["watch", "watches", "watched"], correct: 2 },
+        { q: "It ___ very cold yesterday.", options: ["was", "were", "is"], correct: 0 },
+        { q: "We ___ tennis in the park last week.", options: ["play", "played", "plays"], correct: 1 },
+        { q: "My mum ___ a delicious cake for my birthday.", options: ["bake", "bakes", "baked"], correct: 2 },
+        { q: "The children ___ happy to see the clown.", options: ["was", "were", "are"], correct: 1 },
+        { q: "I ___ to music all evening.", options: ["listened", "listen", "listens"], correct: 0 },
+        { q: "He ___ his homework an hour ago.", options: ["finish", "finished", "finishes"], correct: 1 },
+        { q: "We ___ in London three years ago.", options: ["live", "lives", "lived"], correct: 2 },
+        { q: "___ you at school yesterday?", options: ["Was", "Were", "Did"], correct: 1 },
+        { q: "She ___ not help me with the dishes.", options: ["did", "does", "was"], correct: 0 },
+        { q: "I ___ a doctor when I was a child.", options: ["want to be", "wanted to be", "wants to be"], correct: 1 },
+        { q: "They ___ their grandparents last weekend.", options: ["visit", "visits", "visited"], correct: 2 },
+        { q: "The cat ___ on the sofa all day.", options: ["stay", "stayed", "stays"], correct: 1 },
+        { q: "___ it sunny in Moscow last week?", options: ["Was", "Were", "Did"], correct: 0 },
+        { q: "We ___ our hands before dinner.", options: ["wash", "washed", "washing"], correct: 1 },
+        { q: "I ___ my friend on the phone.", options: ["call", "calls", "called"], correct: 2 },
+        { q: "The film ___ at 7 o'clock.", options: ["start", "started", "starts"], correct: 1 },
+        { q: "You ___ very late for the lesson.", options: ["was", "were", "are"], correct: 1 },
+        { q: "I ___ a new game yesterday.", options: ["play", "played", "playing"], correct: 1 },
+        { q: "The birds ___ in the garden.", options: ["was", "were", "is"], correct: 1 },
+        { q: "He ___ his teeth in the morning.", options: ["brush", "brushed", "brushes"], correct: 1 },
+        { q: "We ___ for the bus for ten minutes.", options: ["wait", "waited", "waits"], correct: 1 },
+        { q: "She ___ a letter to her aunt.", options: ["post", "posted", "posts"], correct: 1 },
+        { q: "I ___ my room last Saturday.", options: ["tidy", "tidied", "tidies"], correct: 1 },
+        { q: "___ the weather good on your holiday?", options: ["Was", "Were", "Did"], correct: 0 },
+        { q: "They ___ to the radio last night.", options: ["listen", "listened", "listens"], correct: 1 },
+        { q: "The lesson ___ ten minutes ago.", options: ["end", "ended", "ends"], correct: 1 },
+        { q: "I ___ my bike in the park.", options: ["ride", "rode", "rides"], correct: 1 },
+        { q: "He ___ very hungry after school.", options: ["was", "were", "is"], correct: 0 },
+        { q: "We ___ the museum last month.", options: ["visit", "visited", "visits"], correct: 1 },
+        { q: "She ___ at home all day.", options: ["stay", "stayed", "stays"], correct: 1 },
+        { q: "The dog ___ in the garden.", options: ["play", "played", "plays"], correct: 1 },
+        { q: "___ you happy with your presents?", options: ["Was", "Were", "Are"], correct: 1 },
+        { q: "I ___ a loud noise in the street.", options: ["hear", "heard", "hears"], correct: 1 },
+        { q: "They ___ soccer last Friday.", options: ["play", "played", "playing"], correct: 1 },
+        { q: "My friend ___ me a secret.", options: ["tell", "told", "tells"], correct: 1 },
+        { q: "The bus ___ at the station.", options: ["stop", "stopped", "stops"], correct: 1 },
+        { q: "We ___ late for the party.", options: ["was", "were", "is"], correct: 1 },
+        { q: "She ___ her dinner very fast.", options: ["eat", "ate", "eats"], correct: 1 },
+        { q: "I ___ a beautiful bird.", options: ["see", "saw", "sees"], correct: 1 },
+        { q: "The flowers ___ very pretty.", options: ["was", "were", "is"], correct: 1 },
+        { q: "He ___ to help his father.", options: ["want", "wanted", "wants"], correct: 1 },
+        { q: "They ___ in the sea.", options: ["swim", "swam", "swims"], correct: 1 },
+        { q: "I ___ my homework on time.", options: ["do", "did", "does"], correct: 1 },
+        { q: "She ___ a new dress.", options: ["buy", "bought", "buys"], correct: 1 },
+        { q: "The coffee ___ too hot.", options: ["was", "were", "is"], correct: 0 },
+        { q: "We ___ a nice time together.", options: ["have", "had", "has"], correct: 1 },
+        { q: "___ you tired last night?", options: ["Was", "Were", "Are"], correct: 1 }
+    ],
+    2: [
+        { q: "I ___ to the zoo last Saturday.", options: ["go", "went", "gone"], correct: 1 },
+        { q: "Did you ___ your keys yesterday?", options: ["find", "found", "finds"], correct: 0 },
+        { q: "She ___ a letter to her friend.", options: ["write", "wrote", "writes"], correct: 1 },
+        { q: "We ___ not see him at the party.", options: ["do", "did", "does"], correct: 1 },
+        { q: "He ___ a new car last month.", options: ["buy", "buyed", "bought"], correct: 2 },
+        { q: "What ___ you eat for breakfast?", options: ["do", "did", "was"], correct: 1 },
+        { q: "They ___ a lot of photos on holiday.", options: ["take", "took", "taked"], correct: 1 },
+        { q: "I ___ a big pizza yesterday.", options: ["eat", "ate", "eaten"], correct: 1 },
+        { q: "She ___ to the party with us.", options: ["came", "come", "comed"], correct: 0 },
+        { q: "We ___ a famous actor in the street.", options: ["see", "seed", "saw"], correct: 2 },
+        { q: "___ they have a good time?", options: ["Did", "Do", "Were"], correct: 0 },
+        { q: "I ___ my milk this morning.", options: ["drink", "drank", "drinked"], correct: 1 },
+        { q: "He ___ the race last year.", options: ["win", "wins", "won"], correct: 2 },
+        { q: "My sister ___ her leg in the park.", options: ["break", "broke", "breaked"], correct: 1 },
+        { q: "I ___ not know the answer.", options: ["did", "do", "was"], correct: 0 },
+        { q: "They ___ the house at 8 a.m.", options: ["leave", "left", "leaved"], correct: 1 },
+        { q: "Where ___ she go last night?", options: ["does", "did", "was"], correct: 1 },
+        { q: "I ___ a beautiful song yesterday.", options: ["sing", "singed", "sang"], correct: 2 },
+        { q: "We ___ our teacher in the mall.", options: ["meet", "met", "meets"], correct: 1 },
+        { q: "He ___ me a present for Christmas.", options: ["give", "gave", "gived"], correct: 1 },
+        { q: "I ___ my book on the table.", options: ["leave", "left", "leaved"], correct: 1 },
+        { q: "Did she ___ the truth?", options: ["tell", "told", "tells"], correct: 0 },
+        { q: "We ___ a big fish in the lake.", options: ["catch", "caught", "catched"], correct: 1 },
+        { q: "They ___ to the city by train.", options: ["go", "went", "goes"], correct: 1 },
+        { q: "He ___ a tree in the garden.", options: ["cut", "cutted", "cuts"], correct: 0 },
+        { q: "I ___ a noise downstairs.", options: ["hear", "heard", "hears"], correct: 1 },
+        { q: "She ___ her bag at school.", options: ["forget", "forgot", "forgets"], correct: 1 },
+        { q: "Did you ___ the window?", options: ["shut", "shuts", "shutted"], correct: 0 },
+        { q: "We ___ our lunch early.", options: ["eat", "ate", "eaten"], correct: 1 },
+        { q: "They ___ a new house.", options: ["build", "built", "builded"], correct: 1 },
+        { q: "He ___ to the floor.", options: ["fall", "fell", "fallen"], correct: 1 },
+        { q: "I ___ some money in the street.", options: ["find", "found", "finds"], correct: 1 },
+        { q: "Did he ___ the competition?", options: ["win", "won", "wins"], correct: 0 },
+        { q: "She ___ a song for us.", options: ["sing", "sang", "sings"], correct: 1 },
+        { q: "We ___ the lesson at 9.", options: ["begin", "began", "begins"], correct: 1 },
+        { q: "They ___ a lot of water.", options: ["drink", "drank", "drinks"], correct: 1 },
+        { q: "I ___ my homework already.", options: ["do", "did", "done"], correct: 1 },
+        { q: "He ___ his friend yesterday.", options: ["meet", "met", "meets"], correct: 1 },
+        { q: "She ___ a story for the class.", options: ["write", "wrote", "writes"], correct: 1 },
+        { q: "Did they ___ you a story?", options: ["tell", "told", "tells"], correct: 0 },
+        { q: "We ___ to the park.", options: ["run", "ran", "runs"], correct: 1 },
+        { q: "I ___ a gift to my mother.", options: ["give", "gave", "gives"], correct: 1 },
+        { q: "They ___ their bags here.", options: ["put", "putted", "puts"], correct: 0 },
+        { q: "He ___ his key.", options: ["lose", "lost", "loses"], correct: 1 },
+        { q: "She ___ the car.", options: ["drive", "drove", "drives"], correct: 1 },
+        { q: "Did you ___ the news?", options: ["hear", "heard", "hears"], correct: 0 },
+        { q: "We ___ for a long time.", options: ["sleep", "slept", "sleeps"], correct: 1 },
+        { q: "I ___ a new friend.", options: ["make", "made", "makes"], correct: 1 },
+        { q: "They ___ very fast.", options: ["swim", "swam", "swims"], correct: 1 },
+        { q: "He ___ his book.", options: ["read", "readed", "reads"], correct: 0 }
+    ],
+    3: [
+        { q: "My brother ___ a lot when he was a baby.", options: ["cry", "cryed", "cried"], correct: 2 },
+        { q: "Why ___ you so angry yesterday?", options: ["did", "were", "was"], correct: 1 },
+        { q: "I ___ to bed early because I was tired.", options: ["went", "go", "was go"], correct: 0 },
+        { q: "The student ___ the difficult question.", options: ["not understood", "didn't understand", "wasn't understand"], correct: 1 },
+        { q: "___ there any people in the park?", options: ["Was", "Did", "Were"], correct: 2 },
+        { q: "She ___ her hair last night.", options: ["dry", "dried", "dryed"], correct: 1 },
+        { q: "We ___ a loud noise at midnight.", options: ["heard", "heared", "hear"], correct: 0 },
+        { q: "How much ___ that book cost?", options: ["was", "did", "were"], correct: 1 },
+        { q: "I ___ my best friend ten years ago.", options: ["meet", "met", "meeted"], correct: 1 },
+        { q: "They ___ not at home when I called.", options: ["were", "did", "was"], correct: 0 },
+        { q: "He ___ a sandwich and a glass of juice.", options: ["had", "has", "did have"], correct: 0 },
+        { q: "___ your parents busy last weekend?", options: ["Were", "Did", "Was"], correct: 0 },
+        { q: "I ___ my wallet on the bus.", options: ["lose", "losed", "lost"], correct: 2 },
+        { q: "She ___ the window because it was hot.", options: ["opened", "open", "opens"], correct: 0 },
+        { q: "___ you see the news last night?", options: ["Did", "Do", "Were"], correct: 0 },
+        { q: "The baby ___ for three hours.", options: ["sleep", "slept", "sleeped"], correct: 1 },
+        { q: "I ___ very hard for the test.", options: ["study", "studied", "studyed"], correct: 1 },
+        { q: "They ___ the game, so they were sad.", options: ["lost", "lose", "losed"], correct: 0 },
+        { q: "Who ___ you talk to yesterday?", options: ["do", "did", "was"], correct: 1 },
+        { q: "It ___ a very interesting story.", options: ["was", "were", "did"], correct: 0 },
+        { q: "___ they visit the museum?", options: ["Did", "Was", "Were"], correct: 0 },
+        { q: "I ___ not see the movie.", options: ["did", "was", "were"], correct: 0 },
+        { q: "She ___ to the market.", options: ["went", "gone", "go"], correct: 0 },
+        { q: "___ he buy a new phone?", options: ["Did", "Was", "Is"], correct: 0 },
+        { q: "We ___ not go out last night.", options: ["did", "was", "were"], correct: 0 },
+        { q: "I ___ a beautiful painting.", options: ["see", "saw", "seen"], correct: 1 },
+        { q: "___ it rain yesterday?", options: ["Did", "Was", "Does"], correct: 0 },
+        { q: "She ___ not arrive on time.", options: ["did", "was", "were"], correct: 0 },
+        { q: "They ___ a lot of photos.", options: ["take", "took", "taken"], correct: 1 },
+        { q: "___ you finish your work?", options: ["Did", "Were", "Was"], correct: 0 },
+        { q: "I ___ not feel well.", options: ["did", "was", "were"], correct: 0 },
+        { q: "He ___ a new car.", options: ["bought", "buy", "buyed"], correct: 0 },
+        { q: "___ she send the letter?", options: ["Did", "Was", "Is"], correct: 0 },
+        { q: "We ___ not play football.", options: ["did", "was", "were"], correct: 0 },
+        { q: "They ___ to the cinema.", options: ["went", "gone", "go"], correct: 0 },
+        { q: "___ you at the party?", options: ["Was", "Were", "Did"], correct: 1 },
+        { q: "I ___ a good book.", options: ["read", "readed", "reads"], correct: 0 },
+        { q: "___ it cold yesterday?", options: ["Was", "Were", "Did"], correct: 0 },
+        { q: "She ___ not eat lunch.", options: ["did", "was", "were"], correct: 0 },
+        { q: "We ___ the game.", options: ["won", "win", "wins"], correct: 0 },
+        { q: "___ you have a car?", options: ["Did", "Was", "Were"], correct: 0 },
+        { q: "They ___ not here.", options: ["was", "were", "did"], correct: 1 },
+        { q: "He ___ to school.", options: ["ran", "run", "runs"], correct: 0 },
+        { q: "___ she happy?", options: ["Was", "Were", "Is"], correct: 0 },
+        { q: "I ___ not know.", options: ["did", "was", "were"], correct: 0 },
+        { q: "They ___ a song.", options: ["sang", "sing", "sings"], correct: 0 },
+        { q: "___ it a sunny day?", options: ["Was", "Were", "Is"], correct: 0 },
+        { q: "We ___ not stay long.", options: ["did", "was", "were"], correct: 0 },
+        { q: "He ___ his tea.", options: ["drank", "drink", "drinks"], correct: 0 },
+        { q: "___ you at home?", options: ["Was", "Were", "Did"], correct: 1 }
+    ]
 };
 
-let currentStep = 0;
-let lives = userConfig.lives;
-let gameQuestions = [];
-let timeLeft = userConfig.timer;
-let timerInterval;
+let currentLevel = 1; 
+let step = 0;
+let lives = 5;
+let countdownRunning = false;
+let questions = [];
+let timer;
+let lastCorrectLeaf;
 let globalVolume = 0.5;
-let isJumping = false;
 
-// Звуки (пустые заглушки, если файлов нет)
+// Звуковые эффекты
 const sounds = {
-    jump: new Audio('1.mp3'),
-    error: new Audio('2.mp3'),
-    win: new Audio('3.mp3'),
-    over: new Audio('4.mp3')
+    splash: new Audio('1.mp3'),
+    shock: new Audio('2.mp3'),
+    victory: new Audio('3.mp3'),
+    gameOver: new Audio('4.mp3'),
+    start: new Audio('5.mp3'),
+    levelUp: new Audio('6.mp3'),
+	count: new Audio('7.mp3')
 };
 
-function playSnd(s) {
-    s.volume = globalVolume;
-    s.currentTime = 0;
-    s.play().catch(() => {});
+// Функция проигрывания с учетом громкости
+function playSound(audio) {
+    if (!audio) return;
+    audio.currentTime = 0;
+    // Устанавливаем громкость из переменной globalVolume прямо перед проигрыванием
+    audio.volume = globalVolume; 
+    audio.play().catch(e => console.log("Audio blocked"));
 }
 
-// 1. Подготовка вопросов
-function parseQuestions() {
-    const lines = userConfig.rawQuestions.trim().split('\n');
-    return lines.map(line => {
-        const parts = line.split('|').map(p => p.trim());
-        const qText = parts[0];
-        const correctAns = parts[1];
-        const allOptions = parts.slice(1).sort(() => Math.random() - 0.5);
-        return {
-            q: qText,
-            options: allOptions,
-            correctIndex: allOptions.indexOf(correctAns)
-        };
-    });
-}
-
-// 2. Создание кувшинок
-function createPond() {
-    const pond = document.getElementById('pond');
-    const frog = document.getElementById('frog');
+// Функция для мгновенного обновления громкости всех звуков
+document.addEventListener('DOMContentLoaded', () => {
+    const slider = document.getElementById('volume-slider');
+    const speaker = document.getElementById('speaker-icon');
     
-    for (let i = 0; i < gameQuestions.length + 1; i++) {
-        const row = document.createElement('div');
-        row.style.position = "absolute";
-        row.style.width = "100%";
-        row.style.bottom = (i * 120) + 50 + "px"; // Идем снизу вверх
-        row.style.display = "flex";
-        row.style.justifyContent = "center";
-        row.style.gap = "40px";
+    slider.value = globalVolume;
 
-        if (i === 0) {
-            // Стартовый лист
-            const startLeaf = document.createElement('div');
-            startLeaf.className = 'leaf';
-            startLeaf.id = "step-0";
-            row.appendChild(startLeaf);
-            pond.appendChild(row);
-            
-            // Ставим лягушку на старт
-            setTimeout(() => moveFrogTo(startLeaf), 100);
-        } else {
-            // Листья с ответами
-            const qData = gameQuestions[i-1];
-            qData.options.forEach((opt, idx) => {
+    slider.addEventListener('input', (e) => {
+    globalVolume = parseFloat(e.target.value);
+    updateAllVolumes(); // Не забудьте вызвать функцию обновления громкости звуков
+
+    if (globalVolume === 0) {
+        speaker.classList.add('muted-icon');
+    } else {
+        speaker.classList.remove('muted-icon');
+    }
+});
+});
+
+const pond = document.getElementById('pond');
+const frog = document.getElementById('frog');
+
+function createPond() {
+    const leaves = pond.querySelectorAll('.leaf');
+    leaves.forEach(l => l.remove());
+    const rows = 7;
+    const cols = 5; 
+    
+    // Коэффициент растяжения: чем выше число, тем шире стоят листья
+    const horizontalSpread = 1.2; 
+
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (c > 0 && c < 4) {
                 const leaf = document.createElement('div');
-                leaf.className = 'leaf active';
-                leaf.innerText = opt;
-                leaf.setAttribute('data-letter', ['A','B','C'][idx]);
-                leaf.onclick = () => handleJump(i, idx, leaf);
-                row.appendChild(leaf);
-            });
-            pond.appendChild(row);
+                leaf.className = 'leaf';
+                
+                // Рассчитываем базовый центр
+                const columnWidth = 100 / (cols - 1); 
+                const rowOffset = (r % 2 === 0) ? 0 : (columnWidth / 2);
+                
+                // Вычисляем позицию и применяем коэффициент растяжения от центра экрана
+                let leftPos = (c * columnWidth + rowOffset);
+                // Сдвигаем всё так, чтобы центр оставался в центре (50%), и растягиваем
+                leftPos = 50 + (leftPos - 62.5) * horizontalSpread; 
+
+                leaf.style.left = leftPos + '%';
+                
+                // Вертикальная позиция (оставляем высокую, как в прошлом шаге)
+               const verticalPosition = (r / (rows - 1)) * 68 + 12; 
+                leaf.style.top = verticalPosition + '%';
+
+                leaf.id = `leaf-${r}-${c}`;
+                pond.appendChild(leaf);
+            }
         }
     }
 }
 
-function moveFrogTo(leaf) {
-    const frog = document.getElementById('frog');
-    const rect = leaf.getBoundingClientRect();
-    const pondRect = document.getElementById('pond').getBoundingClientRect();
-    
-    frog.style.left = (rect.left + rect.width/2 - pondRect.left) + "px";
-    frog.style.top = (rect.top + rect.height/2 - pondRect.top) + "px";
-}
+function initGame() {
+    pond.classList.remove('pond-transition');
+    const overlay = document.getElementById('countdown-overlay');
+    const countText = document.getElementById('countdown-text');
+    document.getElementById('overlay').style.display = 'none';
 
-function handleJump(step, choiceIdx, leafElement) {
-    if (isJumping || step !== currentStep + 1) return;
-    
-    isJumping = true;
-    const frog = document.getElementById('frog');
-    const correctIdx = gameQuestions[currentStep].correctIndex;
-    
-    // Прыгаем в любом случае
-    moveFrogTo(leafElement);
-    playSnd(sounds.jump);
+    // на всякий случай
+    sounds.count.pause();
+    sounds.count.currentTime = 0;
 
-    setTimeout(() => {
-        if (choiceIdx === correctIdx) {
-            // ВЕРНО
-            currentStep++;
-            if (currentStep === gameQuestions.length) {
-                endGame("YOU WIN!", sounds.win);
-            } else {
-                nextQuestion();
-            }
+    currentLevel = 1;
+    step = 0;
+    lives = 5;
+    updateLives();
+    createPond();
+
+    overlay.style.display = 'flex';
+
+    const steps = ['3', '2', '1', 'GO!'];
+    let i = 0;
+
+    // 🔹 ПОКАЗЫВАЕМ ПЕРВЫЙ КАДР СРАЗУ
+    countText.textContent = steps[i];
+    countText.classList.remove('count-animate');
+    void countText.offsetWidth;
+    countText.classList.add('count-animate');
+
+    // 🔊 И СРАЗУ СТАРТУЕМ ЗВУК
+    playSound(sounds.count);
+    i++;
+
+    const timerInterval = setInterval(() => {
+        if (i < steps.length) {
+            countText.textContent = steps[i];
+            countText.classList.remove('count-animate');
+            void countText.offsetWidth;
+            countText.classList.add('count-animate');
+            i++;
         } else {
-            // ОШИБКА: эффект тока и отскок
-            frog.classList.add('shock');
-            playSnd(sounds.error);
-            lives--;
-            updateUI();
-
-            setTimeout(() => {
-                frog.classList.remove('shock');
-                // Отскакиваем назад на предыдущий лист
-                const prevLeaf = document.getElementById(currentStep === 0 ? "step-0" : "current-leaf");
-                moveFrogTo(prevLeaf);
-                
-                if (lives <= 0) {
-                    endGame("GAME OVER", sounds.over);
-                }
-            }, 600);
+            clearInterval(timerInterval);
+            overlay.style.display = 'none';
+            frog.style.opacity = 1;
+            startGameLogic();
         }
-        isJumping = false;
-    }, 600);
+    }, 1000);
 }
 
-function nextQuestion() {
-    clearInterval(timerInterval);
-    const qData = gameQuestions[currentStep];
-    document.getElementById('q-text').innerHTML = `<b>${qData.q}</b>`;
+
+
+
+
+// Вынесем логику запуска в отдельную функцию
+// Замени существующую функцию startGameLogic на эту:
+function startGameLogic() {
+    playSound(sounds.start); 
+    document.getElementById('header').textContent = `PAST SIMPLE CHALLENGE - LEVEL ${currentLevel}`;
     
-    // Помечаем текущий лист для возврата при ошибке
-    const allLeaves = document.querySelectorAll('.leaf');
-    allLeaves.forEach(l => l.id = "");
-    // Находим лист, на котором сейчас лягушка
-    const activeRows = document.querySelectorAll('#pond > div');
-    const currentRow = activeRows[currentStep];
-    const currentLeaf = currentRow.querySelector('.leaf');
-    currentLeaf.id = "current-leaf";
+    // Генерируем новый случайный набор вопросов для текущего уровня
+    questions = [...levelsBank[currentLevel]]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 6); 
+    
+    frog.classList.remove('sink', 'super-jump', 'shock');
+    lastCorrectLeaf = document.getElementById('leaf-6-2');
+    
+    // Очищаем старые активные листья перед началом
+    document.querySelectorAll('.leaf').forEach(l => l.classList.remove('active', 'leaf-landed', 'shock'));
+    lastCorrectLeaf.classList.add('active'); 
+
+    frog.style.transition = "none"; 
+    updateFrog(lastCorrectLeaf);
+    
+    setTimeout(() => {
+        frog.style.transition = "left 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), top 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+        loadLevel();
+    }, 50);
+}
+
+function updateLives() {
+    const c = document.getElementById('lives-container');
+    c.innerHTML = '';
+    for (let i = 0; i < lives; i++) {
+        const l = document.createElement('div');
+        l.className = 'life-icon';
+        c.appendChild(l);
+    }
+}
+
+function loadLevel() {
+   // Найди внутри функции loadLevel блок перехода (if (levelsBank[currentLevel + 1])) 
+// и обнови строку с присвоением questions:
+
+if (step >= questions.length) {
+    if (levelsBank[currentLevel + 1]) {
+        frog.classList.add('super-jump');
+        playSound(sounds.levelUp); 
+        setTimeout(() => {
+            pond.classList.add('pond-transition');
+            setTimeout(() => {
+                currentLevel++;
+                step = 0;
+                
+                // ВАЖНО: перемешиваем вопросы для НОВОГО уровня
+                questions = [...levelsBank[currentLevel]]
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, 6);
+                
+                document.getElementById('header').textContent = `PAST SIMPLE CHALLENGE - LEVEL ${currentLevel}`;
+                frog.classList.remove('super-jump');
+                frog.style.transition = "none"; 
+                lastCorrectLeaf = document.getElementById('leaf-6-2');
+                updateFrog(lastCorrectLeaf);
+                setTimeout(() => {
+                    pond.classList.remove('pond-transition');
+                    frog.style.transition = "left 0.6s cubic-bezier(.47,1.21,.58,1), top 0.6s cubic-bezier(.47,1.21,.58,1), transform 0.3s ease-out";
+                    loadLevel();
+                }, 50);
+            }, 600);
+        }, 400); 
+        return;
+    } else {
+        showEnd("Victory!");
+        return;
+    }
+}
+    document.querySelectorAll('.leaf.active').forEach(l => {
+        l.classList.remove('active', 'leaf-landed');
+        l.textContent = '';
+        l.onclick = null;
+        delete l.dataset.letter; 
+    });
+
+    if (lastCorrectLeaf) {
+        lastCorrectLeaf.classList.add('active'); 
+    }
+
+    const q = questions[step];
+    document.getElementById('q-text').innerHTML = `<b>Q${step+1}:</b> ${q.q}`;
+
+    const row = 5 - step;
+    [1,2,3].forEach((c,i) => {
+        const leaf = document.getElementById(`leaf-${row}-${c}`);
+        if(leaf) {
+            leaf.classList.add('active');
+            leaf.dataset.letter = String.fromCharCode(65+i);
+            leaf.textContent = q.options[i];
+            leaf.onclick = () => handleJump(i, leaf);
+        }
+    });
 
     startTimer();
 }
 
+function handleJump(i, leaf) {
+    clearInterval(timer);
+    updateFrog(leaf);
+
+    if (i === questions[step].correct) {
+        lastCorrectLeaf = leaf;
+        leaf.classList.add('leaf-landed');
+        playSound(sounds.splash);
+
+        setTimeout(() => {
+            const x = leaf.offsetLeft + leaf.offsetWidth / 2;
+            const y = leaf.offsetTop + leaf.offsetHeight / 2;
+            createSplash(x, y);
+        }, 300); 
+
+        setTimeout(() => {
+            step++;
+            loadLevel();
+        }, 700); 
+    } else {
+        // --- ВОТ ЭТОТ БЛОК МЫ ОБНОВИЛИ ---
+        playSound(sounds.shock);
+        leaf.classList.add('shock'); 
+        frog.classList.add('shock'); // Лягушку бьет током
+        
+        lives--;
+        updateLives();
+
+        setTimeout(() => {
+            updateFrog(lastCorrectLeaf); // Лягушка отскакивает назад
+            
+            setTimeout(() => {
+                leaf.classList.remove('shock');
+                frog.classList.remove('shock'); // Эффект тока исчезает
+            }, 300);
+
+            if (lives <= 0) {
+                showEnd("Game Over");
+            } else {
+                setTimeout(() => loadLevel(), 400);
+            }
+        }, 150); // Пауза перед тем, как отскочить назад
+        // --------------------------------
+    }
+}
+function createSplash(x, y) {
+    const splash = document.createElement('div');
+    splash.className = 'splash';
+    splash.style.left = x + 'px';
+    splash.style.top = y + 'px';
+    pond.appendChild(splash);
+    setTimeout(() => splash.remove(), 600);
+}
+
+function updateFrog(leaf) {
+    if (frog.classList.contains('super-jump')) return; 
+    
+    const targetX = leaf.offsetLeft + (leaf.offsetWidth / 2);
+    const targetY = leaf.offsetTop + (leaf.offsetHeight / 2);
+    
+    // Принудительно ставим лягушку выше всех при каждом прыжке
+    frog.style.zIndex = "999"; 
+    
+    frog.classList.add('jumping-frog');
+    
+    frog.style.left = targetX + 'px';
+    frog.style.top = targetY + 'px';
+    
+    setTimeout(() => {
+        frog.classList.remove('jumping-frog');
+    }, 600);
+}
+
 function startTimer() {
-    timeLeft = userConfig.timer;
-    const fill = document.getElementById('timer-fill');
-    timerInterval = setInterval(() => {
-        timeLeft -= 0.1;
-        fill.style.width = (timeLeft / userConfig.timer) * 100 + "%";
-        if (timeLeft <= 0) {
-            lives--;
-            updateUI();
-            if (lives <= 0) endGame("TIME'S UP!", sounds.over);
-            else timeLeft = userConfig.timer;
+    let t = 100;
+    clearInterval(timer);
+
+    timer = setInterval(() => {
+        t -= 0.6;
+        document.getElementById('timer-fill').style.width = t + '%';
+        if (t <= 0) {
+            clearInterval(timer);
+            showEnd("Out of time!");
         }
     }, 100);
 }
 
-function updateUI() {
-    const container = document.getElementById('lives-container');
-    container.innerHTML = "";
-    for (let i = 0; i < lives; i++) {
-        const heart = document.createElement('div');
-        heart.className = 'life-icon';
-        container.appendChild(heart);
+
+const fireworksCanvas = document.getElementById('fireworksCanvas');
+const ctx = fireworksCanvas.getContext('2d');
+let particles = [];
+let animationFrameId;
+
+function setCanvasSize() {
+    fireworksCanvas.width = window.innerWidth;
+    fireworksCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', setCanvasSize);
+setCanvasSize();
+
+class Particle {
+    constructor(x, y, color, speed) {
+        this.x = x; this.y = y; this.color = color; this.speed = speed;
+        this.angle = Math.random() * Math.PI * 2;
+        this.velocity = { x: Math.cos(this.angle) * this.speed, y: Math.sin(this.angle) * this.speed };
+        this.friction = 0.99; this.gravity = 0.05; this.alpha = 1;
+        this.decay = Math.random() * 0.03 + 0.01;
+    }
+    draw() {
+        ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath();
+        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2); ctx.fillStyle = this.color;
+        ctx.fill(); ctx.restore();
+    }
+    update() {
+        this.velocity.x *= this.friction; this.velocity.y *= this.friction;
+        this.velocity.y += this.gravity; this.x += this.velocity.x; this.y += this.velocity.y;
+        this.alpha -= this.decay;
     }
 }
 
-function endGame(text, snd) {
-    clearInterval(timerInterval);
-    playSnd(snd);
-    document.getElementById('msg').innerText = text;
-    document.getElementById('overlay').style.display = 'flex';
+function createFireworks(x, y) {
+    const hue = Math.random() * 360;
+    const color = `hsl(${hue}, 100%, 50%)`;
+    for (let i = 0; i < 50; i++) { particles.push(new Particle(x, y, color, Math.random() * 5 + 2)); }
 }
 
-// Громкость
-document.getElementById('volume-slider').oninput = (e) => {
-    globalVolume = e.target.value;
-};
+function animateFireworks() {
+    animationFrameId = requestAnimationFrame(animateFireworks);
+    ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+    particles.forEach((p, i) => {
+        p.update(); p.draw();
+        if (p.alpha <= p.decay) particles.splice(i, 1);
+    });
+    if (Math.random() < 0.05 && particles.length < 300) {
+        createFireworks(Math.random() * fireworksCanvas.width, Math.random() * fireworksCanvas.height * 0.7);
+    }
+}
 
-// Старт
-window.onload = () => {
-    gameQuestions = parseQuestions();
-    updateUI();
-    createPond();
-    nextQuestion();
-};
+function stopFireworks() {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+    particles = [];
+    ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+}
+
+function showEnd(text) {
+    const msgElement = document.getElementById('msg');
+    msgElement.textContent = text;
+    document.getElementById('overlay').style.display = 'flex';
+    if (text === "Victory!") {
+        playSound(sounds.victory);
+        fireworksCanvas.style.display = 'block';
+        animateFireworks();
+        setTimeout(() => stopFireworks(), 5000);
+    } else {
+        playSound(sounds.gameOver);
+        stopFireworks();
+        fireworksCanvas.style.display = 'none';
+    }
+}
+
+window.onload = initGame;
 </script>
-
 </body>
 </html>
