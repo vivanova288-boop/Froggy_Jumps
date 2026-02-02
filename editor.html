@@ -1,81 +1,123 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f7f6; color: #333; }
-        .section { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h3 { margin-top: 0; color: #6ab04c; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        .field { margin-bottom: 12px; display: flex; flex-direction: column; }
-        label { font-size: 12px; font-weight: bold; margin-bottom: 4px; }
-        input, select, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        :root { --primary: #6ab04c; --bg: #f9f9f9; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 10px; font-size: 14px; }
+        .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 15px; }
+        .tab { padding: 8px 15px; cursor: pointer; border: none; background: none; font-weight: bold; color: #666; }
+        .tab.active { color: var(--primary); border-bottom: 2px solid var(--primary); margin-bottom: -2px; }
+        .content { display: none; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .content.active { display: block; }
+        .field { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #444; }
+        input, textarea, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
         .row { display: flex; gap: 10px; }
-        button { background: #6ab04c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #58943f; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-save:hover { background: #58943f; transform: translateY(-1px); }
+        textarea { resize: vertical; min-height: 80px; font-family: monospace; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <div class="section">
-        <h3>🔧 Контент игры</h3>
-        <div class="field">
-            <label>Название игры</label>
-            <input type="text" id="title" placeholder="Введите заголовок...">
+<div class="tabs">
+    <button class="tab active" onclick="openTab(event, 'main')">📝 Контент</button>
+    <button class="tab" onclick="openTab(event, 'visual')">🎨 Дизайн</button>
+    <button class="tab" onclick="openTab(event, 'audio')">🔊 Звук</button>
+    <button class="tab" onclick="openTab(event, 'gameplay')">⚙️ Механика</button>
+</div>
+
+<div id="main" class="content active">
+    <div class="field">
+        <label>Заголовок игры</label>
+        <input type="text" id="title" value="PAST SIMPLE CHALLENGE">
+    </div>
+    <div class="field">
+        <label>Вопросы (JSON формат)</label>
+        <textarea id="questions">[{ "q": "I ___ to the park yesterday.", "a": ["went", "go", "gone"], "correct": 0 }]</textarea>
+    </div>
+</div>
+
+<div id="visual" class="content">
+    <div class="row">
+        <div class="field" style="flex:1">
+            <label>Цвет темы</label>
+            <input type="color" id="mainColor" value="#6ab04c">
         </div>
-        <div class="field">
-            <label>Вопросы (в формате JSON или упрощенно)</label>
-            <textarea id="questions" rows="5" placeholder='[{"q":"Вопрос?", "a":["Вариант 1","2","3"], "correct":0}]'></textarea>
+        <div class="field" style="flex:1">
+            <label>Размер текста</label>
+            <input type="number" id="fontSize" value="22">
         </div>
     </div>
+    <div class="field">
+        <label>URL картинки лягушки</label>
+        <input type="text" id="imgFrog" value="1.png">
+    </div>
+    <div class="field">
+        <label>URL Фона (Background)</label>
+        <input type="text" id="bgImg" value="bg.png">
+    </div>
+</div>
 
-    <div class="section">
-        <h3>🐸 Визуал</h3>
-        <div class="row">
-            <div class="field">
-                <label>Цвет интерфейса</label>
-                <input type="color" id="mainColor" value="#6ab04c">
-            </div>
-            <div class="field">
-                <label>Размер шрифта (px)</label>
-                <input type="number" id="fontSize" value="22">
-            </div>
+<div id="audio" class="content">
+    <div class="field">
+        <label>Громкость (0.0 - 1.0)</label>
+        <input type="range" id="volume" min="0" max="1" step="0.1" value="0.5">
+    </div>
+    <div class="field">
+        <label>Звук прыжка (URL)</label>
+        <input type="text" id="sndJump" value="1.mp3">
+    </div>
+</div>
+
+<div id="gameplay" class="content">
+    <div class="row">
+        <div class="field">
+            <label>Жизни</label>
+            <input type="number" id="lives" value="5">
         </div>
         <div class="field">
-            <label>Ссылка на картинку Лягушки</label>
-            <input type="text" id="imgFrog" placeholder="https://...">
+            <label>Таймер (сек)</label>
+            <input type="number" id="timer" value="15">
         </div>
     </div>
+</div>
 
-    <div class="section">
-        <h3>⏱ Параметры</h3>
-        <div class="row">
-            <div class="field">
-                <label>Жизни</label>
-                <input type="number" id="lives" value="5">
-            </div>
-            <div class="field">
-                <label>Время (сек)</label>
-                <input type="number" id="timer" value="15">
-            </div>
-        </div>
-    </div>
+<button class="btn-save" onclick="saveSettings()">ОБНОВИТЬ ИГРУ</button>
 
-    <button onclick="saveSettings()">Применить настройки</button>
+<script>
+    function openTab(evt, tabName) {
+        let contents = document.getElementsByClassName("content");
+        for (let i = 0; i < contents.length; i++) contents[i].className = contents[i].className.replace(" active", "");
+        let tabs = document.getElementsByClassName("tab");
+        for (let i = 0; i < tabs.length; i++) tabs[i].className = tabs[i].className.replace(" active", "");
+        document.getElementById(tabName).className += " active";
+        evt.currentTarget.className += " active";
+    }
 
-    <script>
-        function saveSettings() {
+    function saveSettings() {
+        try {
             const settings = {
-                title: document.getElementById('title').value,
-                lives: document.getElementById('lives').value,
-                mainColor: document.getElementById('mainColor').value,
-                fontSize: document.getElementById('fontSize').value + 'px',
-                imgFrog: document.getElementById('imgFrog').value,
-                questions: JSON.parse(document.getElementById('questions').value || '[]')
+                type: 'config',
+                settings: {
+                    title: document.getElementById('title').value,
+                    questions: JSON.parse(document.getElementById('questions').value),
+                    mainColor: document.getElementById('mainColor').value,
+                    fontSize: document.getElementById('fontSize').value + 'px',
+                    imgFrog: document.getElementById('imgFrog').value,
+                    bgImg: document.getElementById('bgImg').value,
+                    volume: document.getElementById('volume').value,
+                    lives: document.getElementById('lives').value,
+                    timer: document.getElementById('timer').value
+                }
             };
-
-            // Отправляем данные в окно игры
-            window.parent.postMessage({ type: 'config', settings: settings }, '*');
-            alert('Настройки отправлены в игру!');
+            window.parent.postMessage(settings, '*');
+            console.log("Settings sent!");
+        } catch(e) {
+            alert("Ошибка в формате вопросов! Проверь запятые.");
         }
-    </script>
+    }
+</script>
 </body>
 </html>
