@@ -3,136 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        :root { --primary: #6ab04c; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; font-size: 13px; }
-        .tabs { display: flex; overflow-x: auto; border-bottom: 2px solid #ddd; margin-bottom: 10px; sticky: top; background: var(--bg); }
-        .tab { padding: 8px 12px; cursor: pointer; border: none; background: none; font-weight: bold; color: #666; white-space: nowrap; }
-        .tab.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
-        .content { display: none; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 60px; }
-        .content.active { display: block; }
-        .group { border: 1px solid #eee; padding: 10px; border-radius: 6px; margin-bottom: 15px; }
-        .group-title { font-weight: bold; margin-bottom: 10px; color: var(--primary); text-transform: uppercase; font-size: 11px; }
-        .field { margin-bottom: 10px; }
-        label { display: block; margin-bottom: 4px; font-weight: 600; }
-        input, textarea, select { width: 100%; padding: 7px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        .row { display: flex; gap: 8px; flex-wrap: wrap; }
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 10px; background: white; border-top: 1px solid #ddd; }
-        .btn-save { background: var(--primary); color: white; border: none; padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        textarea { height: 80px; font-family: monospace; }
+        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 15px; font-size: 13px; color: #333; }
+        .panel { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #ddd; }
+        h2 { margin: 0 0 15px 0; font-size: 16px; color: #6ab04c; display: flex; align-items: center; gap: 8px; }
+        section { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        label { display: block; margin-bottom: 6px; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+        textarea { height: 100px; font-family: monospace; font-size: 12px; background: #fdfdfd; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn-update { background: #6ab04c; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.3s; position: sticky; bottom: 0; box-shadow: 0 -5px 10px rgba(255,255,255,1); }
+        .btn-update:hover { background: #58943f; transform: translateY(-2px); }
+        .checkbox-group { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .checkbox-group input { width: auto; }
     </style>
 </head>
 <body>
 
-<div class="tabs">
-    <button class="tab active" onclick="openTab(event, 'tab1')">📝 Контент</button>
-    <button class="tab" onclick="openTab(event, 'tab2')">⚙️ Механика</button>
-    <button class="tab" onclick="openTab(event, 'tab3')">🎨 Визуал</button>
-    <button class="tab" onclick="openTab(event, 'tab4')">🔊 Аудио</button>
-    <button class="tab" onclick="openTab(event, 'tab5')">🏁 Финал/Язык</button>
-</div>
+<div class="panel">
+    <h2>⚙️ Конструктор квеста</h2>
 
-<div id="tab1" class="content active">
-    <div class="field"><label>Заголовок игры</label><input type="text" id="title" value="PAST SIMPLE CHALLENGE"></div>
-    <div class="field">
-        <label>Вопросы (JSON)</label>
-        <textarea id="questions">[{ "q": "I ___ to the park.", "a": ["went", "go", "gone"], "correct": 0, "level": 1 }]</textarea>
-    </div>
-    <div class="row">
-        <div class="field"><label>Уровней</label><input type="number" id="levelCount" value="1"></div>
-        <div class="field"><label>Вопросов в уровне</label><input type="number" id="qPerLevel" value="5"></div>
-    </div>
-    <div class="field">
-        <label><input type="checkbox" id="shuffle" checked> Перемешивать вопросы</label>
-    </div>
-</div>
-
-<div id="tab2" class="content">
-    <div class="row">
-        <div class="field"><label>Жизни</label><input type="number" id="lives" value="5"></div>
-        <div class="field"><label>Таймер (сек)</label><input type="number" id="timer" value="15"></div>
-    </div>
-    <div class="field"><label>Скорость анимации</label>
-        <select id="animSpeed"><option value="normal">Обычная</option><option value="fast">Быстрая</option></select>
-    </div>
-    <div class="field"><label><input type="checkbox" id="timerOn" checked> Включить таймер</label></div>
-</div>
-
-<div id="tab3" class="content">
-    <div class="group">
-        <div class="group-title">Цвета</div>
-        <div class="row">
-            <input type="color" id="colorHeader" value="#6ab04c">
-            <input type="color" id="colorTimer" value="#ff4757">
-            <input type="color" id="colorBtn" value="#2f3542">
+    <section>
+        <label>Заголовок игры</label>
+        <input type="text" id="title" value="PAST SIMPLE CHALLENGE">
+        <div style="margin-top:10px;">
+            <label>Вопросы (JSON)</label>
+            <textarea id="questions">[{"q": "I ___ to the park.", "a": ["went", "go", "gone"], "correct": 0}]</textarea>
         </div>
-    </div>
-    <div class="field"><label>Фон (URL)</label><input type="text" id="bgImg" value="bg.png"></div>
-    <div class="field"><label>Лягушка (URL)</label><input type="text" id="imgFrog" value="1.png"></div>
-    <div class="field"><label>Листья (URL)</label><input type="text" id="imgLeaf" value="2.png"></div>
-    <div class="field"><label>Иконка жизни (URL)</label><input type="text" id="imgHeart" value="3.png"></div>
-    <div class="field"><label>Размер шрифта (px)</label><input type="number" id="fontSize" value="22"></div>
-</div>
+    </section>
 
-<div id="tab4" class="content">
-    <div class="field"><label><input type="checkbox" id="soundOn" checked> Звуки включены</label></div>
-    <div class="field"><label>Громкость по умолчанию</label><input type="range" id="volume" min="0" max="1" step="0.1" value="0.5"></div>
-    <div class="group">
-        <div class="group-title">Замена файлов (URL)</div>
-        <div class="field"><label>Фон (Ambience)</label><input type="text" id="sndBg" value="7.mp3"></div>
-        <div class="field"><label>Верно</label><input type="text" id="sndCorrect" value="4.mp3"></div>
-        <div class="field"><label>Ошибка</label><input type="text" id="sndError" value="5.mp3"></div>
-    </div>
-</div>
+    <section class="grid">
+        <div>
+            <label>Жизни</label>
+            <input type="number" id="lives" value="5">
+        </div>
+        <div>
+            <label>Таймер (сек)</label>
+            <input type="number" id="timer" value="15">
+        </div>
+    </section>
 
-<div id="tab5" class="content">
-    <div class="field"><label>Язык интерфейса</label>
-        <select id="lang"><option value="ru">Русский</option><option value="en">English</option></select>
-    </div>
-    <div class="field"><label>Текст Победы</label><input type="text" id="txtWin" value="УРРА! ТЫ ПОБЕДИЛ!"></div>
-    <div class="field"><label>Текст Поражения</label><input type="text" id="txtLose" value="ОЙ! ПОПРОБУЙ ЕЩЕ РАЗ"></div>
-    <div class="field"><label><input type="checkbox" id="btnRetry" checked> Кнопка "Снова"</label></div>
-</div>
+    <section>
+        <label>URL картинки Лягушки</label>
+        <input type="text" id="imgFrog" value="1.png">
+        <div class="grid" style="margin-top:10px;">
+            <label class="checkbox-group"><input type="checkbox" id="timerOn" checked> Таймер</label>
+            <label class="checkbox-group"><input type="checkbox" id="soundOn" checked> Звуки</label>
+        </div>
+    </section>
 
-<div class="footer">
-    <button class="btn-save" onclick="saveSettings()">ОБНОВИТЬ ИГРУ</button>
+    <button class="btn-update" onclick="sendToGame()">🚀 ОБНОВИТЬ ИГРУ В ДЖЕНИАЛЛИ</button>
 </div>
 
 <script>
-    function openTab(evt, tabName) {
-        let contents = document.getElementsByClassName("content");
-        for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
-        let tabs = document.getElementsByClassName("tab");
-        for (let i = 0; i < tabs.length; i++) tabs[i].classList.remove("active");
-        document.getElementById(tabName).classList.add("active");
-        evt.currentTarget.classList.add("active");
-    }
-
-function saveSettings() {
+function sendToGame() {
     try {
-        const questionsField = document.getElementById('questions').value;
-        const parsedQuestions = JSON.parse(questionsField); // Проверка на ошибки JSON
-
         const s = {
             title: document.getElementById('title').value,
-            questions: parsedQuestions,
-            // ... остальные поля оставляем как есть
+            questions: JSON.parse(document.getElementById('questions').value),
+            lives: document.getElementById('lives').value,
+            timer: document.getElementById('timer').value,
+            timerOn: document.getElementById('timerOn').checked,
+            audio: { on: document.getElementById('soundOn').checked, vol: 0.5, bg: '7.mp3' },
+            images: { bg: 'bg.png', frog: document.getElementById('imgFrog').value, heart: '3.png' },
+            colors: { h: '#6ab04c', t: '#ff4757', b: '#2f3542' },
+            fontSize: '22'
         };
-
-        // Отправляем сигнал
         window.parent.postMessage({ type: 'config', settings: s }, '*');
-        
-        // Визуальное подтверждение, что кнопка сработала
-        const btn = document.querySelector('.btn-save');
-        btn.innerText = "ОБНОВЛЕНО! ✅";
-        btn.style.background = "#2f3542";
-        setTimeout(() => { 
-            btn.innerText = "ОБНОВИТЬ ИГРУ"; 
-            btn.style.background = "#6ab04c";
-        }, 1000);
-
+        console.log("Данные отправлены родительскому окну");
     } catch(e) {
-        console.error(e);
-        alert("ОШИБКА В ВОПРОСАХ: Проверь скобки и запятые в JSON!");
+        alert("Ошибка в формате вопросов! Проверь JSON.");
     }
 }
 </script>
