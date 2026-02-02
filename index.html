@@ -104,8 +104,16 @@ function pressStart() {
     
     let steps = ['3', '2', '1', 'GO!'];
     let i = 0;
+
+    // СРАЗУ показываем первую цифру и запускаем звук
+    txt.textContent = steps[i];
+    txt.classList.remove('count-animate');
+    void txt.offsetWidth; // Магия для сброса анимации
+    txt.classList.add('count-animate');
     
-    playSound(sounds.count);
+    playSound(sounds.count); // Звук пошел одновременно с "3"
+    i++; // Готовим следующий шаг (цифру "2")
+
     const itv = setInterval(() => {
         if(i < steps.length) {
             txt.textContent = steps[i];
@@ -118,7 +126,7 @@ function pressStart() {
             ov.style.display = 'none';
             initGame();
         }
-    }, 1000);
+    }, 1000); // Интервал строго 1 секунда
 }
 
 function initGame() {
@@ -283,3 +291,4 @@ document.getElementById('volume-slider').oninput = (e) => globalVolume = e.targe
 </script>
 </body>
 </html>
+
