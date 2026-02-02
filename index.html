@@ -489,6 +489,20 @@ button {
 </div>
 
 <script>
+	// 1. ПОЛУЧАЕМ НАСТРОЙКИ
+const userConfig = window.frogGameConfig || {
+    lives: 5,
+    timer: 15,
+    mainColor: "#00d4ff",
+    // Пример того, как учитель будет писать вопросы
+    rawQuestions: `
+        I ___ to the park yesterday | went | go | gone
+        She ___ a song last night | sang | sing | sung
+    `
+};
+
+// 2. ПРИМЕНЯЕМ ЦВЕТ (из настроек)
+document.documentElement.style.setProperty('--main-color', userConfig.mainColor);
 const levelsBank = {
     1: [
         { q: "Yesterday I ___ my room after school.", options: ["clean", "cleaned", "cleans"], correct: 1 },
@@ -667,7 +681,28 @@ const sounds = {
     levelUp: new Audio('6.mp3'),
 	count: new Audio('7.mp3')
 };
+function parseQuestions(text) {
+    const lines = text.trim().split('\n');
+    const allQuestions = lines.map(line => {
+        const [q, correct, bad1, bad2] = line.split('|').map(item => item.trim());
+        return {
+            q: q,
+            options: [correct, bad1, bad2].sort(() => Math.random() - 0.5),
+            correct: 0 // Мы определим индекс правильного ответа позже
+        };
+    });
+    
+    // Пересчитываем индекс правильного ответа после перемешивания
+    allQuestions.forEach(item => {
+        const originalCorrect = text.split('\n').find(l => l.includes(item.q)).split('|')[1].trim();
+        item.correct = item.options.indexOf(originalCorrect);
+    });
 
+    return allQuestions;
+}
+
+// Теперь заменяем твой массив levelsBank на результат этой функции
+const questions = parseQuestions(userConfig.rawQuestions);
 // Функция проигрывания с учетом громкости
 function playSound(audio) {
     if (!audio) return;
@@ -1053,4 +1088,5 @@ function showEnd(text) {
 window.onload = initGame;
 </script>
 </body>
+
 </html>
