@@ -3,48 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 5px; font-size: 11px; }
-        .card { background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 500px; margin: auto; border: 1px solid #ddd; }
-        .tabs { display: flex; background: #f8f9fa; border-bottom: 2px solid #6ab04c; }
-        .tab-btn { flex: 1; padding: 10px; border: none; background: none; cursor: pointer; font-weight: bold; font-size: 10px; color: #666; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; font-size: 12px; }
+        .tabs { display: flex; flex-wrap: wrap; background: #fff; border-bottom: 2px solid #6ab04c; sticky: top; }
+        .tab-btn { padding: 8px 12px; border: none; background: none; cursor: pointer; font-weight: bold; color: #666; flex: 1; }
         .tab-btn.active { color: white; background: #6ab04c; }
-        .content { padding: 10px; height: 200px; overflow-y: auto; }
+        .scroll-area { background: white; padding: 15px; height: 320px; overflow-y: auto; border-bottom: 1px solid #ddd; }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; }
-        label { display: block; margin-bottom: 2px; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 8px; box-sizing: border-box; font-size: 11px; }
-        textarea { height: 100px; font-family: monospace; }
-        .footer { background: #2d3436; padding: 10px; border-radius: 0 0 8px 8px; }
-        .btn-gen { background: #ff4757; color: white; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
-        #resCode { width: 100%; height: 40px; margin-top: 5px; background: #1e272e; color: #00d8d6; border: none; font-size: 9px; padding: 5px; display: none; }
-        .btn-copy { background: #00d8d6; color: #1e272e; border: none; padding: 8px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 5px; width: 100%; display: none; }
+        label { display: block; margin: 10px 0 3px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 7px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { height: 80px; font-family: monospace; }
+        .footer { background: #2d3436; padding: 15px; text-align: center; }
+        .btn-gen { background: #ff4757; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; width: 100%; cursor: pointer; }
+        #resCode { width: 100%; height: 50px; margin-top: 10px; background: #1e272e; color: #00d8d6; border: none; font-size: 10px; display: none; }
+        .btn-copy { background: #00d8d6; color: #1e272e; border: none; padding: 8px; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 5px; display: none; cursor: pointer; }
     </style>
 </head>
 <body>
-<div class="card">
-    <div class="tabs">
-        <button class="tab-btn active" onclick="tab(event,'t1')">ВОПРОСЫ</button>
-        <button class="tab-btn" onclick="tab(event,'t2')">ОПЦИИ</button>
-    </div>
-    <div class="content">
-        <div id="t1" class="tab-pane active">
-            <label>Вопрос | Верный | Ложный 1 | Ложный 2</label>
-            <textarea id="q_text">2+2? | 4 | 5 | 1
-Cat? | Кошка | Собака | Мышь</textarea>
+<div class="tabs">
+    <button class="tab-btn active" onclick="tab(event,'t1')">Контент</button>
+    <button class="tab-btn" onclick="tab(event,'t2')">Механика</button>
+    <button class="tab-btn" onclick="tab(event,'t3')">Визуал</button>
+    <button class="tab-btn" onclick="tab(event,'t4')">Аудио</button>
+    <button class="tab-btn" onclick="tab(event,'t5')">Финал</button>
+</div>
+
+<div class="scroll-area">
+    <div id="t1" class="tab-pane active">
+        <label>Заголовок игры</label><input type="text" id="title" value="FROGGY QUEST">
+        <label>Вопросы (Вопрос | Верный | Ошибка | Ошибка)</label>
+        <textarea id="q_text">Level 1 Question | Right | Wrong | No
+Level 2 Question | Correct | False | Typo</textarea>
+        <div style="display:flex; gap:10px">
+            <div style="flex:1"><label>Уровней</label><input type="number" id="lvls" value="2"></div>
+            <div style="flex:1"><label>Вопр/Ур</label><input type="number" id="qpl" value="1"></div>
         </div>
-        <div id="t2" class="tab-pane">
-            <label>Заголовок</label><input type="text" id="title" value="FROGGY QUEST">
-            <label>Цвет шапки</label><input type="color" id="clr" value="#6ab04c">
-            <label>Время (сек)</label><input type="number" id="tm" value="15">
-            <label>Жизни</label><input type="number" id="li" value="5">
-        </div>
+        <label><input type="checkbox" id="shuf" checked> Перемешивать вопросы</label>
     </div>
-    <div class="footer">
-        <button class="btn-gen" onclick="generate()">СГЕНЕРИРОВАТЬ</button>
-        <textarea id="resCode" readonly></textarea>
-        <button id="copyBtn" class="btn-copy" onclick="copyCode()">КОПИРОВАТЬ КОД</button>
+
+    <div id="t2" class="tab-pane">
+        <label>Жизни</label><input type="number" id="li" value="5">
+        <label>Таймер (сек)</label><input type="number" id="tm" value="15">
+        <label><input type="checkbox" id="tmO" checked> Включить таймер</label>
+        <label>Скорость анимации</label>
+        <select id="sp"><option value="0.4s">Быстрая</option><option value="0.7s" selected>Обычная</option></select>
+    </div>
+
+    <div id="t3" class="tab-pane">
+        <label>Фон игры (URL)</label><input type="text" id="iBg" value="bg.png">
+        <label>Лягушка (URL)</label><input type="text" id="iFr" value="1.png">
+        <label>Листья (URL)</label><input type="text" id="iLf" value="2.png">
+        <label>Иконка жизни (URL)</label><input type="text" id="iHt" value="3.png">
+        <label>Цвет интерфейса</label><input type="color" id="clr" value="#6ab04c">
+        <label>Размер шрифта</label><input type="number" id="fs" value="22">
+    </div>
+
+    <div id="t4" class="tab-pane">
+        <label><input type="checkbox" id="sndOn" checked> Звуки вкл</label>
+        <label>Громкость (0.0 - 1.0)</label><input type="range" id="vol" min="0" max="1" step="0.1" value="0.5">
+        <label>1. Фон (Ambience)</label><input type="text" id="s1" value="ambience.mp3">
+        <label>2. Старт</label><input type="text" id="s2" value="start.mp3">
+        <label>3. Верный ответ (Всплеск)</label><input type="text" id="s3" value="splash.mp3">
+        <label>4. Ошибка (Ток)</label><input type="text" id="s4" value="shock.mp3">
+        <label>5. Победа</label><input type="text" id="s5" value="win.mp3">
+        <label>6. Поражение</label><input type="text" id="s6" value="lose.mp3">
+        <label>7. Прыжок</label><input type="text" id="s7" value="jump.mp3">
+    </div>
+
+    <div id="t5" class="tab-pane">
+        <label>Текст победы</label><input type="text" id="tw" value="VICTORY!">
+        <label>Текст проигрыша</label><input type="text" id="tl" value="GAME OVER">
+        <label>Язык</label><select id="lang"><option value="ru">Русский</option><option value="en">English</option></select>
+        <label><input type="checkbox" id="retry" checked> Кнопка "Снова"</label>
     </div>
 </div>
+
+<div class="footer">
+    <button class="btn-gen" onclick="generate()">✨ СГЕНЕРИРОВАТЬ ИГРУ</button>
+    <textarea id="resCode" readonly></textarea>
+    <button id="copyBtn" class="btn-copy" onclick="copy()">📋 СКОПИРОВАТЬ КОД</button>
+</div>
+
 <script>
 function tab(e, id) {
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
@@ -52,26 +91,42 @@ function tab(e, id) {
     document.getElementById(id).classList.add('active');
     e.currentTarget.classList.add('active');
 }
+
 function generate() {
     const lines = document.getElementById('q_text').value.split('\n').filter(l => l.includes('|'));
     const qs = lines.map(line => {
         const p = line.split('|').map(x => x.trim());
         return { q: p[0], a: p.slice(1), c: 0 };
     });
-    const config = {
+
+    const cfg = {
         title: document.getElementById('title').value,
         questions: qs,
+        lvls: document.getElementById('lvls').value,
+        qpl: document.getElementById('qpl').value,
+        shuf: document.getElementById('shuf').checked,
+        lives: document.getElementById('li').value,
         time: document.getElementById('tm').value,
-        color: document.getElementById('clr').value,
-        lives: document.getElementById('li').value
+        tmOn: document.getElementById('tmO').checked,
+        speed: document.getElementById('sp').value,
+        img: { bg: document.getElementById('iBg').value, frog: document.getElementById('iFr').value, leaf: document.getElementById('iLf').value, heart: document.getElementById('iHt').value },
+        clr: document.getElementById('clr').value,
+        fs: document.getElementById('fs').value,
+        snd: { on: document.getElementById('sndOn').checked, v: document.getElementById('vol').value, s1: document.getElementById('s1').value, s2: document.getElementById('s2').value, s3: document.getElementById('s3').value, s4: document.getElementById('s4').value, s5: document.getElementById('s5').value, s6: document.getElementById('s6').value, s7: document.getElementById('s7').value },
+        fin: { w: document.getElementById('tw').value, l: document.getElementById('tl').value, r: document.getElementById('retry').checked },
+        lang: document.getElementById('lang').value
     };
+
     const url = "https://vivanova288-boop.github.io/Froggy_Jumps/index.html";
-    const code = `<iframe id="frg" src="${url}" style="width:100%;height:600px;border:none;"></iframe>\n<script>\nwindow.addEventListener('message', function(e){ if(e.data==='ready'){ document.getElementById('frg').contentWindow.postMessage(${JSON.stringify(config)},'*'); } });\n<\/script>`;
-    document.getElementById('resCode').value = code;
-    document.getElementById('resCode').style.display = 'block';
+    const code = `<iframe id="frg" src="${url}" style="width:100%;height:600px;border:none;" allow="autoplay"></iframe>\n<script>\nwindow.addEventListener('message', function(e){ if(e.data==='ready'){ document.getElementById('frg').contentWindow.postMessage(${JSON.stringify(cfg)},'*'); } });\n<\/script>`;
+    
+    const res = document.getElementById('resCode');
+    res.value = code;
+    res.style.display = 'block';
     document.getElementById('copyBtn').style.display = 'block';
 }
-function copyCode() {
+
+function copy() {
     document.getElementById('resCode').select();
     document.execCommand('copy');
     alert('Код скопирован!');
