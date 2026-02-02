@@ -3,89 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; color: #333; font-size: 12px; }
-        .tabs { display: flex; flex-wrap: wrap; gap: 2px; background: #fff; padding: 5px; border-radius: 8px 8px 0 0; border-bottom: 2px solid #6ab04c; sticky: top; }
-        .tab-btn { padding: 6px 10px; border: none; background: #eee; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 11px; flex: 1; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; font-size: 12px; }
+        .tabs { display: flex; flex-wrap: wrap; gap: 2px; background: #fff; padding: 5px; border-bottom: 2px solid #6ab04c; sticky: top; }
+        .tab-btn { padding: 6px 10px; border: none; background: #eee; cursor: pointer; border-radius: 4px; font-weight: bold; flex: 1; }
         .tab-btn.active { background: #6ab04c; color: white; }
-        .scroll-area { background: white; padding: 15px; height: 300px; overflow-y: auto; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .scroll-area { background: white; padding: 15px; height: 350px; overflow-y: auto; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        section { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         label { display: block; margin: 8px 0 3px; font-weight: bold; color: #555; }
-        input, textarea, select { width: 100%; padding: 7px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 12px; }
+        input, select, textarea { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .check-row { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
-        input[type="checkbox"] { width: auto; }
         #output-zone { margin-top: 15px; background: #2d3436; padding: 12px; border-radius: 10px; color: white; }
         #resCode { width: 100%; height: 60px; background: #1e272e; color: #00d8d6; border: none; font-family: monospace; font-size: 10px; margin-top: 8px; resize: none; }
-        .gen-btn { width: 100%; padding: 12px; background: #ff4757; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .gen-btn:hover { background: #ff6b81; transform: translateY(-2px); }
+        .gen-btn { width: 100%; padding: 12px; background: #ff4757; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="tabs">
-    <button class="tab-btn active" onclick="tab(event,'t1')">📝 Контент</button>
-    <button class="tab-btn" onclick="tab(event,'t2')">🕹️ Механика</button>
-    <button class="tab-btn" onclick="tab(event,'t3')">🎨 Визуал</button>
-    <button class="tab-btn" onclick="tab(event,'t4')">🔊 Аудио</button>
-    <button class="tab-btn" onclick="tab(event,'t5')">🏁 Финал</button>
+    <button class="tab-btn active" onclick="tab(event,'t1')">Контент</button>
+    <button class="tab-btn" onclick="tab(event,'t2')">Механика</button>
+    <button class="tab-btn" onclick="tab(event,'t3')">Визуал</button>
+    <button class="tab-btn" onclick="tab(event,'t4')">Аудио</button>
+    <button class="tab-btn" onclick="tab(event,'t5')">Финал</button>
 </div>
 
 <div class="scroll-area">
     <div id="t1" class="tab-content active">
-        <label>Название игры / заголовок</label>
-        <input type="text" id="title" value="FROGGY QUEST">
-        <label>Вопросы (JSON формат)</label>
-        <textarea id="questions" style="height:80px;">[{"q": "I ___ to the park yesterday.", "a": ["went", "go", "gone"], "correct": 0}]</textarea>
+        <label>Заголовок</label><input type="text" id="title" value="FROGGY QUEST">
+        <label>Вопросы (JSON)</label><textarea id="questions">[{"q": "2+2?", "a": ["4", "5", "3"], "correct": 0}]</textarea>
         <div class="grid">
-            <div><label>Уровней</label><input type="number" id="levels" value="1"></div>
-            <div><label>Вопросов в уровне</label><input type="number" id="qPerLvl" value="5"></div>
+            <div><label>Уровней</label><input type="number" id="lv" value="1"></div>
+            <div><label>Вопросов в LVL</label><input type="number" id="qp" value="5"></div>
         </div>
-        <div class="check-row"><input type="checkbox" id="shuffle" checked> <label>Перемешивать вопросы</label></div>
+        <label><input type="checkbox" id="shuf" checked> Перемешивать вопросы</label>
     </div>
 
     <div id="t2" class="tab-content">
         <div class="grid">
-            <div><label>Жизней</label><input type="number" id="lives" value="5"></div>
-            <div><label>Таймер (сек)</label><input type="number" id="timer" value="15"></div>
+            <div><label>Жизней</label><input type="number" id="li" value="5"></div>
+            <div><label>Таймер (сек)</label><input type="number" id="tm" value="15"></div>
         </div>
         <label>Скорость анимации</label>
-        <select id="speed"><option value="normal">Обычная</option><option value="fast">Быстрая</option></select>
-        <div class="check-row"><input type="checkbox" id="timerOn" checked> <label>Включить таймер</label></div>
+        <select id="sp"><option value="0.5s">Обычная</option><option value="0.2s">Быстрая</option></select>
+        <label><input type="checkbox" id="tmO" checked> Таймер вкл</label>
     </div>
 
     <div id="t3" class="tab-content">
-        <label>Фон игры (URL)</label><input type="text" id="imgBg" value="bg.png">
-        <label>Изображение лягушки (URL)</label><input type="text" id="imgFrog" value="1.png">
-        <label>Изображение листьев (URL)</label><input type="text" id="imgLeaf" value="2.png">
-        <label>Иконка жизней (URL)</label><input type="text" id="imgHeart" value="3.png">
+        <label>Фон (URL)</label><input type="text" id="iBg" value="bg.png">
+        <label>Лягушка (URL)</label><input type="text" id="iFr" value="1.png">
+        <label>Листья (URL)</label><input type="text" id="iLf" value="2.png">
+        <label>Сердце (URL)</label><input type="text" id="iHt" value="3.png">
         <div class="grid">
-            <div><label>Цвет интерфейса</label><input type="color" id="colorMain" value="#6ab04c"></div>
-            <div><label>Размер шрифта (px)</label><input type="number" id="fSize" value="22"></div>
+            <div><label>Цвет интерфейса</label><input type="color" id="cl" value="#6ab04c"></div>
+            <div><label>Шрифт (px)</label><input type="number" id="fs" value="22"></div>
         </div>
     </div>
 
     <div id="t4" class="tab-content">
-        <div class="check-row"><input type="checkbox" id="sndOn" checked> <label>Звуки включены</label></div>
-        <label>Громкость по умолчанию (0.0 - 1.0)</label>
-        <input type="range" id="vol" min="0" max="1" step="0.1" value="0.5">
-        <label>Фоновый звук (URL)</label><input type="text" id="sndAmb" value="7.mp3">
-        <p style="font-size:10px; color:#888;">Звуки эффектов должны лежать в папке как 1.mp3...6.mp3</p>
+        <label><input type="checkbox" id="sO" checked> Звуки вкл</label>
+        <label>Громкость</label><input type="range" id="vol" min="0" max="1" step="0.1" value="0.5">
+        <label>1. Фон (Ambience)</label><input type="text" id="s1" value="7.mp3">
+        <label>2. Старт</label><input type="text" id="s2" value="6.mp3">
+        <label>3. Верный ответ</label><input type="text" id="s3" value="4.mp3">
+        <label>4. Ошибка</label><input type="text" id="s4" value="5.mp3">
+        <label>5. Победа</label><input type="text" id="s5" value="win.mp3">
+        <label>6. Поражение</label><input type="text" id="s6" value="lose.mp3">
+        <label>7. Клик/Прыжок</label><input type="text" id="s7" value="jump.mp3">
     </div>
 
     <div id="t5" class="tab-content">
-        <label>Текст победы</label><input type="text" id="tWin" value="ПОБЕДА!">
-        <label>Текст проигрыша</label><input type="text" id="tLose" value="ПОПРОБУЙ СНОВА">
-        <label>Язык интерфейса</label>
-        <select id="lang"><option value="ru">Русский</option><option value="en">English</option></select>
-        <div class="check-row"><input type="checkbox" id="retryBtn" checked> <label>Кнопка «Снова»</label></div>
+        <label>Текст победы</label><input type="text" id="tw" value="ПОБЕДА!">
+        <label>Текст проигрыша</label><input type="text" id="tl" value="ПРОИГРЫШ">
+        <label>Язык</label><select id="la"><option value="ru">RU</option><option value="en">EN</option></select>
+        <label><input type="checkbox" id="rb" checked> Кнопка "Снова"</label>
     </div>
 </div>
 
 <div id="output-zone">
     <button class="gen-btn" onclick="generate()">✨ СГЕНЕРИРОВАТЬ КОД ИГРЫ</button>
-    <textarea id="resCode" readonly placeholder="Здесь появится код для вставки..."></textarea>
+    <textarea id="resCode" readonly></textarea>
 </div>
 
 <script>
@@ -100,30 +97,30 @@ function tab(e, id) {
 
 function generate() {
     try {
-        const config = {
+        const c = {
             t: document.getElementById('title').value,
             q: JSON.parse(document.getElementById('questions').value),
-            lv: document.getElementById('levels').value,
-            qp: document.getElementById('qPerLvl').value,
-            sh: document.getElementById('shuffle').checked,
-            li: document.getElementById('lives').value,
-            tm: document.getElementById('timer').value,
-            tmO: document.getElementById('timerOn').checked,
-            sp: document.getElementById('speed').value,
-            img: { b: document.getElementById('imgBg').value, f: document.getElementById('imgFrog').value, l: document.getElementById('imgLeaf').value, h: document.getElementById('imgHeart').value },
-            clr: document.getElementById('colorMain').value,
-            fs: document.getElementById('fSize').value,
-            snd: { o: document.getElementById('sndOn').checked, v: document.getElementById('vol').value, a: document.getElementById('sndAmb').value },
-            fin: { w: document.getElementById('tWin').value, l: document.getElementById('tLose').value, r: document.getElementById('retryBtn').checked },
-            la: document.getElementById('lang').value
+            li: document.getElementById('li').value,
+            tm: document.getElementById('tm').value,
+            tmO: document.getElementById('tmO').checked,
+            sp: document.getElementById('sp').value,
+            img: { b: document.getElementById('iBg').value, f: document.getElementById('iFr').value, l: document.getElementById('iLf').value, h: document.getElementById('iHt').value },
+            clr: document.getElementById('cl').value,
+            fs: document.getElementById('fs').value,
+            snd: { 
+                on: document.getElementById('sO').checked, 
+                v: document.getElementById('vol').value,
+                s1: document.getElementById('s1').value, s2: document.getElementById('s2').value,
+                s3: document.getElementById('s3').value, s4: document.getElementById('s4').value,
+                s5: document.getElementById('s5').value, s6: document.getElementById('s6').value, s7: document.getElementById('s7').value
+            },
+            fin: { w: document.getElementById('tw').value, l: document.getElementById('tl').value, r: document.getElementById('rb').checked },
+            la: document.getElementById('la').value
         };
-
         const url = "https://vivanova288-boop.github.io/Froggy_Jumps/index.html";
-        const code = `<iframe id="fg" src="${url}" style="width:100%;height:500px;border:none;"></iframe>\n<script>\nsetTimeout(()=>document.getElementById('fg').contentWindow.postMessage({type:'config',s:${JSON.stringify(config)}},'*'),1500);\n<\/script>`;
-        
+        const code = `<iframe id="fg" src="${url}" style="width:100%;height:600px;border:none;"></iframe>\n<script>\nwindow.addEventListener('load',()=>{setTimeout(()=>document.getElementById('fg').contentWindow.postMessage({type:'config',s:${JSON.stringify(c)}},'*'),2000)})\n<\/script>`;
         document.getElementById('resCode').value = code;
-        document.getElementById('resCode').select();
-    } catch(e) { alert("Ошибка в формате вопросов (JSON)!"); }
+    } catch(e) { alert("Ошибка в JSON!"); }
 }
 </script>
 </body>
