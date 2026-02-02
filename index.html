@@ -3,44 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body, html { margin:0; padding:0; height:100%; overflow:hidden; background:#000; font-family:sans-serif; }
+        body, html { margin:0; padding:0; height:100%; overflow:hidden; font-family:'Segoe UI', sans-serif; }
         #gm { width:100%; height:100%; position:relative; background-size:cover; background-position:center; display:none; }
-        #hd { padding:10px; color:#fff; text-align:center; font-weight:bold; box-shadow:0 2px 10px rgba(0,0,0,0.3); }
-        #frog { width:80px; height:80px; position:absolute; z-index:100; background-size:contain; background-repeat:no-repeat; transition:0.6s cubic-bezier(.47,1.21,.58,1); }
-        .leaf { position:absolute; width:150px; height:110px; background-size:contain; background-repeat:no-repeat; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer; text-align:center; padding:15px; box-sizing:border-box; font-weight:bold; }
-        .shock { animation: sk 0.1s infinite; filter: brightness(2) contrast(2) sepia(1) hue-rotate(140deg); }
+        
+        /* ШАПКА */
+        #top-bar { position:absolute; top:0; width:100%; height:40px; background:rgba(106, 176, 76, 0.9); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; z-index:10; }
+        
+        /* ИНТЕРФЕЙС */
+        #ui-layer { position:absolute; top:50px; width:100%; display:flex; justify-content:space-between; padding:0 20px; box-sizing:border-box; z-index:10; }
+        #lives { display:flex; gap:5px; }
+        .h { width:35px; height:35px; background-size:contain; background-repeat:no-repeat; }
+        
+        /* КАРТОЧКА ВОПРОСА */
+        #q-card { background:#fff; border-radius:30px; padding:10px 40px; box-shadow:0 4px 15px rgba(0,0,0,0.2); text-align:center; min-width:300px; position:relative; }
+        #q-text { font-size:18px; font-weight:bold; color:#333; margin-bottom:5px; }
+        #tm-bg { width:100%; height:8px; background:#eee; border-radius:4px; overflow:hidden; }
+        #tm-fill { width:100%; height:100%; background:#ff4757; transition:linear; }
+
+        /* ЗВУК */
+        #vol-ctrl { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.8); padding:5px 15px; border-radius:20px; }
+        
+        /* ПРУД */
+        #frog { width:100px; height:100px; position:absolute; z-index:100; transition:0.6s cubic-bezier(.47,1.21,.58,1); background-size:contain; background-repeat:no-repeat; }
+        .leaf-wrap { position:absolute; width:140px; height:120px; display:flex; flex-direction:column; align-items:center; cursor:pointer; }
+        .leaf-letter { background:#f1c40f; color:#000; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:bold; margin-bottom:-10px; z-index:2; border:2px solid #fff; }
+        .leaf-img { width:130px; height:90px; background-size:contain; background-repeat:no-repeat; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; text-align:center; padding:10px; box-sizing:border-box; text-shadow:1px 1px 2px #000; }
+        
+        .shock { animation: sk 0.1s infinite; filter: brightness(2) contrast(2) hue-rotate(180deg); }
         @keyframes sk { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.1) rotate(5deg); } }
-        #lives { position:absolute; top:60px; left:20px; display:flex; gap:5px; }
-        .h { width:30px; height:30px; background-size:contain; background-repeat:no-repeat; }
-        #tm-w { position:absolute; top:0; left:0; width:100%; height:6px; background:rgba(0,0,0,0.2); }
-        #tm-f { height:100%; width:100%; background:#ff4757; transition:linear; }
     </style>
 </head>
 <body>
     <div id="gm">
-        <div id="tm-w"><div id="tm-f"></div></div>
-        <div id="hd"></div>
-        <div id="lives"></div>
+        <div id="top-bar"></div>
+        <div id="ui-layer">
+            <div id="lives"></div>
+            <div id="q-card">
+                <div id="q-text"></div>
+                <div id="tm-bg"><div id="tm-fill"></div></div>
+            </div>
+            <div id="vol-ctrl">
+                <span id="vol-icon">🔊</span>
+                <input type="range" id="vol-slide" min="0" max="1" step="0.1" value="0.5">
+            </div>
+        </div>
         <div id="pond"><div id="frog"></div></div>
     </div>
+
 <script>
-    let c, step=0, hp, last={x:50,y:85}, aud={}, tmr;
+    let c, step=0, hp, last={x:50,y:85}, aud={}, tmr, currentVol=0.5;
     const p = new URLSearchParams(window.location.search);
     const d = p.get('d');
 
-    if(d) {
-        try { c = JSON.parse(decodeURIComponent(d)); init(); } 
-        catch(e) { document.body.innerHTML = "DATA ERROR"; }
-    }
+    if(d) { try { c = JSON.parse(decodeURIComponent(d)); init(); } catch(e) { console.error(e); } }
+
+    function playS(i) { if(aud[i]) { aud[i].currentTime=0; aud[i].play(); } }
 
     function init(){
         const g=document.getElementById('gm'); g.style.display='block';
         g.style.backgroundImage=`url(${c.bg})`;
-        const h=document.getElementById('hd'); h.innerText=c.t; h.style.backgroundColor=c.c1; h.style.fontSize=c.fs+'px';
+        document.getElementById('top-bar').innerText = `${c.t} - LEVEL ${Math.floor(step/c.qp)+1}`;
+        document.getElementById('top-bar').style.backgroundColor = c.c1;
         document.getElementById('frog').style.backgroundImage=`url(${c.fr})`;
-        hp=c.li;
-        c.s.forEach((u,i)=> { if(u) { aud[i]=new Audio(u); aud[i].volume=c.vol; } });
-        updateHp(); pos(50,85); load();
+        
+        currentVol = c.vol;
+        document.getElementById('vol-slide').value = currentVol;
+        c.s.forEach((u,i)=> { if(u) { aud[i]=new Audio(u); aud[i].volume=currentVol; } });
+        
+        document.getElementById('vol-slide').oninput = (e) => {
+            currentVol = e.target.value;
+            Object.values(aud).forEach(a => a.volume = currentVol);
+        };
+
+        hp=c.li; updateHp(); pos(50,85); playS(0); load();
     }
 
     function updateHp(){
@@ -49,18 +84,23 @@
     }
 
     function load(){
-        if(step >= c.qs.length) { alert(c.win); return; }
+        if(step >= c.qs.length) { playS(3); alert(c.win); return; }
+        if(step > 0 && step % c.qp === 0) playS(5);
+        
         clearInterval(tmr);
         const q=c.qs[step];
-        const pond=document.getElementById('pond'); pond.querySelectorAll('.leaf').forEach(l=>l.remove());
+        document.getElementById('q-text').innerText = `Q${step+1}: ${q.q}`;
+        const pond=document.getElementById('pond'); 
+        pond.querySelectorAll('.leaf-wrap').forEach(l=>l.remove());
         
+        const letters = ['A','B','C'];
         q.o.forEach((t,i)=>{
-            const l=document.createElement('div'); l.className='leaf';
-            l.style.backgroundImage=`url(${c.le})`;
-            l.style.left=(15+i*35)+'%'; l.style.top=(65-(step%c.qp)*8)+'%';
-            l.style.fontSize=(c.fs-4)+'px'; l.innerText=t;
-            l.onclick=()=>jump(i, 15+i*35, 65-(step%c.qp)*8);
-            pond.appendChild(l);
+            const w=document.createElement('div'); w.className='leaf-wrap';
+            w.style.left=(15+i*35)+'%'; w.style.top=(70-(step%c.qp)*10)+'%';
+            
+            w.innerHTML = `<div class="leaf-letter">${letters[i]}</div><div class="leaf-img" style="background-image:url(${c.le})">${t}</div>`;
+            w.onclick=()=>jump(i, 15+i*35, 70-(step%c.qp)*10);
+            pond.appendChild(w);
         });
         if(c.tme) startTmr();
     }
@@ -68,29 +108,31 @@
     function jump(i,x,y){
         pos(x,y);
         if(i===0){ 
-            if(aud[1]) aud[1].play(); 
-            last={x,y}; step++; setTimeout(load, 600); 
+            playS(1); last={x,y}; step++; 
+            document.getElementById('top-bar').innerText = `${c.t} - LEVEL ${Math.floor(step/c.qp)+1}`;
+            setTimeout(load, 600); 
         } else {
-            if(aud[2]) aud[2].play(); 
+            playS(2); 
             const f=document.getElementById('frog'); f.classList.add('shock'); hp--; updateHp();
             setTimeout(()=>{
                 f.classList.remove('shock'); pos(last.x, last.y);
-                if(hp<=0) { alert(c.lose); location.reload(); }
+                if(hp<=0) { playS(4); alert(c.lose); location.reload(); }
             }, 800);
         }
     }
 
     function startTmr(){
-        let w=100; const f=document.getElementById('tm-f');
+        let w=100; const f=document.getElementById('tm-fill');
         tmr=setInterval(()=>{
             w-=100/(c.tm*10); f.style.width=w+'%';
-            if(w<=0){ clearInterval(tmr); alert(c.lose); location.reload(); }
+            if(w < 20) playS(6); 
+            if(w<=0){ clearInterval(tmr); playS(4); alert(c.lose); location.reload(); }
         }, 100);
     }
 
     function pos(x,y){
         const f=document.getElementById('frog');
-        f.style.left=`calc(${x}% - 40px)`; f.style.top=`calc(${y}% - 40px)`;
+        f.style.left=`calc(${x}% - 50px)`; f.style.top=`calc(${y}% - 50px)`;
     }
 </script>
 </body>
