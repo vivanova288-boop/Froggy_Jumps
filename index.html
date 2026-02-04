@@ -1,176 +1,247 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Froggy Quest</title>
-    <style>
-        :root { --ui-bg: #6ab04c; }
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; background-color: #222; }
-        #bg-layer { position: fixed; inset: 0; background-size: cover; background-position: center; z-index: -1; }
-        
-        #entry-gate { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
-        #entry-gate button { padding: 15px 40px; font-size: 20px; cursor: pointer; background: var(--ui-bg); border: none; border-radius: 30px; color: white; font-weight: bold; margin-top: 20px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Froggy Quest Game</title>
+<style>
+    :root { --ui-bg: #6ab04c; }
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; background-color: #000; }
+    
+    /* Динамический фон через JS */
+    #bg-layer {
+        position: fixed; inset: 0;
+        background-size: cover; background-position: center;
+        z-index: -1;
+    }
 
-        #ui-layer { position: absolute; top: 0; width: 100%; z-index: 1000; }
-        #header { background: var(--ui-bg); color: white; padding: 10px; text-align: center; font-weight: bold; }
-        #lives-container { position: absolute; top: 50px; left: 20px; display: flex; gap: 8px; }
-        .life-icon { width: 40px; height: 40px; background-size: contain; background-repeat: no-repeat; }
+    #ui-layer { position: absolute; top: 0; width: 100%; z-index: 1000; pointer-events: none; }
+    #header { background: var(--ui-bg); color: white; padding: 10px; text-align: center; font-weight: bold; pointer-events: auto; text-transform: uppercase; }
+    #lives-container { position: absolute; top: 50px; left: 20px; display: flex; gap: 8px; pointer-events: auto; }
+    .life-icon { width: 40px; height: 40px; background-size: contain; background-repeat: no-repeat; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
 
-        #question-box { background: white; width: 85%; max-width: 500px; margin: 10px auto; padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .timer-bar { width: 100%; height: 6px; background: #eee; border-radius: 3px; margin-top: 10px; overflow: hidden; }
-        #timer-fill { width: 100%; height: 100%; background: #ff4757; transition: width 0.1s linear; }
+    #question-box { background: white; width: 85%; max-width: 500px; margin: 10px auto; padding: 12px; border-radius: 18px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.25); pointer-events: auto; }
+    .timer-bar { width: 100%; height: 8px; background: #dfe6e9; border-radius: 5px; margin-top: 8px; overflow: hidden; }
+    #timer-fill { width: 100%; height: 100%; background: #eb4d4b; }
 
-        #world { position: absolute; inset: 0; padding-top: 100px; }
-        #pond { position: relative; width: 100%; height: 100%; transition: 1s; }
-        .leaf { position: absolute; width: 120px; height: 100px; background-size: contain; background-repeat: no-repeat; background-position: center; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-shadow: 1px 1px 2px #000; font-size: 14px; cursor: pointer; transition: 0.3s; padding: 10px; box-sizing: border-box; }
-        
-        #frog { position: absolute; width: 70px; height: 70px; background-size: contain; background-repeat: no-repeat; background-position: center; z-index: 99; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; transform: translate(-50%, -50%); }
-        .shock { animation: shock-anim 0.1s infinite; filter: brightness(2) hue-rotate(90deg) !important; }
-        @keyframes shock-anim { 0% { margin-left: 2px; } 100% { margin-left: -2px; } }
+    #world { position: absolute; inset: 0; padding-top: 150px; }
+    #pond { position: relative; width: 100%; height: 100%; }
 
-        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 9999; }
-    </style>
+    .leaf {
+        position: absolute; width: 100px; height: 80px;
+        background-size: contain; background-repeat: no-repeat; background-position: center;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-weight: bold; font-size: 18px; text-shadow: 1px 1px 2px black;
+        cursor: pointer; transition: transform 0.3s;
+    }
+    .leaf:hover { transform: scale(1.1); }
+
+    #frog {
+        position: absolute; width: 70px; height: 70px;
+        background-size: contain; background-repeat: no-repeat;
+        z-index: 100; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        pointer-events: none; transform: translate(-50%, -50%);
+    }
+
+    /* Анимация шока */
+    .shock { animation: shock-ani 0.1s infinite; }
+    @keyframes shock-ani { 0% { left: -2px; } 100% { left: 2px; } }
+
+    #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
+    #countdown-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; display: none; justify-content: center; align-items: center; font-size: 120px; color: white; font-weight: bold; }
+    
+    #volume-control { position: absolute; top: 50px; right: 20px; background: white; padding: 5px 10px; border-radius: 20px; display: flex; align-items: center; gap: 5px; pointer-events: auto; z-index: 2000; }
+</style>
 </head>
 <body>
 
 <div id="bg-layer"></div>
-<div id="entry-gate"><h1 id="start-title">LOADING...</h1><button onclick="startGame()">ИГРАТЬ</button></div>
+<div id="countdown-overlay">3</div>
 
 <div id="ui-layer">
-    <div id="header">LEVEL 1</div>
+    <div id="header">FROGGY QUEST</div>
     <div id="lives-container"></div>
     <div id="question-box">
-        <div id="q-text">Вопрос...</div>
+        <div id="q-text">Загрузка...</div>
         <div class="timer-bar"><div id="timer-fill"></div></div>
     </div>
 </div>
 
-<div id="world"><div id="pond"><div id="frog"></div></div></div>
+<div id="volume-control">
+    🔊 <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
+</div>
+
+<div id="world">
+    <div id="pond"><div id="frog"></div></div>
+</div>
 
 <div id="overlay">
-    <h1 id="end-msg">FINISH</h1>
-    <button onclick="location.reload()">Еще раз</button>
+    <h1 id="msg">ИГРА ОКОНЧЕНА</h1>
+    <button onclick="location.reload()" style="padding: 15px 30px; border-radius: 20px; border: none; background: #6ab04c; color: white; cursor: pointer;">ИГРАТЬ СНОВА</button>
 </div>
 
 <script>
-// Настройки по умолчанию
-let config = {
+let cfg = {
     t: "FROGGY QUEST", li: 5, tm: 15, tme: true,
-    bg: "bg.png", fr: "2.png", le: "1.png", ic: "3.png",
-    vol: 0.5,
-    s: ["5.mp3", "1.mp3", "2.mp3", "3.mp3", "4.mp3", "6.mp3", "7.mp3"],
-    qs: [{q: "2+2?", o: ["4", "5", "6"], correct: 0}]
+    bg: "", fr: "", le: "", ic: "", vol: 0.5,
+    s: [], qs: []
 };
 
-// ЧИТАЕМ ДАННЫЕ ИЗ ССЫЛКИ
-const params = new URLSearchParams(window.location.search);
-if(params.has('d')) {
-    try {
-        config = JSON.parse(decodeURIComponent(params.get('d')));
-    } catch(e) { console.error("Ошибка парсинга конфига"); }
-}
+let currentQ = 0;
+let lives = 5;
+let timerInt;
 
-// Применяем визуал
-document.getElementById('start-title').innerText = config.t;
-document.getElementById('bg-layer').style.backgroundImage = `url('${config.bg}')`;
-document.getElementById('frog').style.backgroundImage = `url('${config.fr}')`;
-
-let currentStep = 0, lives = config.li, timerItv;
-const sounds = config.s.map(src => new Audio(src));
-
-function playSnd(id) { 
-    const a = sounds[id]; 
-    if(a) { a.volume = config.vol; a.currentTime = 0; a.play().catch(()=>{}); } 
-}
-
-function startGame() {
-    document.getElementById('entry-gate').style.display = 'none';
-    playSnd(0); // Звук отсчета/старта
-    initLevel();
-}
-
-function initLevel() {
-    const pond = document.getElementById('pond');
-    pond.querySelectorAll('.leaf').forEach(n => n.remove());
-    
-    if(currentStep >= config.qs.length) {
-        showEnd("ПОБЕДА!", 3);
-        return;
+// 1. ПОЛУЧЕНИЕ ДАННЫХ ИЗ URL
+function init() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const data = urlParams.get('d');
+    if (data) {
+        try {
+            cfg = JSON.parse(decodeURIComponent(data));
+        } catch(e) { console.error("Data error", e); }
     }
+    applyConfig();
+    startCountdown();
+}
 
-    const q = config.qs[currentStep];
-    document.getElementById('q-text').innerText = q.q;
-    document.getElementById('header').innerText = `${config.t} | ${currentStep + 1}/${config.qs.length}`;
-    
-    // Создаем лилии
-    q.o.forEach((text, i) => {
-        const leaf = document.createElement('div');
-        leaf.className = 'leaf';
-        leaf.style.backgroundImage = `url('${config.le}')`;
-        leaf.style.left = (20 + i * 30) + '%';
-        leaf.style.top = '60%';
-        leaf.innerText = text;
-        leaf.onclick = () => handleAnswer(i, leaf);
-        pond.appendChild(leaf);
-    });
-
+// 2. ПРИМЕНЕНИЕ КОНФИГА
+function applyConfig() {
+    document.getElementById('header').innerText = cfg.t;
+    document.getElementById('bg-layer').style.backgroundImage = `url(${cfg.bg})`;
+    document.getElementById('frog').style.backgroundImage = `url(${cfg.fr})`;
+    document.title = cfg.t;
+    lives = cfg.li;
+    document.getElementById('volume-slider').value = cfg.vol;
     updateLives();
-    if(config.tme) startTimer();
-}
-
-function handleAnswer(idx, el) {
-    const frog = document.getElementById('frog');
-    frog.style.left = el.offsetLeft + (el.offsetWidth/2) + 'px';
-    frog.style.top = el.offsetTop + (el.offsetHeight/2) + 'px';
-
-    clearInterval(timerItv);
-
-    if(idx === 0) { // В твоем массиве правильный всегда первый (редактор так шлет)
-        playSnd(1); // Всплеск
-        setTimeout(() => {
-            currentStep++;
-            if(currentStep < config.qs.length) playSnd(5); // Переход
-            initLevel();
-        }, 800);
-    } else {
-        playSnd(2); // Шок
-        frog.classList.add('shock');
-        lives--;
-        updateLives();
-        setTimeout(() => {
-            frog.classList.remove('shock');
-            if(lives <= 0) showEnd("ИГРА ОКОНЧЕНА", 4);
-            else initLevel();
-        }, 800);
-    }
 }
 
 function updateLives() {
     const cont = document.getElementById('lives-container');
     cont.innerHTML = '';
     for(let i=0; i<lives; i++) {
-        const icon = document.createElement('div');
-        icon.className = 'life-icon';
-        icon.style.backgroundImage = `url('${config.ic}')`;
-        cont.appendChild(icon);
+        const div = document.createElement('div');
+        div.className = 'life-icon';
+        div.style.backgroundImage = `url(${cfg.ic})`;
+        cont.appendChild(div);
     }
 }
 
+// 3. ЛОГИКА ИГРЫ
+function startCountdown() {
+    const over = document.getElementById('countdown-overlay');
+    over.style.display = 'flex';
+    let count = 3;
+    playSound(0); // Звук старта
+    
+    let itv = setInterval(() => {
+        count--;
+        if(count > 0) over.innerText = count;
+        else if(count === 0) over.innerText = "GO!";
+        else {
+            clearInterval(itv);
+            over.style.display = 'none';
+            renderQuestion();
+        }
+    }, 1000);
+}
+
+function renderQuestion() {
+    if(currentQ >= cfg.qs.length) {
+        endGame("ПОБЕДА!");
+        playSound(3); // Звук победы
+        return;
+    }
+
+    const q = cfg.qs[currentQ];
+    document.getElementById('q-text').innerText = q.q;
+    
+    // Создаем листья
+    const pond = document.getElementById('pond');
+    // Очищаем старые листья (кроме лягушки)
+    const oldLeaves = pond.querySelectorAll('.leaf');
+    oldLeaves.forEach(l => l.remove());
+
+    // Перемешиваем ответы
+    let options = q.o.map((text, idx) => ({ text, isCorrect: idx === 0 }));
+    options = options.filter(o => o.text !== "").sort(() => Math.random() - 0.5);
+
+    options.forEach((opt, i) => {
+        const leaf = document.createElement('div');
+        leaf.className = 'leaf';
+        leaf.style.backgroundImage = `url(${cfg.le})`;
+        leaf.innerText = opt.text;
+        leaf.style.left = (20 + i * 30) + "%";
+        leaf.style.top = "50%";
+        
+        leaf.onclick = () => handleAnswer(opt.isCorrect, leaf);
+        pond.appendChild(leaf);
+        
+        // В самом начале ставим лягушку на первый листик (визуально)
+        if(currentQ === 0 && i === 0) {
+            moveFrog(leaf.offsetLeft + 50, leaf.offsetTop + 40);
+        }
+    });
+
+    startTimer();
+}
+
+function handleAnswer(correct, el) {
+    if(correct) {
+        playSound(1); // Верно
+        moveFrog(el.offsetLeft + 50, el.offsetTop + 40);
+        currentQ++;
+        setTimeout(renderQuestion, 600);
+    } else {
+        lives--;
+        updateLives();
+        playSound(2); // Ошибка
+        
+        const frogEl = document.getElementById('frog');
+        frogEl.classList.add('shock');
+        setTimeout(() => frogEl.classList.remove('shock'), 500);
+
+        if(lives <= 0) endGame("ИГРА ОКОНЧЕНА");
+    }
+}
+
+function moveFrog(x, y) {
+    const f = document.getElementById('frog');
+    f.style.left = x + "px";
+    f.style.top = y + "px";
+}
+
 function startTimer() {
-    let t = 100;
-    timerItv = setInterval(() => {
-        t -= (100 / (config.tm * 10));
-        document.getElementById('timer-fill').style.width = t + '%';
-        if(t <= 0) { clearInterval(timerItv); showEnd("ВРЕМЯ ВЫШЛО", 4); }
+    clearInterval(timerInt);
+    if(!cfg.tme) return;
+    let time = 100;
+    timerInt = setInterval(() => {
+        time -= (100 / (cfg.tm * 10));
+        document.getElementById('timer-fill').style.width = time + "%";
+        if(time <= 0) {
+            clearInterval(timerInt);
+            lives--;
+            updateLives();
+            if(lives > 0) renderQuestion();
+            else endGame("ВРЕМЯ ВЫШЛО");
+        }
     }, 100);
 }
 
-function showEnd(msg, sndIdx) {
-    playSnd(sndIdx);
-    document.getElementById('end-msg').innerText = msg;
+function playSound(idx) {
+    if(cfg.s[idx]) {
+        const a = new Audio(cfg.s[idx]);
+        a.volume = document.getElementById('volume-slider').value;
+        a.play().catch(e => {});
+    }
+}
+
+function endGame(m) {
+    clearInterval(timerInt);
+    document.getElementById('msg').innerText = m;
     document.getElementById('overlay').style.display = 'flex';
 }
+
+window.onload = init;
 </script>
 </body>
 </html>
