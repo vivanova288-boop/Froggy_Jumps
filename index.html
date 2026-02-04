@@ -3,74 +3,85 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Froggy Jumps Quiz</title>
+<title>Froggy Quest</title>
 <style>
-/* ТВОИ ОРИГИНАЛЬНЫЕ СТИЛИ БЕЗ ИЗМЕНЕНИЙ */
-:root { --water1: #2bbcd6; --water2: #168ea0; --ui-bg: #6ab04c; }
-html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; background-color: #1e272e; }
+    :root { --ui-bg: #6ab04c; }
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; background: #000; }
+    
+    /* ФОН ТЕПЕРЬ БУДЕТ ВИДЕН */
+    #game-bg {
+        position: fixed; inset: 0;
+        background-size: cover; background-position: center;
+        z-index: -1;
+    }
 
-#bg-container {
-    position: fixed; inset: 0;
-    background-repeat: no-repeat; background-position: center; background-size: cover;
-    z-index: -1;
-}
+    #ui-layer { position: absolute; top: 0; width: 100%; z-index: 1000; pointer-events: none; }
+    #header { background: var(--ui-bg); color: white; padding: 10px; text-align: center; font-weight: bold; pointer-events: auto; }
+    
+    #lives-container { position: absolute; top: 50px; left: 20px; display: flex; gap: 5px; pointer-events: auto; }
+    .life-icon { width: 35px; height: 35px; background-size: contain; background-repeat: no-repeat; }
 
-#ui-layer { position: absolute; top: 0; width: 100%; z-index: 1000; pointer-events: none; }
-#header { background: var(--ui-bg); color: white; padding: 10px; text-align: center; font-weight: bold; pointer-events: auto; text-transform: uppercase; }
-#lives-container { position: absolute; top: 50px; left: 20px; display: flex; gap: 8px; pointer-events: auto; }
-.life-icon { width: 52px; height: 52px; background: no-repeat center / contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+    #question-box { 
+        background: white; width: 80%; max-width: 500px; margin: 15px auto; padding: 15px; 
+        border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); pointer-events: auto; 
+    }
+    .timer-bar { width: 100%; height: 8px; background: #eee; border-radius: 10px; margin-top: 10px; overflow: hidden; }
+    #timer-fill { width: 100%; height: 100%; background: #eb4d4b; transition: width 0.1s linear; }
 
-#question-box { background: white; width: 85%; max-width: 500px; margin: 10px auto; padding: 12px; border-radius: 18px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.25); pointer-events: auto; }
-.timer-bar { width: 100%; height: 8px; background: #dfe6e9; border-radius: 5px; margin-top: 8px; overflow: hidden; }
-#timer-fill { width: 100%; height: 100%; background: #eb4d4b; transition: width 0.1s linear; }
+    #world { position: absolute; inset: 0; padding-top: 140px; }
+    #pond { position: relative; width: 100%; height: 100%; }
 
-#world { position: absolute; inset: 0; padding-top: 60px; overflow: hidden; }
-#pond { position: relative; width: 100%; height: 100%; margin: 0 auto; transition: transform 0.8s ease-in-out; }
+    .leaf {
+        position: absolute; width: 120px; height: 100px;
+        background-size: contain; background-repeat: no-repeat; background-position: center;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-weight: bold; font-size: 18px; text-shadow: 1px 1px 2px black;
+        cursor: pointer; transition: transform 0.2s;
+    }
+    .leaf:hover { transform: scale(1.1); }
 
-.leaf {
-    position: absolute; width: 22vw; height: 18vw; max-width: 180px; max-height: 150px;
-    background: no-repeat center / contain; display: flex; align-items: center; justify-content: center;
-    padding: 15px; box-sizing: border-box; text-align: center; font-size: 20px;
-    color: white; font-weight: bold; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
-    cursor: pointer; transform: scale(1); transition: transform 0.4s;
-}
-.leaf.active { transform: scale(1.15); filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.9)); }
+    #frog {
+        position: absolute; width: 80px; height: 80px;
+        background-size: contain; background-repeat: no-repeat;
+        z-index: 500; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        pointer-events: none; transform: translate(-50%, -60%);
+        opacity: 0;
+    }
 
-#frog {
-    position: absolute; width: 12vw; height: 12vw; max-width: 100px; max-height: 100px;
-    background: no-repeat center / contain; transform: translate(-50%, -65%) scale(1);
-    z-index: 999; transition: left 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), top 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    pointer-events: none; opacity: 0;
-}
+    /* МЕХАНИКА ШОКА (ПО ТВОЕМУ ЗАПРОСУ) */
+    .shock { animation: shock-effect 0.1s infinite; }
+    @keyframes shock-effect {
+        0% { filter: brightness(3) hue-rotate(90deg); margin-left: -3px; }
+        100% { filter: brightness(1); margin-left: 3px; }
+    }
 
-.shock { animation: electric-shock 0.1s infinite; }
-@keyframes electric-shock {
-    0% { transform: translate(-50%, -65%) scale(1.1) rotate(2deg); filter: brightness(2) hue-rotate(180deg); }
-    100% { transform: translate(-50%, -65%) scale(1.1) rotate(-2deg); filter: brightness(1); }
-}
+    #volume-ctrl { 
+        position: absolute; top: 50px; right: 20px; background: white; 
+        padding: 5px 10px; border-radius: 20px; display: flex; align-items: center; z-index: 1000; pointer-events: auto;
+    }
 
-#overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; }
-#countdown-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 3000; display: none; justify-content: center; align-items: center; font-size: 150px; color: white; font-weight: bold; }
-#volume-control { position: absolute; top: 50px; right: 20px; background: rgba(255, 255, 255, 0.9); padding: 8px 15px; border-radius: 25px; display: flex; align-items: center; gap: 10px; z-index: 2000; pointer-events: auto; border: 2px solid var(--ui-bg); }
+    #overlay { 
+        position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
+        display: none; flex-direction: column; justify-content: center; align-items: center; 
+        color: white; z-index: 2000; 
+    }
 </style>
 </head>
 <body>
 
-<div id="bg-container"></div>
-<div id="countdown-overlay"></div>
+<div id="game-bg"></div>
 
 <div id="ui-layer">
     <div id="header">FROGGY QUEST</div>
     <div id="lives-container"></div>
     <div id="question-box">
-        <div id="q-text"><b>Подготовка...</b></div>
+        <div id="q-text">Загрузка...</div>
         <div class="timer-bar"><div id="timer-fill"></div></div>
     </div>
 </div>
 
-<div id="volume-control">
-    <span id="speaker-icon">🔊</span>
-    <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
+<div id="volume-ctrl">
+    🔊 <input type="range" id="vol-slider" min="0" max="1" step="0.1" value="0.5">
 </div>
 
 <div id="world">
@@ -78,194 +89,147 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 </div>
 
 <div id="overlay">
-    <h1 id="msg">ИГРА ОКОНЧЕНА</h1>
-    <button onclick="location.reload()" style="padding: 15px 45px; border-radius: 30px; border: none; background: #6ab04c; color: white; font-size: 18px; cursor: pointer;">ПОПРОБОВАТЬ СНОВА</button>
+    <h1 id="msg">КОНЕЦ ИГРЫ</h1>
+    <button onclick="location.reload()" style="padding: 15px 30px; cursor: pointer; border-radius: 10px; border: none; background: var(--ui-bg); color: white;">ИГРАТЬ СНОВА</button>
 </div>
 
 <script>
-// --- ПЕРЕМЕННЫЕ СОСТОЯНИЯ ---
-let config = {
+let cfg = {
     t: "FROGGY QUEST", li: 5, tm: 15, tme: true,
-    bg: "bg.png", fr: "2.png", le: "1.png", ic: "3.png", vol: 0.5,
+    bg: "", fr: "", le: "", ic: "", vol: 0.5,
     s: [], qs: []
 };
 
 let currentQ = 0;
 let lives = 5;
-let timerInt;
-let isMoving = false;
+let timer;
 
-// --- ИНИЦИАЛИЗАЦИЯ ---
-function init() {
-    const params = new URLSearchParams(window.location.search);
-    const data = params.get('d');
+// 1. ЧИТАЕМ ДАННЫЕ ИЗ РЕДАКТОРА
+function loadGame() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const data = urlParams.get('d');
     if (data) {
-        try { config = JSON.parse(decodeURIComponent(data)); } catch(e) {}
+        try {
+            cfg = JSON.parse(decodeURIComponent(data));
+        } catch(e) { console.error("Data error"); }
     }
     
-    // Применяем визуал
-    document.getElementById('header').innerText = config.t;
-    document.getElementById('bg-container').style.backgroundImage = `url(${config.bg})`;
-    document.getElementById('frog').style.backgroundImage = `url(${config.fr})`;
-    document.getElementById('volume-slider').value = config.vol;
-    lives = config.li;
+    // Применяем визуал из редактора
+    document.getElementById('game-bg').style.backgroundImage = `url(${cfg.bg})`;
+    document.getElementById('frog').style.backgroundImage = `url(${cfg.fr})`;
+    document.getElementById('header').innerText = cfg.t;
+    document.getElementById('vol-slider').value = cfg.vol;
+    lives = cfg.li;
     
     updateLives();
-    startStartCountdown();
+    renderQuestion();
 }
 
 function updateLives() {
     const container = document.getElementById('lives-container');
     container.innerHTML = '';
     for(let i=0; i<lives; i++) {
-        const icon = document.createElement('div');
-        icon.className = 'life-icon';
-        icon.style.backgroundImage = `url(${config.ic})`;
-        container.appendChild(icon);
+        const heart = document.createElement('div');
+        heart.className = 'life-icon';
+        heart.style.backgroundImage = `url(${cfg.ic})`;
+        container.appendChild(heart);
     }
 }
 
-function startStartCountdown() {
-    const over = document.getElementById('countdown-overlay');
-    over.style.display = 'flex';
-    let c = 3;
-    playSound(0); // Звук отсчета
-    
-    const itv = setInterval(() => {
-        over.innerText = c > 0 ? c : "GO!";
-        if (c < 0) {
-            clearInterval(itv);
-            over.style.display = 'none';
-            document.getElementById('frog').style.opacity = 1;
-            renderStep();
-        }
-        c--;
-    }, 1000);
-}
-
-// --- ЛОГИКА ШАГОВ ---
-function renderStep() {
-    if (currentQ >= config.qs.length) {
-        showEnd("ПОБЕДА!", 3); // Звук победы
+// 2. ОТРИСОВКА ВОПРОСА
+function renderQuestion() {
+    if (currentQ >= cfg.qs.length) {
+        finish("ПОБЕДА!", 3);
         return;
     }
 
-    isMoving = false;
-    const q = config.qs[currentQ];
-    document.getElementById('q-text').innerText = q.q;
-
-    // Очистка пруда от старых листьев
+    const qData = cfg.qs[currentQ];
+    document.getElementById('q-text').innerText = qData.q;
+    
     const pond = document.getElementById('pond');
     pond.querySelectorAll('.leaf').forEach(l => l.remove());
 
-    // Генерируем 3 листа в ряд
-    let opts = q.o.map((text, i) => ({ text, correct: i === 0 }));
-    opts = opts.filter(o => o.text !== "").sort(() => Math.random() - 0.5);
+    // Создаем 3 листа
+    let answers = qData.o.map((text, i) => ({ text, correct: i === 0 }));
+    answers = answers.filter(a => a.text !== "").sort(() => Math.random() - 0.5);
 
-    opts.forEach((opt, i) => {
+    answers.forEach((ans, i) => {
         const leaf = document.createElement('div');
-        leaf.className = 'leaf active';
-        leaf.style.backgroundImage = `url(${config.le})`;
-        leaf.innerText = opt.text;
-        
-        // Равномерное распределение
+        leaf.className = 'leaf';
+        leaf.style.backgroundImage = `url(${cfg.le})`;
+        leaf.innerText = ans.text;
         leaf.style.left = (15 + i * 35) + "%";
-        leaf.style.bottom = "20%"; // Листья в нижней части для удобства клика
+        leaf.style.top = "60%";
         
-        leaf.onclick = () => checkAnswer(opt.correct, leaf);
+        leaf.onclick = () => handleChoice(ans.correct, leaf);
         pond.appendChild(leaf);
 
-        // Если это первый вопрос, сажаем лягушку на первый попавшийся лист сразу
         if (currentQ === 0 && i === 0) {
-            placeFrogOn(leaf);
+            const f = document.getElementById('frog');
+            f.style.opacity = 1;
+            moveFrog(leaf);
         }
     });
 
     startTimer();
 }
 
-function checkAnswer(isCorrect, leafEl) {
-    if (isMoving) return;
-    clearInterval(timerInt);
-
-    if (isCorrect) {
-        isMoving = true;
-        playSound(1); // Всплеск
-        placeFrogOn(leafEl);
-        
-        setTimeout(() => {
-            currentQ++;
-            // Анимация "проплывания" уровня
-            document.getElementById('pond').style.transform = "translateY(100vh)";
-            setTimeout(() => {
-                document.getElementById('pond').style.transition = "none";
-                document.getElementById('pond').style.transform = "translateY(-100vh)";
-                renderStep();
-                setTimeout(() => {
-                    document.getElementById('pond').style.transition = "transform 0.8s ease-in-out";
-                    document.getElementById('pond').style.transform = "translateY(0)";
-                }, 50);
-            }, 400);
-        }, 600);
+function handleChoice(correct, el) {
+    if (correct) {
+        playSound(1);
+        moveFrog(el);
+        currentQ++;
+        setTimeout(renderQuestion, 600);
     } else {
         lives--;
         updateLives();
-        playSound(2); // Шок
-        const frog = document.getElementById('frog');
-        frog.classList.add('shock');
-        setTimeout(() => {
-            frog.classList.remove('shock');
-            if (lives <= 0) showEnd("ИГРА ОКОНЧЕНА", 4);
-            else startTimer();
-        }, 1000);
+        playSound(2);
+        
+        // ЭФФЕКТ ШОКА
+        const f = document.getElementById('frog');
+        f.classList.add('shock');
+        setTimeout(() => f.classList.remove('shock'), 600);
+
+        if (lives <= 0) finish("ИГРА ОКОНЧЕНА", 4);
     }
 }
 
-function placeFrogOn(el) {
+function moveFrog(target) {
     const f = document.getElementById('frog');
-    const rect = el.getBoundingClientRect();
-    const pondRect = document.getElementById('pond').getBoundingClientRect();
-    
-    f.style.left = (el.offsetLeft + el.offsetWidth / 2) + "px";
-    f.style.top = (el.offsetTop + el.offsetHeight / 2) + "px";
+    f.style.left = (target.offsetLeft + target.offsetWidth/2) + "px";
+    f.style.top = (target.offsetTop + target.offsetHeight/2) + "px";
 }
 
 function startTimer() {
-    if (!config.tme) return;
-    let val = 100;
-    const fill = document.getElementById('timer-fill');
-    timerInt = setInterval(() => {
-        val -= (100 / (config.tm * 10));
-        fill.style.width = val + "%";
-        if (val <= 0) {
-            clearInterval(timerInt);
-            handleTimeout();
+    clearInterval(timer);
+    if (!cfg.tme) return;
+    let time = 100;
+    timer = setInterval(() => {
+        time -= (100 / (cfg.tm * 10));
+        document.getElementById('timer-fill').style.width = time + "%";
+        if (time <= 0) {
+            clearInterval(timer);
+            handleChoice(false, {offsetLeft: 0, offsetWidth: 0});
         }
     }, 100);
 }
 
-function handleTimeout() {
-    lives--;
-    updateLives();
-    if (lives <= 0) showEnd("ВРЕМЯ ВЫШЛО", 4);
-    else renderStep();
-}
-
 function playSound(idx) {
-    if (config.s[idx]) {
-        const a = new Audio(config.s[idx]);
-        a.volume = document.getElementById('volume-slider').value;
-        a.play().catch(() => {});
+    if (cfg.s[idx]) {
+        const a = new Audio(cfg.s[idx]);
+        a.volume = document.getElementById('vol-slider').value;
+        a.play().catch(e => {});
     }
 }
 
-function showEnd(t, sIdx) {
-    document.getElementById('msg').innerText = t;
+function finish(txt, sndIdx) {
+    clearInterval(timer);
+    document.getElementById('msg').innerText = txt;
     document.getElementById('overlay').style.display = 'flex';
-    playSound(sIdx);
+    playSound(sndIdx);
 }
 
-window.onload = init;
+window.onload = loadGame;
 </script>
 </body>
 </html>
