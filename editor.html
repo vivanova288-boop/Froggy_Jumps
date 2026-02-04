@@ -2,54 +2,25 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Froggy Quest Editor Pro</title>
+    <title>Froggy Editor</title>
     <style>
-        :root {
-            --primary: #6ab04c;
-            --accent: #ff4757;
-            --bg: #1e272e;
-            --panel: #2f3542;
-            --text: #f1f2f6;
-        }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Sidebar */
-        .sidebar { width: 420px; background: var(--panel); display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.3); z-index: 10; }
-        .tabs { display: flex; background: rgba(0,0,0,0.2); }
-        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-size: 11px; font-weight: bold; transition: 0.3s; color: #a4b0be; border-bottom: 3px solid transparent; }
-        .tab.active { color: var(--primary); border-bottom-color: var(--primary); background: rgba(106, 176, 76, 0.1); }
-        
-        .pane { padding: 20px; flex: 1; overflow-y: auto; display: none; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        .box { max-width: 800px; margin: auto; background: #fff; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        .tabs { display: flex; background: #2d3436; }
+        .tab { flex: 1; padding: 18px; color: #95a5a6; text-align: center; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.3s; }
+        .tab.active { background: #6ab04c; color: #fff; }
+        .pane { padding: 30px; display: none; }
         .pane.active { display: block; }
-
-        /* Form Elements */
-        label { display: block; margin: 15px 0 5px; font-size: 11px; color: #747d8c; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
-        input[type="text"], input[type="number"], input[type="range"], textarea { 
-            width: 100%; padding: 10px; background: #3e4451; border: 1px solid #57606f; border-radius: 8px; color: white; box-sizing: border-box; outline: none; transition: 0.3s; font-size: 13px;
-        }
-        input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 8px rgba(106, 176, 76, 0.3); }
-        .help-text { font-size: 11px; color: #a4b0be; margin-top: 5px; font-style: italic; }
-
-        /* Preview Area */
-        .preview-area { flex: 1; display: flex; flex-direction: column; padding: 20px; background: #161a1d; position: relative; }
-        .preview-header { margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; color: #a4b0be; font-size: 12px; }
-        #preview-frame { width: 100%; height: 100%; border: none; border-radius: 12px; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-
-        /* Action Buttons */
-        .controls { padding: 20px; background: rgba(0,0,0,0.3); border-top: 1px solid #57606f; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-bottom: 10px; font-size: 14px; }
-        .btn-build { background: var(--accent); color: white; }
-        .btn-build:hover { background: #ff6b81; transform: translateY(-2px); }
-        .btn-copy { background: #2f3542; color: var(--primary); border: 2px solid var(--primary); display: none; }
-        .btn-copy:hover { background: var(--primary); color: white; }
-
-        .code-res { background: #000; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 10px; color: #0f0; margin-top: 10px; display: none; word-break: break-all; border: 1px solid #333; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; font-size: 13px; color: #636e72; }
+        input, textarea { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 14px; transition: 0.3s; }
+        input:focus { border-color: #6ab04c; outline: none; }
+        .btn-main { background: #ff4757; color: white; width: 100%; padding: 20px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .btn-main:hover { background: #ff6b81; transform: translateY(-2px); }
+        .res { margin-top: 20px; padding: 20px; background: #2d3436; color: #55efc4; font-family: monospace; border-radius: 10px; font-size: 12px; word-break: break-all; }
     </style>
 </head>
 <body>
-
-<div class="sidebar">
+<div class="box">
     <div class="tabs">
         <div class="tab active" onclick="tab(0)">КОНТЕНТ</div>
         <div class="tab" onclick="tab(1)">МЕХАНИКА</div>
@@ -58,69 +29,41 @@
     </div>
 
     <div class="pane active">
-        <label>Заголовок квеста</label>
-        <input type="text" id="t" value="FROGGY QUEST" oninput="autoUpdate()">
-        
-        <label>Вопросы (Вопрос | Верно | Ложь | Ложь)</label>
-        <textarea id="qs" style="height:180px;" oninput="autoUpdate()">2+2?|4|5|6
+        <label>Заголовок квеста</label><input type="text" id="t" value="FROGGY QUEST">
+        <label>Вопросы (Вопрос | Правильный | Ложный | Ложный)</label>
+        <textarea id="qs" style="height:120px;">2+2?|4|5|6
 Как зовут лягушку?|Квака|Мурка|Бобик</textarea>
-        <div class="help-text">Каждый вопрос с новой строки</div>
     </div>
 
     <div class="pane">
-        <label>Количество жизней</label>
-        <input type="number" id="li" value="5" oninput="autoUpdate()">
-        <label>Время на вопрос (сек)</label>
-        <input type="number" id="tm" value="15" oninput="autoUpdate()">
-        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin-top:15px;">
-            <input type="checkbox" id="tme" checked style="width:auto" onchange="autoUpdate()"> Таймер активен
-        </label>
+        <label>Количество жизней</label><input type="number" id="li" value="5">
+        <label>Время на ответ (сек)</label><input type="number" id="tm" value="15">
+        <label><input type="checkbox" id="tme" checked style="width:auto"> Таймер активен</label>
     </div>
 
     <div class="pane">
-        <label>Фон (URL)</label>
-        <input type="text" id="bg" value="https://vivanova288-boop.github.io/Froggy_Jumps/bg.png" oninput="autoUpdate()">
-        <label>Персонаж (URL)</label>
-        <input type="text" id="fr" value="https://vivanova288-boop.github.io/Froggy_Jumps/2.png" oninput="autoUpdate()">
-        <label>Опора/Лилия (URL)</label>
-        <input type="text" id="le" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.png" oninput="autoUpdate()">
-        <label>Иконка жизни (URL)</label>
-        <input type="text" id="ic" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.png" oninput="autoUpdate()">
+        <label>Фон (URL)</label><input type="text" id="bg" value="https://vivanova288-boop.github.io/Froggy_Jumps/bg.png">
+        <label>Лягушка (URL)</label><input type="text" id="fr" value="https://vivanova288-boop.github.io/Froggy_Jumps/2.png">
+        <label>Лилия (URL)</label><input type="text" id="le" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.png">
+        <label>Иконка жизни (URL)</label><input type="text" id="ic" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.png">
     </div>
 
     <div class="pane">
-        <label>Громкость</label>
-        <input type="range" id="vol" min="0" max="1" step="0.1" value="0.5" oninput="autoUpdate()">
-        
-        <label>1. Старт (отсчет)</label>
-        <input type="text" id="s0" value="https://vivanova288-boop.github.io/Froggy_Jumps/5.mp3" oninput="autoUpdate()">
-        <label>2. Верно (всплеск)</label>
-        <input type="text" id="s1" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.mp3" oninput="autoUpdate()">
-        <label>3. Ошибка (шок)</label>
-        <input type="text" id="s2" value="https://vivanova288-boop.github.io/Froggy_Jumps/2.mp3" oninput="autoUpdate()">
-        <label>4. Победа (финал)</label>
-        <input type="text" id="s3" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.mp3" oninput="autoUpdate()">
-        <label>5. Поражение</label>
-        <input type="text" id="s4" value="https://vivanova288-boop.github.io/Froggy_Jumps/4.mp3" oninput="autoUpdate()">
-        <label>6. Звук нового уровня</label>
-        <input type="text" id="s5" value="https://vivanova288-boop.github.io/Froggy_Jumps/6.mp3" oninput="autoUpdate()">
-        <label>7. Таймер/Переход</label>
-        <input type="text" id="s6" value="https://vivanova288-boop.github.io/Froggy_Jumps/7.mp3" oninput="autoUpdate()">
+        <label>Начальная громкость (0-1)</label><input type="number" id="vol" value="0.5" step="0.1">
+        <label>1. Старт (5.mp3)</label><input type="text" id="s0" value="https://vivanova288-boop.github.io/Froggy_Jumps/5.mp3">
+        <label>2. Верно (1.mp3)</label><input type="text" id="s1" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.mp3">
+        <label>3. Ошибка (2.mp3)</label><input type="text" id="s2" value="https://vivanova288-boop.github.io/Froggy_Jumps/2.mp3">
+        <label>4. Победа (3.mp3)</label><input type="text" id="s3" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.mp3">
+        <label>5. Поражение (4.mp3)</label><input type="text" id="s4" value="https://vivanova288-boop.github.io/Froggy_Jumps/4.mp3">
     </div>
 
-    <div class="controls">
-        <button class="btn-build" onclick="build()">СФОРМИРОВАТЬ ИГРУ</button>
-        <button id="copy-btn" class="btn-copy" onclick="copyCode()">СКОПИРОВАТЬ IFRAME</button>
-        <div id="res" class="code-res"></div>
+    <div style="padding: 0 30px 30px;">
+        <button class="btn-main" onclick="build()">СОЗДАТЬ ССЫЛКУ</button>
+        <div id="res-box" style="display:none;">
+            <div id="res" class="res"></div>
+            <button class="btn-main" style="background:#2d3436" onclick="copyCode()">КОПИРОВАТЬ</button>
+        </div>
     </div>
-</div>
-
-<div class="preview-area">
-    <div class="preview-header">
-        <span>ПРЕДПРОСМОТР РЕЗУЛЬТАТА</span>
-        <span id="status-msg" style="color:var(--primary)">Готов</span>
-    </div>
-    <iframe id="preview-frame" src="about:blank"></iframe>
 </div>
 
 <script>
@@ -128,71 +71,25 @@
         document.querySelectorAll('.tab').forEach((t,n)=>t.classList.toggle('active',i===n));
         document.querySelectorAll('.pane').forEach((p,n)=>p.classList.toggle('active',i===n));
     }
-
-    function build(isPreview = false){
-        try {
-            const qLines = document.getElementById('qs').value.split('\n').filter(l=>l.includes('|'));
-            
-            const config = {
-                t: document.getElementById('t').value,
-                li: parseInt(document.getElementById('li').value) || 5,
-                tm: parseInt(document.getElementById('tm').value) || 15,
-                tme: document.getElementById('tme').checked,
-                bg: document.getElementById('bg').value,
-                fr: document.getElementById('fr').value,
-                le: document.getElementById('le').value,
-                ic: document.getElementById('ic').value,
-                vol: parseFloat(document.getElementById('vol').value), // ТЕПЕРЬ ЭТО ПОЛЕ ЕСТЬ В HTML
-                s: [
-                    document.getElementById('s0').value, document.getElementById('s1').value,
-                    document.getElementById('s2').value, document.getElementById('s3').value,
-                    document.getElementById('s4').value, document.getElementById('s5').value,
-                    document.getElementById('s6').value
-                ],
-                qs: qLines.map(l=>{
-                    const p = l.split('|');
-                    return { q: p[0].trim(), o: [p[1].trim(), p[2].trim(), (p[3]||"").trim()] }
-                })
-            };
-
-            const data = encodeURIComponent(JSON.stringify(config));
-            const url = `https://vivanova288-boop.github.io/Froggy_Jumps/index.html?d=${data}`;
-            
-            if(isPreview) {
-                document.getElementById('preview-frame').src = url;
-            } else {
-                const code = `<iframe src="${url}" style="width:100%;height:600px;border:none;" allow="autoplay"></iframe>`;
-                document.getElementById('res').innerText = code;
-                document.getElementById('res').style.display = 'block';
-                document.getElementById('copy-btn').style.display = 'block';
-                document.getElementById('status-msg').innerText = "Ссылка обновлена!";
-            }
-        } catch (e) {
-            console.error(e);
-            document.getElementById('status-msg').innerText = "Ошибка в полях!";
-        }
+    function build(){
+        const qLines = document.getElementById('qs').value.split('\n').filter(l=>l.includes('|'));
+        const config = {
+            t:document.getElementById('t').value, li:document.getElementById('li').value,
+            tm:document.getElementById('tm').value, tme:document.getElementById('tme').checked,
+            bg:document.getElementById('bg').value, fr:document.getElementById('fr').value,
+            le:document.getElementById('le').value, ic:document.getElementById('ic').value,
+            vol:document.getElementById('vol').value,
+            s:[document.getElementById('s0').value, document.getElementById('s1').value, document.getElementById('s2').value, document.getElementById('s3').value, document.getElementById('s4').value],
+            qs:qLines.map(l=>{const p=l.split('|'); return {q:p[0].trim(),o:[p[1].trim(),p[2].trim(),p[3].trim()]}})
+        };
+        const d = encodeURIComponent(JSON.stringify(config));
+        const url = `https://vivanova288-boop.github.io/Froggy_Jumps/index.html?d=${d}`;
+        document.getElementById('res').innerText = url;
+        document.getElementById('res-box').style.display = 'block';
     }
-
-    let timer;
-    function autoUpdate() {
-        document.getElementById('status-msg').innerText = "Обновление...";
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            build(true);
-            document.getElementById('status-msg').innerText = "Превью готово";
-        }, 1200);
-    }
-
     function copyCode(){
-        const txt = document.getElementById('res').innerText;
-        navigator.clipboard.writeText(txt).then(() => {
-            const btn = document.getElementById('copy-btn');
-            btn.innerText = "СКОПИРОВАНО!";
-            setTimeout(() => btn.innerText = "СКОПИРОВАТЬ IFRAME", 2000);
-        });
+        navigator.clipboard.writeText(document.getElementById('res').innerText).then(() => alert("Ссылка скопирована!"));
     }
-
-    window.onload = () => build(true);
 </script>
 </body>
 </html>
