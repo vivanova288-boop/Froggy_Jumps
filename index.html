@@ -1,81 +1,74 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Froggy Quest</title>
-<style>
-    :root { --ui-bg: #6ab04c; }
-    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; background: #000; }
-    
-    /* ФОН ТЕПЕРЬ БУДЕТ ВИДЕН */
-    #game-bg {
-        position: fixed; inset: 0;
-        background-size: cover; background-position: center;
-        z-index: -1;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Froggy Quest</title>
+    <style>
+        :root { --ui-bg: #6ab04c; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; background: #000; }
+        
+        #game-bg { position: fixed; inset: 0; background-size: cover; background-position: center; z-index: -1; transition: opacity 0.5s; }
+        #ui-layer { position: absolute; top: 0; width: 100%; z-index: 1000; pointer-events: none; }
+        #header { background: var(--ui-bg); color: white; padding: 12px; text-align: center; font-weight: bold; pointer-events: auto; letter-spacing: 1px; }
+        
+        #lives-container { position: absolute; top: 60px; left: 20px; display: flex; gap: 8px; pointer-events: auto; }
+        .life-icon { width: 40px; height: 40px; background-size: contain; background-repeat: no-repeat; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
 
-    #ui-layer { position: absolute; top: 0; width: 100%; z-index: 1000; pointer-events: none; }
-    #header { background: var(--ui-bg); color: white; padding: 10px; text-align: center; font-weight: bold; pointer-events: auto; }
-    
-    #lives-container { position: absolute; top: 50px; left: 20px; display: flex; gap: 5px; pointer-events: auto; }
-    .life-icon { width: 35px; height: 35px; background-size: contain; background-repeat: no-repeat; }
+        #question-box { 
+            background: white; width: 85%; max-width: 500px; margin: 15px auto; padding: 20px; 
+            border-radius: 25px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.4); pointer-events: auto; 
+        }
+        #q-text { font-size: 20px; color: #2d3436; font-weight: 600; }
+        .timer-bar { width: 100%; height: 10px; background: #eee; border-radius: 10px; margin-top: 15px; overflow: hidden; }
+        #timer-fill { width: 100%; height: 100%; background: #eb4d4b; transition: width 0.1s linear; }
 
-    #question-box { 
-        background: white; width: 80%; max-width: 500px; margin: 15px auto; padding: 15px; 
-        border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); pointer-events: auto; 
-    }
-    .timer-bar { width: 100%; height: 8px; background: #eee; border-radius: 10px; margin-top: 10px; overflow: hidden; }
-    #timer-fill { width: 100%; height: 100%; background: #eb4d4b; transition: width 0.1s linear; }
+        #world { position: absolute; inset: 0; padding-top: 160px; display: flex; align-items: center; justify-content: center; }
+        #pond { position: relative; width: 100%; height: 100%; }
 
-    #world { position: absolute; inset: 0; padding-top: 140px; }
-    #pond { position: relative; width: 100%; height: 100%; }
+        .leaf {
+            position: absolute; width: 140px; height: 110px;
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: bold; font-size: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            cursor: pointer; transition: transform 0.2s; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+        }
+        .leaf:hover { transform: scale(1.1); }
 
-    .leaf {
-        position: absolute; width: 120px; height: 100px;
-        background-size: contain; background-repeat: no-repeat; background-position: center;
-        display: flex; align-items: center; justify-content: center;
-        color: white; font-weight: bold; font-size: 18px; text-shadow: 1px 1px 2px black;
-        cursor: pointer; transition: transform 0.2s;
-    }
-    .leaf:hover { transform: scale(1.1); }
+        #frog {
+            position: absolute; width: 90px; height: 90px;
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            z-index: 500; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none; transform: translate(-50%, -70%); opacity: 0;
+        }
 
-    #frog {
-        position: absolute; width: 80px; height: 80px;
-        background-size: contain; background-repeat: no-repeat;
-        z-index: 500; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        pointer-events: none; transform: translate(-50%, -60%);
-        opacity: 0;
-    }
+        /* МЕХАНИКА ШОКА */
+        .shock { animation: shock-effect 0.1s infinite; }
+        @keyframes shock-effect {
+            0% { filter: brightness(3) hue-rotate(120deg); transform: translate(-50%, -70%) scale(1.2) rotate(3deg); }
+            100% { filter: brightness(1); transform: translate(-50%, -70%) scale(1.2) rotate(-3deg); }
+        }
 
-    /* МЕХАНИКА ШОКА (ПО ТВОЕМУ ЗАПРОСУ) */
-    .shock { animation: shock-effect 0.1s infinite; }
-    @keyframes shock-effect {
-        0% { filter: brightness(3) hue-rotate(90deg); margin-left: -3px; }
-        100% { filter: brightness(1); margin-left: 3px; }
-    }
-
-    #volume-ctrl { 
-        position: absolute; top: 50px; right: 20px; background: white; 
-        padding: 5px 10px; border-radius: 20px; display: flex; align-items: center; z-index: 1000; pointer-events: auto;
-    }
-
-    #overlay { 
-        position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
-        display: none; flex-direction: column; justify-content: center; align-items: center; 
-        color: white; z-index: 2000; 
-    }
-</style>
+        #volume-ctrl { position: absolute; top: 60px; right: 20px; background: rgba(255,255,255,0.9); padding: 5px 15px; border-radius: 30px; display: flex; align-items: center; gap: 10px; z-index: 1000; pointer-events: auto; border: 2px solid var(--ui-bg); }
+        
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; color: white; z-index: 2000; text-align: center; }
+        #start-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; cursor: pointer; }
+    </style>
 </head>
 <body>
 
 <div id="game-bg"></div>
 
+<div id="start-screen" onclick="startGame()">
+    <h1 id="start-title">FROGGY QUEST</h1>
+    <p>НАЖМИТЕ, ЧТОБЫ НАЧАТЬ</p>
+</div>
+
 <div id="ui-layer">
-    <div id="header">FROGGY QUEST</div>
+    <div id="header">ЗАГРУЗКА...</div>
     <div id="lives-container"></div>
     <div id="question-box">
-        <div id="q-text">Загрузка...</div>
+        <div id="q-text">Приготовьтесь!</div>
         <div class="timer-bar"><div id="timer-fill"></div></div>
     </div>
 </div>
@@ -89,39 +82,34 @@
 </div>
 
 <div id="overlay">
-    <h1 id="msg">КОНЕЦ ИГРЫ</h1>
-    <button onclick="location.reload()" style="padding: 15px 30px; cursor: pointer; border-radius: 10px; border: none; background: var(--ui-bg); color: white;">ИГРАТЬ СНОВА</button>
+    <h1 id="msg">ИГРА ОКОНЧЕНА</h1>
+    <button onclick="location.reload()" style="padding: 18px 40px; cursor: pointer; border-radius: 30px; border: none; background: #6ab04c; color: white; font-size: 20px; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">ИГРАТЬ СНОВА</button>
 </div>
 
 <script>
-let cfg = {
-    t: "FROGGY QUEST", li: 5, tm: 15, tme: true,
-    bg: "", fr: "", le: "", ic: "", vol: 0.5,
-    s: [], qs: []
-};
+let cfg = { t: "QUEST", li: 5, tm: 15, tme: true, bg: "", fr: "", le: "", ic: "", vol: 0.5, s: [], qs: [] };
+let currentQ = 0, lives = 5, timer;
 
-let currentQ = 0;
-let lives = 5;
-let timer;
-
-// 1. ЧИТАЕМ ДАННЫЕ ИЗ РЕДАКТОРА
-function loadGame() {
+function init() {
     const urlParams = new URLSearchParams(window.location.search);
     const data = urlParams.get('d');
     if (data) {
-        try {
-            cfg = JSON.parse(decodeURIComponent(data));
-        } catch(e) { console.error("Data error"); }
+        try { cfg = JSON.parse(decodeURIComponent(data)); } catch(e) { console.error("Data error"); }
     }
     
-    // Применяем визуал из редактора
     document.getElementById('game-bg').style.backgroundImage = `url(${cfg.bg})`;
     document.getElementById('frog').style.backgroundImage = `url(${cfg.fr})`;
     document.getElementById('header').innerText = cfg.t;
+    document.getElementById('start-title').innerText = cfg.t;
     document.getElementById('vol-slider').value = cfg.vol;
-    lives = cfg.li;
-    
+    lives = parseInt(cfg.li);
     updateLives();
+}
+
+function startGame() {
+    document.getElementById('start-screen').style.display = 'none';
+    playSound(0); // Звук старта
+    document.getElementById('frog').style.opacity = 1;
     renderQuestion();
 }
 
@@ -136,20 +124,19 @@ function updateLives() {
     }
 }
 
-// 2. ОТРИСОВКА ВОПРОСА
 function renderQuestion() {
     if (currentQ >= cfg.qs.length) {
-        finish("ПОБЕДА!", 3);
+        finish("ПОБЕДА!", 3); // Победа
         return;
     }
 
     const qData = cfg.qs[currentQ];
     document.getElementById('q-text').innerText = qData.q;
+    document.getElementById('header').innerText = `${cfg.t} | ${currentQ + 1}/${cfg.qs.length}`;
     
     const pond = document.getElementById('pond');
     pond.querySelectorAll('.leaf').forEach(l => l.remove());
 
-    // Создаем 3 листа
     let answers = qData.o.map((text, i) => ({ text, correct: i === 0 }));
     answers = answers.filter(a => a.text !== "").sort(() => Math.random() - 0.5);
 
@@ -164,33 +151,29 @@ function renderQuestion() {
         leaf.onclick = () => handleChoice(ans.correct, leaf);
         pond.appendChild(leaf);
 
-        if (currentQ === 0 && i === 0) {
-            const f = document.getElementById('frog');
-            f.style.opacity = 1;
-            moveFrog(leaf);
-        }
+        if (currentQ === 0 && i === 0) moveFrog(leaf);
     });
-
     startTimer();
 }
 
 function handleChoice(correct, el) {
+    clearInterval(timer);
     if (correct) {
-        playSound(1);
+        playSound(1); // Всплеск
         moveFrog(el);
         currentQ++;
-        setTimeout(renderQuestion, 600);
+        setTimeout(renderQuestion, 800);
     } else {
         lives--;
         updateLives();
-        playSound(2);
-        
-        // ЭФФЕКТ ШОКА
+        playSound(2); // Ошибка
         const f = document.getElementById('frog');
         f.classList.add('shock');
-        setTimeout(() => f.classList.remove('shock'), 600);
-
-        if (lives <= 0) finish("ИГРА ОКОНЧЕНА", 4);
+        setTimeout(() => {
+            f.classList.remove('shock');
+            if (lives <= 0) finish("ИГРА ОКОНЧЕНА", 4); // Поражение (4.mp3)
+            else startTimer();
+        }, 800);
     }
 }
 
@@ -201,7 +184,6 @@ function moveFrog(target) {
 }
 
 function startTimer() {
-    clearInterval(timer);
     if (!cfg.tme) return;
     let time = 100;
     timer = setInterval(() => {
@@ -209,7 +191,7 @@ function startTimer() {
         document.getElementById('timer-fill').style.width = time + "%";
         if (time <= 0) {
             clearInterval(timer);
-            handleChoice(false, {offsetLeft: 0, offsetWidth: 0});
+            handleChoice(false, null);
         }
     }, 100);
 }
@@ -223,13 +205,12 @@ function playSound(idx) {
 }
 
 function finish(txt, sndIdx) {
-    clearInterval(timer);
     document.getElementById('msg').innerText = txt;
     document.getElementById('overlay').style.display = 'flex';
     playSound(sndIdx);
 }
 
-window.onload = loadGame;
+window.onload = init;
 </script>
 </body>
 </html>
