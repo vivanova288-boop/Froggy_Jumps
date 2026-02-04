@@ -2,24 +2,21 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Froggy Quest Editor - FULL VERSION</title>
+    <title>Froggy Editor - FINAL STABLE</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; margin: 0; display: flex; height: 100vh; color: #fff; }
-        /* Левая панель - Редактор */
-        .editor { width: 400px; background: #34495e; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
-        .tabs { display: flex; gap: 5px; margin-bottom: 20px; }
-        .tab { flex: 1; padding: 10px; background: #2c3e50; text-align: center; cursor: pointer; font-size: 11px; font-weight: bold; border-radius: 5px 5px 0 0; }
-        .tab.active { background: #27ae60; }
-        .pane { display: none; flex-grow: 1; }
+        body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        .editor { width: 420px; background: #34495e; padding: 20px; box-shadow: 2px 0 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; z-index: 10; }
+        .tabs { display: flex; gap: 4px; margin-bottom: 15px; }
+        .tab { flex: 1; padding: 12px 5px; background: #2c3e50; text-align: center; cursor: pointer; font-size: 10px; font-weight: bold; color: #bdc3c7; border-radius: 5px; transition: 0.3s; }
+        .tab.active { background: #27ae60; color: #fff; }
+        .pane { display: none; flex-grow: 1; overflow-y: auto; padding-right: 10px; }
         .pane.active { display: block; }
-        input, textarea { width: 100%; padding: 10px; margin: 5px 0 15px; border-radius: 5px; border: none; background: #ecf0f1; color: #2c3e50; box-sizing: border-box; }
-        
-        /* Правая панель - Предпросмотр */
-        .preview { flex-grow: 1; position: relative; display: flex; align-items: center; justify-content: center; background: #1a1a1a; }
-        .iframe-mock { width: 90%; height: 90%; border: 2px solid #27ae60; border-radius: 15px; overflow: hidden; background: #000; position: relative; }
-        
-        .btn-main { background: #e74c3c; color: #fff; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
-        #link-res { margin-top: 15px; padding: 10px; background: #1a1a1a; border-radius: 5px; font-size: 10px; word-break: break-all; display: none; border: 1px solid #27ae60; }
+        label { display: block; margin-top: 15px; font-size: 11px; color: #95a5a6; text-transform: uppercase; }
+        input, textarea { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid #2c3e50; background: #ecf0f1; color: #2c3e50; font-size: 13px; }
+        .preview { flex-grow: 1; background: #1e1e1e; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative; }
+        .window { width: 100%; height: 100%; max-width: 900px; max-height: 600px; border: 3px solid #27ae60; border-radius: 12px; background: #000; overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        .btn { background: #e74c3c; color: #fff; padding: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; font-size: 14px; }
+        #res-box { margin-top: 15px; padding: 12px; background: #1a1a1a; border-radius: 6px; font-family: monospace; font-size: 10px; word-break: break-all; color: #2ecc71; border: 1px solid #27ae60; display: none; }
     </style>
 </head>
 <body>
@@ -33,37 +30,44 @@
     </div>
 
     <div class="pane active">
-        <label>Заголовок</label><input type="text" id="t" value="FROGGY QUEST" oninput="updatePrev()">
-        <label>Вопросы (Вопрос|Верно|Ложь|Ложь)</label>
-        <textarea id="qs" style="height:150px;" oninput="updatePrev()">2+2?|4|5|6&#10;Как зовут лягушку?|Квака|Мурка|Бобик</textarea>
+        <label>Заголовок квеста</label>
+        <input type="text" id="t" value="FROGGY QUEST" oninput="liveUpdate()">
+        <label>Вопросы (Вопрос|Да|Нет|Нет)</label>
+        <textarea id="qs" style="height:200px;" oninput="liveUpdate()">2+2?|4|5|6&#10;Лягушка умеет летать?|Нет|Да|Иногда</textarea>
     </div>
 
     <div class="pane">
-        <label>Жизни</label><input type="number" id="li" value="5">
-        <label>Время на ответ (сек)</label><input type="number" id="tm" value="15">
+        <label>Количество жизней</label>
+        <input type="number" id="li" value="5" oninput="liveUpdate()">
+        <label>Время на вопрос (сек)</label>
+        <input type="number" id="tm" value="15" oninput="liveUpdate()">
     </div>
 
     <div class="pane">
-        <label>Фон</label><input type="text" id="bg" value="https://vivanova288-boop.github.io/Froggy_Jumps/bg.png">
-        <label>Лягушка</label><input type="text" id="fr" value="https://vivanova288-boop.github.io/Froggy_Jumps/2.png">
-        <label>Лилия</label><input type="text" id="le" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.png">
-        <label>Жизнь (иконка)</label><input type="text" id="ic" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.png">
+        <label>Фон (URL)</label>
+        <input type="text" id="bg" value="https://vivanova288-boop.github.io/Froggy_Jumps/bg.png" oninput="liveUpdate()">
+        <label>Лягушка (URL)</label>
+        <input type="text" id="fr" value="https://vivanova288-boop.github.io/Froggy_Jumps/2.png" oninput="liveUpdate()">
+        <label>Лилия (URL)</label>
+        <input type="text" id="le" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.png" oninput="liveUpdate()">
+        <label>Иконка жизни (URL)</label>
+        <input type="text" id="ic" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.png" oninput="liveUpdate()">
     </div>
 
     <div class="pane">
-        <label>Победа (звук)</label><input type="text" id="s3" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.mp3">
-        <label>Проигрыш (4.mp3)</label><input type="text" id="s4" value="https://vivanova288-boop.github.io/Froggy_Jumps/4.mp3">
+        <label>Звук Победы</label>
+        <input type="text" id="s3" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.mp3" oninput="liveUpdate()">
+        <label>Звук Поражения (4.mp3)</label>
+        <input type="text" id="s4" value="https://vivanova288-boop.github.io/Froggy_Jumps/4.mp3" oninput="liveUpdate()">
     </div>
 
-    <button class="btn-main" onclick="generateShort()">СФОРМИРОВАТЬ ИГРУ</button>
-    <div id="link-res"></div>
+    <button class="btn" onclick="copyLink()">СКОПИРОВАТЬ ССЫЛКУ ДЛЯ GENIALLY</button>
+    <div id="res-box"></div>
 </div>
 
 <div class="preview">
-    <div style="position:absolute; top:10px; left:20px; font-size:12px; opacity:0.5;">ПРЕДПРОСМОТР РЕЗУЛЬТАТА</div>
-    <div class="iframe-mock" id="game-view">
-        <div style="color:#555; display:flex; align-items:center; justify-content:center; height:100%;">Настройте контент для обновления</div>
-    </div>
+    <div style="position:absolute; top:15px; left:25px; font-size:12px; color:#bdc3c7;">ПРЕДПРОСМОТР РЕЗУЛЬТАТА</div>
+    <div class="window" id="view"></div>
 </div>
 
 <script>
@@ -72,48 +76,32 @@
         document.querySelectorAll('.pane').forEach((p,n)=>p.classList.toggle('active',i===n));
     }
 
-    function getFullUrl() {
+    function buildUrl() {
         const qLines = document.getElementById('qs').value.split('\n').filter(l=>l.includes('|'));
         const config = {
             t: document.getElementById('t').value,
             li: document.getElementById('li').value,
-            bg: document.getElementById('bg').value,
-            fr: document.getElementById('fr').value,
-            le: document.getElementById('le').value,
-            ic: document.getElementById('ic').value,
-            s4: document.getElementById('s4').value,
-            qs: qLines.map(l => { const p = l.split('|'); return {q:p[0], a:[p[1], p[2], p[3]]}; })
+            v: [document.getElementById('bg').value, document.getElementById('fr').value, document.getElementById('le').value, document.getElementById('ic').value],
+            s: [document.getElementById('s3').value, document.getElementById('s4').value],
+            q: qLines.map(l => { const p = l.split('|'); return [p[0], p[1], p[2], p[3]]; })
         };
-        const data = btoa(encodeURIComponent(JSON.stringify(config)));
+        const data = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
         return `https://vivanova288-boop.github.io/Froggy_Jumps/index.html?d=${data}`;
     }
 
-    function updatePrev() {
-        const url = getFullUrl();
-        document.getElementById('game-view').innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`;
+    function liveUpdate() {
+        document.getElementById('view').innerHTML = `<iframe src="${buildUrl()}" style="width:100%; height:100%; border:none;"></iframe>`;
     }
 
-    async function generateShort() {
-        const longUrl = getFullUrl();
-        const resDiv = document.getElementById('link-res');
-        resDiv.style.display = 'block';
-        resDiv.innerText = "Генерация ссылки...";
-
-        try {
-            // Используем TinyURL API для сокращения
-            const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
-            const shortUrl = await response.text();
-            resDiv.innerText = shortUrl;
-            navigator.clipboard.writeText(shortUrl);
-            alert("Короткая ссылка скопирована! Она точно влезет в Genially.");
-        } catch (e) {
-            resDiv.innerText = longUrl;
-            alert("Не удалось сократить автоматически. Скопирована полная ссылка.");
-        }
+    function copyLink() {
+        const url = buildUrl();
+        navigator.clipboard.writeText(url);
+        const res = document.getElementById('res-box');
+        res.style.display = 'block';
+        res.innerText = "Ссылка скопирована! Вставляй её в Genially через iFrame.";
     }
-    
-    // Начальный запуск предпросмотра
-    window.onload = updatePrev;
+
+    window.onload = liveUpdate;
 </script>
 </body>
 </html>
