@@ -79,23 +79,21 @@
     </div>
 
     <div class="pane">
-        <label>Фоновое изображение</label>
-        <input type="text" id="bg" value="https://vivanova288-boop.github.io/Froggy_Jumps/bg.png">
-        <label>Персонаж (Frog)</label>
-        <input type="text" id="fr" value="https://vivanova288-boop.github.io/Froggy_Jumps/2.png">
-        <label>Лилия (Leaf)</label>
-        <input type="text" id="le" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.png">
-    </div>
+    <label>Фон</label><input type="text" id="bg" value="https://vivanova288-boop.github.io/Froggy_Jumps/bg.png">
+    <label>Персонаж</label><input type="text" id="fr" value="https://vivanova288-boop.github.io/Froggy_Jumps/2.png">
+    <label>Опора (лилия)</label><input type="text" id="le" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.png">
+    <label>Иконка жизни</label><input type="text" id="ic" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.png">
+</div>
 
-    <div class="pane">
-        <label>Громкость</label>
-        <input type="range" id="vol" min="0" max="1" step="0.1" value="0.5">
-        <label>Звук старта</label>
-        <input type="text" id="s0" value="https://vivanova288-boop.github.io/Froggy_Jumps/5.mp3">
-        <label>Звук поражения</label>
-        <input type="text" id="s4" value="https://vivanova288-boop.github.io/Froggy_Jumps/4.mp3">
-        <div class="help-text">По умолчанию используется 4.mp3 для финала</div>
-    </div>
+<div class="pane">
+    <label>1. Старт (отсчет)</label><input type="text" id="s0" value="https://vivanova288-boop.github.io/Froggy_Jumps/5.mp3">
+    <label>2. Верно (всплеск)</label><input type="text" id="s1" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.mp3">
+    <label>3. Ошибка (шок)</label><input type="text" id="s2" value="https://vivanova288-boop.github.io/Froggy_Jumps/2.mp3">
+    <label>4. Победа (финал)</label><input type="text" id="s3" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.mp3">
+    <label>5. Поражение</label><input type="text" id="s4" value="https://vivanova288-boop.github.io/Froggy_Jumps/4.mp3">
+    <label>6. Новый уровень (звук)</label><input type="text" id="s5" value="https://vivanova288-boop.github.io/Froggy_Jumps/6.mp3">
+    <label>7. Таймер / Переход</label><input type="text" id="s6" value="https://vivanova288-boop.github.io/Froggy_Jumps/7.mp3">
+</div>
 
     <div class="controls">
         <button class="btn-build" onclick="build()">СФОРМИРОВАТЬ ИГРУ</button>
