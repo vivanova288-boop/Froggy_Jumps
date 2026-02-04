@@ -111,72 +111,96 @@
 </div>
 
 <script>
+   // Переключение вкладок
     function tab(i){
         document.querySelectorAll('.tab').forEach((t,n)=>t.classList.toggle('active',i===n));
         document.querySelectorAll('.pane').forEach((p,n)=>p.classList.toggle('active',i===n));
     }
 
+    // Главная функция сборки
     function build(isPreview = false){
-        const qLines = document.getElementById('qs').value.split('\n').filter(l=>l.includes('|'));
-        const config = {
-            t: document.getElementById('t').value,
-            li: document.getElementById('li').value,
-            tm: document.getElementById('tm').value,
-            tme: document.getElementById('tme').checked,
-            bg: document.getElementById('bg').value,
-            fr: document.getElementById('fr').value,
-            le: document.getElementById('le').value,
-            vol: document.getElementById('vol').value,
-            s: [
-                document.getElementById('s0').value,
-                "https://vivanova288-boop.github.io/Froggy_Jumps/1.mp3",
-                "https://vivanova288-boop.github.io/Froggy_Jumps/2.mp3",
-                "https://vivanova288-boop.github.io/Froggy_Jumps/3.mp3",
-                document.getElementById('s4').value,
-                "https://vivanova288-boop.github.io/Froggy_Jumps/6.mp3",
-                "https://vivanova288-boop.github.io/Froggy_Jumps/7.mp3"
-            ],
-            qs: qLines.map(l=>{
-                const p = l.split('|');
-                return { q: p[0].trim(), o: [p[1].trim(), p[2].trim(), p[3].trim()], correct: 0 }
-            })
-        };
+        try {
+            // Собираем вопросы: разбиваем текст по строкам и фильтруем пустые
+            const qLines = document.getElementById('qs').value.split('\n').filter(l=>l.includes('|'));
+            
+            // Формируем объект конфигурации со ВСЕМИ полями
+            const config = {
+                t: document.getElementById('t').value,
+                li: parseInt(document.getElementById('li').value) || 5,
+                tm: parseInt(document.getElementById('tm').value) || 15,
+                tme: document.getElementById('tme').checked,
+                bg: document.getElementById('bg').value,
+                fr: document.getElementById('fr').value,
+                le: document.getElementById('le').value,
+                ic: document.getElementById('ic').value, // Наша новая иконка жизней
+                vol: parseFloat(document.getElementById('vol').value) || 0.5,
+                // Собираем все 7 звуков в один массив строго по порядку
+                s: [
+                    document.getElementById('s0').value, // 1. Старт
+                    document.getElementById('s1').value, // 2. Верно
+                    document.getElementById('s2').value, // 3. Ошибка
+                    document.getElementById('s3').value, // 4. Победа
+                    document.getElementById('s4').value, // 5. Поражение
+                    document.getElementById('s5').value, // 6. Новый уровень
+                    document.getElementById('s6').value  // 7. Время/Переход
+                ],
+                // Превращаем строки в объекты вопросов
+                qs: qLines.map(l=>{
+                    const p = l.split('|');
+                    return { 
+                        q: p[0].trim(), 
+                        o: [p[1].trim(), p[2].trim(), (p[3] || "").trim()] 
+                    }
+                })
+            };
 
-        const data = encodeURIComponent(JSON.stringify(config));
-        const url = `https://vivanova288-boop.github.io/Froggy_Jumps/index.html?d=${data}`;
-        
-        if(isPreview) {
-            document.getElementById('preview-frame').src = url;
-        } else {
-            const code = `<iframe src="${url}" style="width:100%;height:600px;border:none;" allow="autoplay"></iframe>`;
-            const resDiv = document.getElementById('res');
-            resDiv.innerText = code;
-            resDiv.style.display = 'block';
-            document.getElementById('copy-btn').style.display = 'block';
-            document.getElementById('status-msg').innerText = "Ссылка готова!";
+            // Кодируем данные в JSON и в URL
+            const data = encodeURIComponent(JSON.stringify(config));
+            const url = `https://vivanova288-boop.github.io/Froggy_Jumps/index.html?d=${data}`;
+            
+            if(isPreview) {
+                // Если это авто-превью, просто обновляем iframe
+                document.getElementById('preview-frame').src = url;
+            } else {
+                // Если нажата кнопка "Создать" — выводим код
+                const code = `<iframe src="${url}" style="width:100%;height:600px;border:none;" allow="autoplay"></iframe>`;
+                const resDiv = document.getElementById('res');
+                resDiv.innerText = code;
+                resDiv.style.display = 'block';
+                document.getElementById('copy-btn').style.display = 'block';
+                document.getElementById('status-msg').innerText = "Ссылка сформирована!";
+            }
+        } catch (err) {
+            console.error("Ошибка при сборке:", err);
+            alert("Проверьте правильность заполнения полей!");
         }
     }
 
-    let timer;
+    // Функция для «живого» обновления превью при вводе
+    let autoTimer;
     function autoUpdate() {
-        clearTimeout(timer);
-        document.getElementById('status-msg').innerText = "Печатает...";
-        timer = setTimeout(() => {
+        clearTimeout(autoTimer);
+        autoTimer = setTimeout(() => {
             build(true);
-            document.getElementById('status-msg').innerText = "Превью обновлено";
-        }, 1000);
+        }, 1500); // Обновит через 1.5 сек после того, как вы закончите печатать
     }
 
+    // Функция копирования
     function copyCode(){
         const txt = document.getElementById('res').innerText;
         navigator.clipboard.writeText(txt).then(() => {
             const btn = document.getElementById('copy-btn');
-            btn.innerText = "ГОТОВО!";
-            setTimeout(() => btn.innerText = "КОПИРОВАТЬ IFRAME", 2000);
+            const originalText = btn.innerText;
+            btn.innerText = "СКОПИРОВАНО!";
+            btn.style.background = "#2ed573";
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = "";
+            }, 2000);
         });
     }
 
-    // Инициализация превью при загрузке
+    // Запускаем превью сразу при открытии редактора
     window.onload = () => build(true);
 </script>
 </body>
