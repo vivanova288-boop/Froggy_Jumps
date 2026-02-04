@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
         #bg { position: fixed; inset: 0; background-size: cover; background-position: center; z-index: -1; }
-        #ui { position: absolute; top: 0; width: 100%; text-align: center; color: white; }
+        #ui { position: absolute; top: 0; width: 100%; text-align: center; color: white; z-index: 10; }
         #header { background: #6ab04c; padding: 10px; font-weight: bold; }
-        #q-box { background: white; color: #333; width: 80%; max-width: 500px; margin: 15px auto; padding: 15px; border-radius: 15px; }
+        #q-box { background: white; color: #333; width: 85%; max-width: 500px; margin: 15px auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         .lives { position: absolute; top: 55px; left: 15px; display: flex; gap: 5px; }
         .heart { width: 30px; height: 30px; background-size: contain; background-repeat: no-repeat; }
         #frog { position: absolute; width: 80px; height: 80px; background-size: contain; background-repeat: no-repeat; transition: 0.5s; transform: translate(-50%, -65%); z-index: 100; opacity: 0; }
-        .leaf { position: absolute; width: 120px; height: 100px; background-size: contain; background-repeat: no-repeat; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; }
+        .leaf { position: absolute; width: 120px; height: 100px; background-size: contain; background-repeat: no-repeat; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; text-shadow: 1px 1px 2px #000; font-size: 14px; text-align: center; padding: 10px; }
         .shock { animation: shock 0.1s infinite; }
-        @keyframes shock { 0% { filter: brightness(3) hue-rotate(90deg); } 100% { filter: brightness(1); } }
-        #start, #end { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 2000; }
-        button { background: #6ab04c; color: white; border: none; padding: 15px 30px; border-radius: 20px; cursor: pointer; margin-top: 20px; }
+        @keyframes shock { 0% { filter: brightness(4) hue-rotate(90deg); } 100% { filter: brightness(1); } }
+        #overlay, #start { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 2000; }
+        button { background: #6ab04c; color: white; border: none; padding: 15px 40px; border-radius: 30px; cursor: pointer; font-size: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -25,48 +26,52 @@
     <div id="ui">
         <div id="header"></div>
         <div class="lives" id="hp"></div>
-        <div id="q-box">...</div>
+        <div id="q-box"></div>
     </div>
     <div id="frog"></div>
     <div id="pond"></div>
-    <div id="end" style="display:none"><h1 id="msg"></h1><button onclick="location.reload()">ЗАНОВО</button></div>
+    <div id="overlay" style="display:none"><h1 id="msg"></h1><button onclick="location.reload()">ЗАНОВО</button></div>
 
 <script>
     let c = {}, step = 0, lives = 5;
 
     function init() {
-        const d = new URLSearchParams(window.location.search).get('d');
-        if(!d) return;
-        c = JSON.parse(decodeURIComponent(atob(d)));
-        document.getElementById('bg').style.backgroundImage = `url(${c.v[0]})`;
-        document.getElementById('frog').style.backgroundImage = `url(${c.v[1]})`;
-        document.getElementById('header').innerText = c.t;
+        const z = new URLSearchParams(window.location.search).get('z');
+        if(!z) return;
+        try {
+            // Распаковка LZMA
+            const raw = LZString.decompressFromEncodedURIComponent(z);
+            c = JSON.parse(raw);
+            document.getElementById('bg').style.backgroundImage = `url(${c.v[0]})`;
+            document.getElementById('frog').style.backgroundImage = `url(${c.v[1]})`;
+            document.getElementById('header').innerText = c.t;
+            lives = parseInt(c.li);
+        } catch(e) { console.error("Data error"); }
     }
 
     function begin() {
         document.getElementById('start').style.display = 'none';
         document.getElementById('frog').style.opacity = 1;
-        snd(0);
         render();
     }
 
     function render() {
-        if(step >= c.q.length) return finish("ПОБЕДА!", 3);
+        if(step >= c.q.length) return finish("ПОБЕДА!", c.s[2]);
         const q = c.q[step];
         document.getElementById('q-box').innerText = q[0];
         updateHp();
         const pond = document.getElementById('pond');
         pond.innerHTML = '';
-        let opts = [ {t:q[1], c:true}, {t:q[2], c:false}, {t:q[3], c:false} ].sort(() => Math.random() - 0.5);
+        let opts = [ {t:q[1], ok:true}, {t:q[2], ok:false}, {t:q[3], ok:false} ].sort(() => Math.random() - 0.5);
         opts.forEach((o, i) => {
             const l = document.createElement('div');
             l.className = 'leaf';
             l.style.backgroundImage = `url(${c.v[2]})`;
-            l.style.left = (15 + i*35) + "%"; l.style.top = "60%";
+            l.style.left = (15 + i*35) + "%"; l.style.top = "65%";
             l.innerText = o.t;
             l.onclick = () => {
-                if(o.c) { snd(1); move(l); step++; setTimeout(render, 600); }
-                else { lives--; updateHp(); snd(2); shock(); if(lives <= 0) finish("ИГРА ОКОНЧЕНА", 4); }
+                if(o.ok) { snd(c.s[0]); move(l); step++; setTimeout(render, 600); }
+                else { lives--; updateHp(); snd(c.s[1]); shock(); if(lives <= 0) finish("ИГРА ОКОНЧЕНА", c.s[3]); }
             };
             pond.appendChild(l);
             if(step === 0 && i === 1) move(l);
@@ -82,20 +87,20 @@
     function updateHp() {
         const h = document.getElementById('hp'); h.innerHTML = '';
         for(let i=0; i<lives; i++) {
-            const i = document.createElement('div'); i.className = 'heart';
-            i.style.backgroundImage = `url(${c.v[3]})`; h.appendChild(i);
+            const img = document.createElement('div'); img.className = 'heart';
+            img.style.backgroundImage = `url(${c.v[3]})`; h.appendChild(img);
         }
     }
 
-    function snd(i) { new Audio(c.s[i]).play().catch(()=>{}); }
+    function snd(url) { if(url) new Audio(url).play().catch(()=>{}); }
     function shock() { 
         document.getElementById('frog').classList.add('shock'); 
         setTimeout(() => document.getElementById('frog').classList.remove('shock'), 500); 
     }
-    function finish(t, s) {
-        document.getElementById('end').style.display = 'flex';
+    function finish(t, sUrl) {
+        document.getElementById('overlay').style.display = 'flex';
         document.getElementById('msg').innerText = t;
-        snd(s);
+        snd(sUrl);
     }
     init();
 </script>
