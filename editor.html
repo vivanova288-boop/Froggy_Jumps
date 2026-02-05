@@ -80,93 +80,133 @@ They ___ happy.|were|was|is</textarea>
         r.readAsDataURL(i.files[0]);
     }
 
-    function build() {
-        const title = document.getElementById('v-title').value;
-        const raw = document.getElementById('v-questions').value.split('\n').filter(l => l.includes('|'));
-        const qs = raw.map(l => {
-            const p = l.split('|');
-            const o = [p[1], p[2], p[3]].sort(() => Math.random() - 0.5);
-            return { q: p[0], opt: o, ok: o.indexOf(p[1]) };
-        });
+ function build() {
+    // Сбор данных из полей редактора
+    const title = document.getElementById('v-title').value;
+    const heroSize = document.getElementById('v-size')?.value || 80;
+    const jumpSpeed = document.getElementById('v-speed')?.value || 0.3;
+    const useGlow = document.getElementById('v-glow')?.checked;
+    
+    const raw = document.getElementById('v-questions').value.split('\n').filter(l => l.includes('|'));
+    const qs = raw.map(l => {
+        const p = l.split('|');
+        const o = [p[1], p[2], p[3]]; // Сохраняем порядок или мешаем
+        return { q: p[0], opt: o, ok: o.indexOf(p[1]) };
+    });
 
-        return `
+    return `
 <!DOCTYPE html>
 <html>
 <head>
     <style>
-        body { margin:0; background:url(${assets.bg || ''}) center/cover no-repeat fixed #000; font-family:sans-serif; overflow:hidden; }
-        #ui { position:fixed; width:100%; top:0; z-index:100; text-align:center; }
-        #header { background:rgba(0,0,0,0.7); color:white; padding:15px; font-size:22px; border-bottom:2px solid ${assets.bg ? 'transparent' : '#333'}; }
-        #lives { position:absolute; top:70px; left:20px; display:flex; gap:5px; }
-        .life { width:30px; height:30px; background:url(${assets.life || ''}) no-repeat center/contain; }
-        #q-box { background:white; width:85%; margin:20px auto; padding:20px; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
-        #hero { position:absolute; width:80px; height:80px; background:url(${assets.hero || ''}) no-repeat center/contain; transform:translate(-50%,-100%); transition:0.5s; z-index:50; }
-        .leaf { position:absolute; width:130px; height:90px; background:url(${assets.plat || ''}) no-repeat center/contain; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; cursor:pointer; text-shadow:1px 1px 2px #000; transform:translate(-50%,-50%); }
-        .shock { animation: shk 0.1s infinite; filter: brightness(2) sepia(1); }
+        body { margin:0; background:url(${assets.bg || ''}) center/cover no-repeat; font-family:sans-serif; overflow:hidden; height:100vh; }
+        #header { position:fixed; top:0; width:100%; background:rgba(0,0,0,0.5); color:white; padding:10px; text-align:center; z-index:100; display:flex; justify-content:space-between; align-items:center; }
+        #q-box { position:fixed; top:60px; left:50%; transform:translateX(-50%); background:white; width:60%; padding:15px; border-radius:30px; text-align:center; z-index:100; box-shadow:0 5px 15px rgba(0,0,0,0.3); font-weight:bold; }
+        
+        #hero { 
+            position:absolute; width:${heroSize}px; height:${heroSize}px; 
+            background:url(${assets.hero || ''}) no-repeat center/contain; 
+            transition: all ${jumpSpeed}s ease-out; z-index:50; 
+            transform: translate(-50%, -100%);
+            ${useGlow ? 'filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));' : ''}
+        }
+
+        .leaf { 
+            position:absolute; width:100px; height:70px; 
+            background:url(${assets.plat || ''}) no-repeat center/contain; 
+            display:flex; align-items:center; justify-content:center; 
+            color:white; font-size:14px; font-weight:bold; cursor:pointer; 
+            transform: translate(-50%, -50%); text-shadow: 1px 1px 2px #000;
+        }
+
+        .shock { animation: shk 0.1s infinite; filter: invert(1) brightness(2); }
         @keyframes shk { 0%{margin-left:-5px} 100%{margin-left:5px} }
-        #start { position:fixed; inset:0; background:rgba(0,0,0,0.9); color:${assets.hero ? 'white' : '#00d2ff'}; display:flex; align-items:center; justify-content:center; z-index:1000; cursor:pointer; }
+        
+        #timer-bar { position:absolute; bottom:0; left:0; height:5px; background:red; width:100%; transition:1s linear; }
+        #start-screen { position:fixed; inset:0; background:rgba(0,0,0,0.8); color:white; display:flex; align-items:center; justify-content:center; z-index:1000; cursor:pointer; }
     </style>
 </head>
 <body>
-    <div id="start" onclick="begin()"><h1>START GAME</h1></div>
-    <div id="ui">
-        <div id="header">${title}</div>
-        <div id="lives"></div>
-        <div id="q-box">...</div>
+    <div id="start-screen" onclick="start()"><h1>${title}<br>НАЧАТЬ</h1></div>
+    <div id="header">
+        <div id="lives-ui" style="margin-left:20px"></div>
+        <div>${title}</div>
+        <div id="timer-text" style="margin-right:20px">00:00</div>
     </div>
-    <div id="world" style="height:100vh; position:relative; margin-top:100px;">
+    <div id="q-box">Приготовься...</div>
+    <div id="game-world" style="width:100%; height:100%; position:relative;">
         <div id="hero"></div>
+        <div id="platforms"></div>
     </div>
+    <div id="timer-bar"></div>
 
     <script>
         const quest = ${JSON.stringify(qs)};
         const s = { 
-            j: new Audio("${assets.s1 || ''}"), sh: new Audio("${assets.s2 || ''}"), 
-            w: new Audio("${assets.s3 || ''}"), f: new Audio("${assets.s4 || ''}"), 
-            st: new Audio("${assets.s5 || ''}"), lv: new Audio("${assets.s6 || ''}") 
+            st: new Audio("${assets.s5 || ''}"), j: new Audio("${assets.s2 || ''}"), 
+            sh: new Audio("${assets.s3 || ''}"), f: new Audio("${assets.s4 || ''}") 
         };
-        let step = 0; let lives = 3; let lastPos = {x: 50, y: 85};
 
-        function begin() {
-            document.getElementById('start').style.display='none';
+        let step = 0;
+        let lives = 3;
+        let lastPos = {x: 50, y: 90};
+
+        function start() {
+            document.getElementById('start-screen').style.display='none';
             s.st.play();
             updateLives();
-            moveHero(50, 85);
-            load();
-        }
-
-        function moveHero(x, y) {
-            const h = document.getElementById('hero');
-            h.style.left = x + '%'; h.style.top = y + '%';
+            initLevel();
         }
 
         function updateLives() {
-            const container = document.getElementById('lives');
+            const div = document.getElementById('lives-ui');
+            div.innerHTML = '❤️'.repeat(lives);
+        }
+
+        function initLevel() {
+            const container = document.getElementById('platforms');
             container.innerHTML = '';
-            for(let i=0; i<lives; i++) container.innerHTML += '<div class="life"></div>';
-        }
-
-        function load() {
-            if(step >= quest.length) { s.w.play(); alert("Победа!"); return; }
-            document.getElementById('q-box').innerText = quest[step].q;
-            const world = document.getElementById('world');
-            document.querySelectorAll('.leaf').forEach(l => l.remove());
+            moveHero(50, 90);
             
-            quest[step].opt.forEach((t, i) => {
-                const l = document.createElement('div');
-                l.className = 'leaf'; l.innerText = t;
-                l.style.left = (20 + i*30) + '%'; l.style.top = '45%';
-                l.onclick = () => jump(i, 20 + i*30, 45);
-                world.appendChild(l);
-            });
+            document.getElementById('q-box').innerText = quest[step].q;
+
+            // Рисуем сетку на 15 шагов вперед (или сколько есть вопросов)
+            for(let i=0; i<quest.length; i++) {
+                quest[i].opt.forEach((txt, idx) => {
+                    const l = document.createElement('div');
+                    l.className = 'leaf';
+                    l.innerText = txt;
+                    
+                    // Расчет шахматного порядка
+                    let xPos = 20 + (idx * 30) + (i % 2 * 5);
+                    let yPos = 85 - (i * 20); // Продвижение вверх
+
+                    l.style.left = xPos + '%';
+                    l.style.top = yPos + '%';
+                    
+                    if(i === step) {
+                        l.onclick = () => jumpTo(idx, xPos, yPos);
+                    } else {
+                        l.style.opacity = '0.4';
+                    }
+                    container.appendChild(l);
+                });
+            }
         }
 
-        function jump(idx, x, y) {
+        function jumpTo(idx, x, y) {
             const h = document.getElementById('hero');
-            moveHero(x, y);
+            h.style.left = x + '%'; h.style.top = y + '%';
+
             if(idx === quest[step].ok) {
-                s.j.play(); lastPos = {x, y};
-                setTimeout(() => { step++; load(); }, 600);
+                s.j.play();
+                lastPos = {x, y};
+                step++;
+                if(step >= quest.length) {
+                    setTimeout(() => { s.f.play(); alert("ПОБЕДА!"); }, 500);
+                } else {
+                    setTimeout(initLevel, 500);
+                }
             } else {
                 s.sh.play();
                 h.classList.add('shock');
@@ -174,21 +214,16 @@ They ___ happy.|were|was|is</textarea>
                 setTimeout(() => {
                     h.classList.remove('shock');
                     moveHero(lastPos.x, lastPos.y);
-                    if(lives <= 0) { s.f.play(); alert("Игра окончена"); location.reload(); }
+                    if(lives <= 0) { s.f.play(); alert("ИГРА ОКОНЧЕНА"); location.reload(); }
                 }, 600);
             }
+        }
+
+        function moveHero(x, y) {
+            const h = document.getElementById('hero');
+            h.style.left = x + '%'; h.style.top = y + '%';
         }
     <\/script>
 </body>
 </html>`;
-    }
-
-    function update() { document.getElementById('target').srcdoc = build(); }
-    function copy() {
-        const iframe = `<iframe srcdoc='${build().replace(/'/g, "&apos;")}' width="100%" height="600" frameborder="0" allow="autoplay"></iframe>`;
-        navigator.clipboard.writeText(iframe);
-        alert("Код скопирован! Вставь его в Genially (Вставка -> Другое)");
-    }
-</script>
-</body>
-</html>
+}
