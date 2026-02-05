@@ -1,366 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Froggy Jumps Quiz</title>
+    <title>Froggy Quest Editor</title>
     <style>
-        /* --- КОПИРУЕМ ВСЕ СТИЛИ ИЗ ТВОЕЙ 1-Й ЧАСТИ --- */
-        :root { --water1: #2bbcd6; --water2: #168ea0; --ui-bg: #6ab04c; }
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; background: url('bg.png') no-repeat center center fixed; background-size: cover; }
-        #ui-layer { position: absolute; top: 0; width: 100%; z-index: 1000; pointer-events: none; }
-        #header { background: var(--ui-bg); color: white; padding: 10px; text-align: center; font-weight: bold; pointer-events: auto; }
-        #lives-container { position: absolute; top: 50px; left: 20px; display: flex; gap: 8px; pointer-events: auto; }
-        .life-icon { width: 52px; height: 52px; background: url('3.png') no-repeat center / contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); transition: transform 0.2s; }
-        .life-icon:last-child { animation: pulse-life 0.8s ease-in-out infinite alternate; }
-        @keyframes pulse-life { from { transform: scale(1); } to { transform: scale(1.15); } }
-        #question-box { background: white; width: 85%; max-width: 500px; margin: 10px auto; padding: 12px; border-radius: 18px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.25); pointer-events: auto; }
-        .timer-bar { width: 100%; height: 8px; background: #dfe6e9; border-radius: 5px; margin-top: 8px; overflow: hidden; }
-        #timer-fill { width: 100%; height: 100%; background: #eb4d4b; transition: width 0.1s linear; }
-        #world { position: absolute; inset: 0; padding-top: 60px; overflow: hidden; }
-        #pond { position: relative; width: 100%; height: 100%; margin: 0 auto; overflow: hidden; }
-        .leaf { 
-            position: absolute; width: 20vw; height: 16vw; max-width: 180px; max-height: 150px;
-            background: url('1.png') no-repeat center / contain; display: flex; align-items: center; justify-content: center;
-            opacity: 1; transform: scale(0.85); transition: transform 0.4s, opacity 0.4s;
-            padding: 15px; box-sizing: border-box; text-align: center; font-size: 22px; color: white; font-weight: bold;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.8), -1px -1px 3px rgba(0,0,0,0.8);
-        }
-        .leaf.active { opacity: 1; transform: scale(1.1); z-index: 10; cursor: pointer; filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.9)); }
-        .leaf.active::after {
-            content: attr(data-letter); position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
-            background: #f1c40f; width: 22px; height: 22px; border-radius: 50%; font-size: 13px;
-            display: flex; align-items: center; justify-content: center; font-weight: bold; color: black;
-        }
-        .leaf.active:not([data-letter])::after { display: none; }
-        @keyframes leaf-bounce { 0% { transform: scale(1.1) translateY(0); } 50% { transform: scale(1.1) translateY(5px); } 100% { transform: scale(1.1) translateY(0); } }
-        .leaf-landed { animation: leaf-bounce 0.4s ease-out; }
-        #frog { 
-            opacity: 0; position: absolute; width: 10vw; height: 10vw; max-width: 90px; max-height: 90px;
-            background: url('2.png') no-repeat center / contain; transform: translate(-50%, -60%) scale(1.15);
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.4)); z-index: 999 !important;
-            transition: left 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), top 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            pointer-events: none;
-        }
-        @keyframes electric-shock {
-            0% { transform: scale(1.1) translate(2px, 2px); filter: brightness(1.5) hue-rotate(180deg); }
-            25% { transform: scale(1.1) translate(-2px, -2px); }
-            50% { transform: scale(1.1) translate(2px, -2px); }
-            75% { transform: scale(1.1) translate(-2px, 2px); }
-            100% { transform: scale(1.1) translate(0, 0); filter: brightness(1); }
-        }
-        .shock { animation: electric-shock 0.1s infinite !important; z-index: 20 !important; }
-        #overlay { position: fixed; inset: 0; background: transparent; z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); }
-        #msg { position: relative; z-index: 2005; font-size: 80px; font-weight: 900; text-transform: uppercase; color: #ffcc00; text-shadow: 0 0 20px #ff4500, 4px 4px 0px #333; margin-bottom: 30px; letter-spacing: 5px; }
-        #overlay button { position: relative; z-index: 2005; padding: 20px 60px; font-size: 24px; font-weight: bold; text-transform: uppercase; background: linear-gradient(145deg, #ff4e50, #f9d423); border: 4px solid #fff; border-radius: 50px; color: #fff; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.4); transition: transform 0.2s; }
-        #overlay button:hover { transform: scale(1.1) translateY(-5px); }
-        @keyframes pond-slide { 0% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(100vh); opacity: 0; } 51% { transform: translateY(-100vh); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
-        .pond-transition { animation: pond-slide 1.2s ease-in-out; }
-        .super-jump { top: -200px !important; transform: translate(-50%, -50%) scale(2) rotate(360deg) !important; transition: top 0.8s cubic-bezier(.47,1.21,.58,1), transform 0.8s !important; }
-        .splash { position: absolute; border: 4px solid rgba(255, 255, 255, 0.6); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; animation: splash-ani 0.6s ease-out forwards; z-index: 5; }
-        @keyframes splash-ani { 0% { width: 0; height: 0; opacity: 1; border-width: 4px; } 100% { width: 150px; height: 80px; opacity: 0; border-width: 1px; } }
-        #volume-control { position: absolute; top: 50px; right: 20px; background: rgba(255, 255, 255, 0.9); padding: 8px 15px; border-radius: 25px; display: flex; align-items: center; gap: 10px; z-index: 2000; pointer-events: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border: 2px solid var(--ui-bg); }
-        #volume-slider { cursor: pointer; accent-color: var(--ui-bg); width: 80px; }
-        #speaker-icon { font-size: 20px; transition: filter 0.3s; position: relative; }
-        .muted-icon { filter: grayscale(1) !important; opacity: 0.6; }
-        .jumping-frog { filter: drop-shadow(0 30px 20px rgba(0,0,0,0.3)) !important; transform: translate(-50%, -80%) scale(1.4) !important; }
-        @keyframes count-pulse { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
-        .count-animate { animation: count-pulse 1s ease-out forwards; }
-        #fireworksCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2001; pointer-events: none; }
+        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; display: flex; gap: 20px; }
+        #setup-area { flex: 1; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        #output-area { width: 400px; background: #2d3436; color: #fab1a0; padding: 20px; border-radius: 12px; position: sticky; top: 20px; height: fit-content; }
+        
+        .level-block { border: 2px solid #6ab04c; padding: 15px; margin-bottom: 20px; border-radius: 8px; position: relative; }
+        .level-title { font-weight: bold; color: #6ab04c; font-size: 1.2em; margin-bottom: 10px; }
+        
+        .question-item { background: #f9f9f9; padding: 10px; margin: 10px 0; border-left: 4px solid #2bbcd6; }
+        .opt-row { display: flex; align-items: center; gap: 10px; margin: 5px 0; }
+        
+        input[type="text"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .opt-input { width: 70% !important; }
+        
+        button { cursor: pointer; padding: 8px 15px; border-radius: 5px; border: none; transition: 0.2s; }
+        .btn-add { background: #6ab04c; color: white; }
+        .btn-del { background: #eb4d4b; color: white; padding: 4px 8px; font-size: 12px; }
+        .btn-export { background: #0984e3; color: white; width: 100%; margin-top: 10px; font-size: 1.1em; }
+        
+        pre { white-space: pre-wrap; word-wrap: break-word; font-size: 12px; color: #00cec9; }
     </style>
 </head>
 <body>
 
-<div id="countdown-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 3000; justify-content: center; align-items: center; pointer-events: auto;">
-    <div id="countdown-text" style="font-size: 150px; color: #fff; font-weight: bold; text-shadow: 0 0 20px rgba(0,0,0,0.5); font-family: Arial, sans-serif;"></div>
+<div id="setup-area">
+    <h1>🐸 Редактор Квестов Лягушки</h1>
+    <div id="levels-container"></div>
+    <button class="btn-add" onclick="addLevel()">+ Добавить Уровень</button>
 </div>
 
-<div id="ui-layer">
-    <div id="header">PAST SIMPLE CHALLENGE</div>
-    <div id="lives-container"></div>
-    <div id="question-box">
-        <div id="q-text"><b>Preparing...</b></div>
-        <div class="timer-bar"><div id="timer-fill"></div></div>
-    </div>
-</div>
-
-<div id="volume-control">
-    <div id="speaker-icon">🔊</div>
-    <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
-</div>
-
-<div id="world">
-    <div id="pond"><div id="frog"></div></div>
-</div>
-
-<div id="overlay">
-    <h1 id="msg">Game Over</h1>
-    <canvas id="fireworksCanvas"></canvas>
-    <button onclick="initGame()">Try Again</button>
+<div id="output-area">
+    <h3>Данные для игры:</h3>
+    <p style="font-size: 12px; color: #bdc3c7;">Скопируй этот код и замени переменную levelsBank в игре.</p>
+    <pre id="json-output">{}</pre>
+    <button class="btn-export" onclick="copyCode()">Скопировать код</button>
 </div>
 
 <script>
-// --- КОПИРУЕМ БАНК ВОПРОСОВ ИЗ ТВОЕЙ 1-Й ЧАСТИ ---
-const levelsBank = {
-    1: [
-        { q: "Yesterday I ___ my room after school.", options: ["clean", "cleaned", "cleans"], correct: 1 },
-        { q: "They ___ at the cinema last Sunday.", options: ["were", "was", "are"], correct: 0 },
-        { q: "She ___ TV for two hours last night.", options: ["watch", "watches", "watched"], correct: 2 },
-        { q: "It ___ very cold yesterday.", options: ["was", "were", "is"], correct: 0 },
-        { q: "We ___ tennis in the park last week.", options: ["play", "played", "plays"], correct: 1 }
-        // ... (остальные вопросы из твоего списка)
-    ],
-    2: [
-        { q: "I ___ to the zoo last Saturday.", options: ["go", "went", "gone"], correct: 1 },
-        { q: "Did you ___ your keys yesterday?", options: ["find", "found", "finds"], correct: 0 }
-    ],
-    3: [
-        { q: "My brother ___ a lot when he was a baby.", options: ["cry", "cryed", "cried"], correct: 2 }
-    ]
-};
+    let questData = { 1: [] };
 
-// --- ВСЕ ПЕРЕМЕННЫЕ И ФУНКЦИИ ИЗ ТВОЕЙ 2-Й ЧАСТИ ---
-let currentLevel = 1, step = 0, lives = 5, questions = [], timer, lastCorrectLeaf, globalVolume = 0.5;
-const sounds = {
-    splash: new Audio('1.mp3'), shock: new Audio('2.mp3'), victory: new Audio('3.mp3'),
-    gameOver: new Audio('4.mp3'), start: new Audio('5.mp3'), levelUp: new Audio('6.mp3'), count: new Audio('7.mp3')
-};
+    function addLevel() {
+        const lvls = Object.keys(questData).length;
+        questData[lvls + 1] = [];
+        render();
+    }
 
-const pond = document.getElementById('pond');
-const frog = document.getElementById('frog');
+    function addQuestion(lvl) {
+        questData[lvl].push({ q: "Новый вопрос...", options: ["Вариант 1", "Вариант 2", "Вариант 3"], correct: 0 });
+        render();
+    }
 
-function playSound(audio) {
-    if (!audio) return;
-    audio.currentTime = 0;
-    audio.volume = globalVolume;
-    audio.play().catch(e => console.log("Audio blocked"));
-}
+    function removeQuestion(lvl, idx) {
+        questData[lvl].splice(idx, 1);
+        render();
+    }
 
-function createPond() {
-    pond.querySelectorAll('.leaf').forEach(l => l.remove());
-    const rows = 7, cols = 5, horizontalSpread = 1.2;
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            if (c > 0 && c < 4) {
-                const leaf = document.createElement('div');
-                leaf.className = 'leaf';
-                let columnWidth = 100 / (cols - 1);
-                let rowOffset = (r % 2 === 0) ? 0 : (columnWidth / 2);
-                let leftPos = 50 + ((c * columnWidth + rowOffset) - 62.5) * horizontalSpread;
-                leaf.style.left = leftPos + '%';
-                leaf.style.top = ((r / (rows - 1)) * 68 + 12) + '%';
-                leaf.id = `leaf-${r}-${c}`;
-                pond.appendChild(leaf);
-            }
+    function updateVal(lvl, idx, field, val) {
+        if (field === 'q') questData[lvl][idx].q = val;
+        if (field === 'correct') questData[lvl][idx].correct = parseInt(val);
+        updateJSON();
+    }
+
+    function updateOpt(lvl, idx, optIdx, val) {
+        questData[lvl][idx].options[optIdx] = val;
+        updateJSON();
+    }
+
+    function updateJSON() {
+        document.getElementById('json-output').textContent = "const levelsBank = " + JSON.stringify(questData, null, 4) + ";";
+    }
+
+    function render() {
+        const container = document.getElementById('levels-container');
+        container.innerHTML = '';
+
+        for (let lvl in questData) {
+            let lvlDiv = document.createElement('div');
+            lvlDiv.className = 'level-block';
+            lvlDiv.innerHTML = `<div class="level-title">Уровень ${lvl}</div>`;
+
+            questData[lvl].forEach((q, idx) => {
+                let qDiv = document.createElement('div');
+                qDiv.className = 'question-item';
+                qDiv.innerHTML = `
+                    <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+                        <strong>Q${idx+1}:</strong> 
+                        <input type="text" value="${q.q}" oninput="updateVal(${lvl}, ${idx}, 'q', this.value)">
+                        <button class="btn-del" onclick="removeQuestion(${lvl}, ${idx})">Удалить</button>
+                    </div>
+                    ${q.options.map((opt, oIdx) => `
+                        <div class="opt-row">
+                            <input type="radio" name="correct_${lvl}_${idx}" ${q.correct === oIdx ? 'checked' : ''} 
+                                   onchange="updateVal(${lvl}, ${idx}, 'correct', ${oIdx})">
+                            <input type="text" class="opt-input" value="${opt}" 
+                                   oninput="updateOpt(${lvl}, ${idx}, ${oIdx}, this.value)">
+                        </div>
+                    `).join('')}
+                `;
+                lvlDiv.appendChild(qDiv);
+            });
+
+            let addQBtn = document.createElement('button');
+            addQBtn.className = 'btn-add';
+            addQBtn.style.background = '#2bbcd6';
+            addQBtn.innerText = "+ Добавить вопрос";
+            addQBtn.onclick = () => addQuestion(lvl);
+            lvlDiv.appendChild(addQBtn);
+
+            container.appendChild(lvlDiv);
         }
+        updateJSON();
     }
-}
 
-function initGame() {
-    pond.classList.remove('pond-transition');
-    const overlay = document.getElementById('countdown-overlay');
-    const countText = document.getElementById('countdown-text');
-    document.getElementById('overlay').style.display = 'none';
-    currentLevel = 1; step = 0; lives = 5;
-    updateLives(); createPond();
-    overlay.style.display = 'flex';
-    const steps = ['3', '2', '1', 'GO!'];
-    let i = 0;
-    playSound(sounds.count);
-    const timerInterval = setInterval(() => {
-        if (i < steps.length) {
-            countText.textContent = steps[i];
-            countText.classList.remove('count-animate');
-            void countText.offsetWidth;
-            countText.classList.add('count-animate');
-            i++;
-        } else {
-            clearInterval(timerInterval);
-            overlay.style.display = 'none';
-            frog.style.opacity = 1;
-            startGameLogic();
-        }
-    }, 1000);
-}
-
-function startGameLogic() {
-    playSound(sounds.start);
-    document.getElementById('header').textContent = `PAST SIMPLE CHALLENGE - LEVEL ${currentLevel}`;
-    questions = [...levelsBank[currentLevel]].sort(() => Math.random() - 0.5).slice(0, 6);
-    frog.classList.remove('sink', 'super-jump', 'shock');
-    lastCorrectLeaf = document.getElementById('leaf-6-2');
-    document.querySelectorAll('.leaf').forEach(l => l.classList.remove('active', 'leaf-landed', 'shock'));
-    lastCorrectLeaf.classList.add('active');
-    frog.style.transition = "none";
-    updateFrog(lastCorrectLeaf);
-    setTimeout(() => {
-        frog.style.transition = "left 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), top 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-        loadLevel();
-    }, 50);
-}
-
-function updateLives() {
-    const c = document.getElementById('lives-container');
-    c.innerHTML = '';
-    for (let i = 0; i < lives; i++) {
-        const l = document.createElement('div');
-        l.className = 'life-icon';
-        c.appendChild(l);
+    function copyCode() {
+        const text = document.getElementById('json-output').textContent;
+        navigator.clipboard.writeText(text);
+        alert("Код скопирован! Теперь вставь его в основной файл игры вместо старого levelsBank.");
     }
-}
 
-function loadLevel() {
-    if (step >= questions.length) {
-        if (levelsBank[currentLevel + 1]) {
-            frog.classList.add('super-jump');
-            playSound(sounds.levelUp);
-            setTimeout(() => {
-                pond.classList.add('pond-transition');
-                setTimeout(() => {
-                    currentLevel++; step = 0;
-                    questions = [...levelsBank[currentLevel]].sort(() => Math.random() - 0.5).slice(0, 6);
-                    document.getElementById('header').textContent = `PAST SIMPLE CHALLENGE - LEVEL ${currentLevel}`;
-                    frog.classList.remove('super-jump');
-                    frog.style.transition = "none";
-                    lastCorrectLeaf = document.getElementById('leaf-6-2');
-                    updateFrog(lastCorrectLeaf);
-                    setTimeout(() => {
-                        pond.classList.remove('pond-transition');
-                        frog.style.transition = "left 0.6s cubic-bezier(.47,1.21,.58,1), top 0.6s cubic-bezier(.47,1.21,.58,1), transform 0.3s ease-out";
-                        loadLevel();
-                    }, 50);
-                }, 600);
-            }, 400);
-            return;
-        } else {
-            showEnd("Victory!");
-            return;
-        }
-    }
-    document.querySelectorAll('.leaf.active').forEach(l => {
-        l.classList.remove('active', 'leaf-landed');
-        l.textContent = ''; l.onclick = null; delete l.dataset.letter;
-    });
-    if (lastCorrectLeaf) lastCorrectLeaf.classList.add('active');
-    const q = questions[step];
-    document.getElementById('q-text').innerHTML = `<b>Q${step+1}:</b> ${q.q}`;
-    const row = 5 - step;
-    [1,2,3].forEach((c,i) => {
-        const leaf = document.getElementById(`leaf-${row}-${c}`);
-        if(leaf) {
-            leaf.classList.add('active');
-            leaf.dataset.letter = String.fromCharCode(65+i);
-            leaf.textContent = q.options[i];
-            leaf.onclick = () => handleJump(i, leaf);
-        }
-    });
-    startTimer();
-}
-
-function handleJump(i, leaf) {
-    clearInterval(timer);
-    updateFrog(leaf);
-    if (i === questions[step].correct) {
-        lastCorrectLeaf = leaf;
-        leaf.classList.add('leaf-landed');
-        playSound(sounds.splash);
-        setTimeout(() => {
-            createSplash(leaf.offsetLeft + leaf.offsetWidth/2, leaf.offsetTop + leaf.offsetHeight/2);
-        }, 300);
-        setTimeout(() => { step++; loadLevel(); }, 700);
-    } else {
-        playSound(sounds.shock);
-        leaf.classList.add('shock'); frog.classList.add('shock');
-        lives--; updateLives();
-        setTimeout(() => {
-            updateFrog(lastCorrectLeaf);
-            setTimeout(() => { leaf.classList.remove('shock'); frog.classList.remove('shock'); }, 300);
-            if (lives <= 0) showEnd("Game Over");
-            else setTimeout(() => loadLevel(), 400);
-        }, 150);
-    }
-}
-
-function createSplash(x, y) {
-    const splash = document.createElement('div');
-    splash.className = 'splash';
-    splash.style.left = x + 'px'; splash.style.top = y + 'px';
-    pond.appendChild(splash);
-    setTimeout(() => splash.remove(), 600);
-}
-
-function updateFrog(leaf) {
-    if (frog.classList.contains('super-jump')) return;
-    frog.style.zIndex = "999";
-    frog.classList.add('jumping-frog');
-    frog.style.left = (leaf.offsetLeft + leaf.offsetWidth / 2) + 'px';
-    frog.style.top = (leaf.offsetTop + leaf.offsetHeight / 2) + 'px';
-    setTimeout(() => frog.classList.remove('jumping-frog'), 600);
-}
-
-function startTimer() {
-    let t = 100; clearInterval(timer);
-    timer = setInterval(() => {
-        t -= 0.6;
-        document.getElementById('timer-fill').style.width = t + '%';
-        if (t <= 0) { clearInterval(timer); showEnd("Out of time!"); }
-    }, 100);
-}
-
-// --- ФЕЙЕРВЕРКИ ---
-const fireworksCanvas = document.getElementById('fireworksCanvas');
-const ctx = fireworksCanvas.getContext('2d');
-let particles = [], animationFrameId;
-function setCanvasSize() { fireworksCanvas.width = window.innerWidth; fireworksCanvas.height = window.innerHeight; }
-window.addEventListener('resize', setCanvasSize); setCanvasSize();
-
-class Particle {
-    constructor(x, y, color, speed) {
-        this.x = x; this.y = y; this.color = color; this.speed = speed;
-        this.angle = Math.random() * Math.PI * 2;
-        this.velocity = { x: Math.cos(this.angle) * this.speed, y: Math.sin(this.angle) * this.speed };
-        this.friction = 0.99; this.gravity = 0.05; this.alpha = 1; this.decay = Math.random() * 0.03 + 0.01;
-    }
-    draw() { ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, 2, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill(); ctx.restore(); }
-    update() { this.velocity.x *= this.friction; this.velocity.y *= this.friction; this.velocity.y += this.gravity; this.x += this.velocity.x; this.y += this.velocity.y; this.alpha -= this.decay; }
-}
-
-function createFireworks(x, y) {
-    const hue = Math.random() * 360; const color = `hsl(${hue}, 100%, 50%)`;
-    for (let i = 0; i < 50; i++) particles.push(new Particle(x, y, color, Math.random() * 5 + 2));
-}
-
-function animateFireworks() {
-    animationFrameId = requestAnimationFrame(animateFireworks);
-    ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
-    particles.forEach((p, i) => { p.update(); p.draw(); if (p.alpha <= p.decay) particles.splice(i, 1); });
-    if (Math.random() < 0.05 && particles.length < 300) createFireworks(Math.random() * fireworksCanvas.width, Math.random() * fireworksCanvas.height * 0.7);
-}
-
-function stopFireworks() { cancelAnimationFrame(animationFrameId); animationFrameId = null; particles = []; ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height); }
-
-function showEnd(text) {
-    const msgElement = document.getElementById('msg');
-    msgElement.textContent = text;
-    document.getElementById('overlay').style.display = 'flex';
-    if (text === "Victory!") {
-        playSound(sounds.victory);
-        fireworksCanvas.style.display = 'block'; animateFireworks();
-        setTimeout(() => stopFireworks(), 5000);
-    } else {
-        playSound(sounds.gameOver);
-        stopFireworks(); fireworksCanvas.style.display = 'none';
-    }
-}
-
-document.getElementById('volume-slider').addEventListener('input', (e) => {
-    globalVolume = parseFloat(e.target.value);
-    const speaker = document.getElementById('speaker-icon');
-    if (globalVolume === 0) speaker.classList.add('muted-icon');
-    else speaker.classList.remove('muted-icon');
-});
-
-window.onload = initGame;
+    render();
 </script>
+
 </body>
 </html>
