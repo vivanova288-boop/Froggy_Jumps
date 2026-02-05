@@ -20,45 +20,41 @@
         <div id="pond"></div>
     </div>
 
-    <script>
-        // Эти данные заполнит Эдитор автоматически
-        const config = {
-            questions: [["Пример вопроса", "Правильно", "Нет", "Нет"]],
-            images: { bg: '', frog: '', leaf: '' }
-        };
+  <script>
+/* === CONFIG FROM EDITOR === */
+const GAME_CONFIG = window.GAME_CONFIG || {
+  title: "FROGGY QUEST",
+  colors: {
+    header: "#2ecc71",
+    questionBg: "#ffffff",
+    questionText: "#333333"
+  },
+  images: {
+    bg: "",
+    frog: "",
+    leaf: "",
+    life: ""
+  },
+  sizes: {
+    frog: 80,
+    leafW: 130,
+    leafH: 90
+  },
+  speed: {
+    jump: 500
+  },
+  effects: {
+    shock: true,
+    glow: false,
+    glowColor: "#00ffcc",
+    particles: false
+  },
+  lives: 3,
+  sounds: {},
+  questions: []
+};
+</script>
 
-        let currentStep = 0;
-        let lastSafePos = { x: '50%', y: '80%' };
-
-        function init() {
-            const game = document.getElementById('game');
-            const frog = document.getElementById('frog');
-            game.style.backgroundImage = `url(${config.images.bg})`;
-            frog.style.backgroundImage = `url(${config.images.frog})`;
-            frog.style.left = lastSafePos.x;
-            frog.style.top = lastSafePos.y;
-            loadQuestion();
-        }
-
-        function loadQuestion() {
-            if(currentStep >= config.questions.length) return alert("Квест пройден!");
-            const [q, a, w1, w2] = config.questions[currentStep];
-            document.getElementById('q-box').innerText = q;
-            // Логика появления лилий...
-        }
-
-        // Твоя механика "ШОК"
-        function triggerShock() {
-            const frog = document.getElementById('frog');
-            frog.classList.add('shock');
-            setTimeout(() => {
-                frog.style.left = lastSafePos.x;
-                frog.style.top = lastSafePos.y;
-                frog.classList.remove('shock');
-            }, 600);
-        }
-
-        window.onload = init;
-    </script>
 </body>
 </html>
+
