@@ -5,83 +5,212 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
         #bg { position: fixed; inset: 0; background-size: cover; background-position: center; z-index: -1; }
-        #ui { position: absolute; top: 0; width: 100%; text-align: center; color: white; z-index: 10; }
-        #header { background: #6ab04c; padding: 10px; font-weight: bold; }
-        #q-box { background: white; color: #333; width: 85%; max-width: 500px; margin: 15px auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .lives { position: absolute; top: 55px; left: 15px; display: flex; gap: 5px; }
+        
+        /* UI Элементы */
+        #ui { position: absolute; top: 0; width: 100%; text-align: center; color: white; z-index: 100; }
+        #header { background: rgba(106, 176, 76, 0.9); padding: 10px; font-weight: bold; border-bottom: 3px solid #4a7d33; }
+        #q-box { background: white; color: #333; width: 85%; max-width: 600px; margin: 15px auto; padding: 20px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); font-size: 18px; position: relative; }
+        
+        /* Жизни и Таймер */
+        .stats-bar { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; margin-top: 10px; }
+        .lives { display: flex; gap: 5px; }
         .heart { width: 30px; height: 30px; background-size: contain; background-repeat: no-repeat; }
-        #frog { position: absolute; width: 80px; height: 80px; background-size: contain; background-repeat: no-repeat; transition: 0.5s; transform: translate(-50%, -65%); z-index: 100; opacity: 0; }
-        .leaf { position: absolute; width: 120px; height: 100px; background-size: contain; background-repeat: no-repeat; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; text-shadow: 1px 1px 2px #000; font-size: 14px; text-align: center; padding: 10px; }
-        .shock { animation: shock 0.1s infinite; }
-        @keyframes shock { 0% { filter: brightness(4) hue-rotate(90deg); } 100% { filter: brightness(1); } }
-        #overlay, #start { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 2000; }
-        button { background: #6ab04c; color: white; border: none; padding: 15px 40px; border-radius: 30px; cursor: pointer; font-size: 20px; font-weight: bold; }
+        #timer-wrap { width: 150px; height: 15px; background: rgba(255,255,255,0.3); border-radius: 10px; overflow: hidden; border: 2px solid white; }
+        #timer-fill { width: 100%; height: 100%; background: #eb4d4b; transition: width 1s linear; }
+
+        /* Игровое поле */
+        #pond { position: absolute; inset: 0; top: 220px; }
+        .leaf { position: absolute; width: 100px; height: 80px; background-size: contain; background-repeat: no-repeat; background-position: center; 
+                display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; 
+                text-shadow: 1px 1px 2px #000; font-size: 12px; text-align: center; padding: 5px; transition: transform 0.2s; }
+        .leaf:hover { transform: scale(1.1); }
+
+        /* Персонаж и эффекты */
+        #frog { position: absolute; width: 80px; height: 80px; background-size: contain; background-repeat: no-repeat; 
+                transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1000; pointer-events: none; transform: translate(-50%, -80%); }
+        .splash { position: absolute; width: 100px; height: 40px; background: rgba(255,255,255,0.6); border-radius: 50%; 
+                  transform: translate(-50%, -50%) scale(0); animation: splash 0.4s ease-out; pointer-events: none; }
+        @keyframes splash { to { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } }
+        
+        .shock-anim { animation: shock 0.1s infinite; }
+        @keyframes shock { 0% { filter: brightness(5) sepia(1) saturate(20) hue-rotate(300deg); } 100% { filter: brightness(1); } }
+
+        /* Экраны */
+        #overlay, #start { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 5000; text-align: center; }
+        .btn-play { background: #6ab04c; color: white; border: none; padding: 20px 60px; border-radius: 50px; cursor: pointer; font-size: 24px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
     <div id="bg"></div>
-    <div id="start"><h1>FROGGY QUEST</h1><button onclick="begin()">ИГРАТЬ</button></div>
-    <div id="ui">
+    <div id="start">
+        <h1 id="start-title">FROGGY QUEST</h1>
+        <button class="btn-play" onclick="begin()">ИГРАТЬ</button>
+    </div>
+    
+    <div id="ui" style="display:none">
         <div id="header"></div>
-        <div class="lives" id="hp"></div>
+        <div class="stats-bar">
+            <div class="lives" id="hp"></div>
+            <div id="timer-wrap"><div id="timer-fill"></div></div>
+        </div>
         <div id="q-box"></div>
     </div>
-    <div id="frog"></div>
+
     <div id="pond"></div>
-    <div id="overlay" style="display:none"><h1 id="msg"></h1><button onclick="location.reload()">ЗАНОВО</button></div>
+    <div id="frog" style="display:none"></div>
+    
+    <div id="overlay" style="display:none">
+        <h1 id="msg"></h1>
+        <button class="btn-play" onclick="location.reload()">ЗАНОВО</button>
+    </div>
 
 <script>
-    let c = {}, step = 0, lives = 5;
+    let c = {}, step = 0, lives = 5, timeLeft = 0, timerId, currentLeafEl;
 
     function init() {
         const z = new URLSearchParams(window.location.search).get('z');
         if(!z) return;
         try {
-            // Распаковка LZMA
             const raw = LZString.decompressFromEncodedURIComponent(z);
             c = JSON.parse(raw);
             document.getElementById('bg').style.backgroundImage = `url(${c.v[0]})`;
             document.getElementById('frog').style.backgroundImage = `url(${c.v[1]})`;
+            document.getElementById('start-title').innerText = c.t;
             document.getElementById('header').innerText = c.t;
             lives = parseInt(c.li);
-        } catch(e) { console.error("Data error"); }
+        } catch(e) { console.error("Config Load Error"); }
     }
 
     function begin() {
         document.getElementById('start').style.display = 'none';
-        document.getElementById('frog').style.opacity = 1;
-        render();
+        document.getElementById('ui').style.display = 'block';
+        document.getElementById('frog').style.display = 'block';
+        createPond();
+        renderQuestion();
     }
 
-    function render() {
+    // Создаем сетку из 15 листиков (5 рядов по 3 штуки)
+    function createPond() {
+        const pond = document.getElementById('pond');
+        pond.innerHTML = '';
+        for(let i=0; i<15; i++) {
+            const l = document.createElement('div');
+            l.className = 'leaf';
+            l.id = 'l-' + i;
+            l.style.backgroundImage = `url(${c.v[2]})`;
+            l.style.left = (15 + (i % 3) * 35) + "%";
+            l.style.top = (Math.floor(i / 3) * 20) + "%";
+            l.style.opacity = "0.3"; // Неактивные листики полупрозрачные
+            pond.appendChild(l);
+        }
+    }
+
+    function renderQuestion() {
         if(step >= c.q.length) return finish("ПОБЕДА!", c.s[2]);
+        
         const q = c.q[step];
         document.getElementById('q-box').innerText = q[0];
         updateHp();
-        const pond = document.getElementById('pond');
-        pond.innerHTML = '';
+        resetTimer();
+
+        // Активируем только нужный ряд листиков
+        const startIdx = (step % 5) * 3; 
+        const rowLeaves = [startIdx, startIdx+1, startIdx+2];
+        
+        // Перемешиваем ответы
         let opts = [ {t:q[1], ok:true}, {t:q[2], ok:false}, {t:q[3], ok:false} ].sort(() => Math.random() - 0.5);
-        opts.forEach((o, i) => {
-            const l = document.createElement('div');
-            l.className = 'leaf';
-            l.style.backgroundImage = `url(${c.v[2]})`;
-            l.style.left = (15 + i*35) + "%"; l.style.top = "65%";
-            l.innerText = o.t;
-            l.onclick = () => {
-                if(o.ok) { snd(c.s[0]); move(l); step++; setTimeout(render, 600); }
-                else { lives--; updateHp(); snd(c.s[1]); shock(); if(lives <= 0) finish("ИГРА ОКОНЧЕНА", c.s[3]); }
-            };
-            pond.appendChild(l);
-            if(step === 0 && i === 1) move(l);
-        });
+
+        for(let i=0; i<15; i++) {
+            const el = document.getElementById('l-'+i);
+            el.onclick = null;
+            el.innerText = '';
+            el.style.opacity = rowLeaves.includes(i) ? "1" : "0.2";
+            
+            if(rowLeaves.includes(i)) {
+                const opt = opts.shift();
+                el.innerText = opt.t;
+                el.onclick = () => handleAnswer(opt.ok, el);
+            }
+        }
+        
+        // Если это первый шаг, сажаем лягушку на центральный нижний лист
+        if(step === 0) {
+            const startLeaf = document.getElementById('l-1');
+            jump(startLeaf);
+        }
     }
 
-    function move(el) {
+    function handleAnswer(isCorrect, el) {
+        if(isCorrect) {
+            snd(c.s[0]);
+            createSplash(el);
+            jump(el);
+            step++;
+            setTimeout(renderQuestion, 600);
+        } else {
+            lives--;
+            updateHp();
+            snd(c.s[1]);
+            applyShock();
+            if(lives <= 0) finish("ИГРА ОКОНЧЕНА", c.s[3]);
+        }
+    }
+
+    function jump(target) {
         const f = document.getElementById('frog');
-        f.style.left = (el.offsetLeft + el.offsetWidth/2) + "px";
-        f.style.top = (el.offsetTop + el.offsetHeight/2) + "px";
+        const rect = target.getBoundingClientRect();
+        f.style.left = (target.offsetLeft + target.offsetWidth/2) + "px";
+        f.style.top = (target.offsetTop + target.offsetHeight/2) + "px";
+        currentLeafEl = target;
+    }
+
+    function applyShock() {
+        const f = document.getElementById('frog');
+        f.classList.add('shock-anim');
+        // Эффект отскока (чуть-чуть дергаем назад и возвращаем)
+        const oldTop = f.style.top;
+        f.style.top = (parseInt(oldTop) + 30) + "px";
+        
+        setTimeout(() => {
+            f.classList.remove('shock-anim');
+            f.style.top = oldTop;
+        }, 500);
+    }
+
+    function createSplash(el) {
+        const s = document.createElement('div');
+        s.className = 'splash';
+        s.style.left = (el.offsetLeft + el.offsetWidth/2) + "px";
+        s.style.top = (el.offsetTop + el.offsetHeight/2) + "px";
+        document.getElementById('pond').appendChild(s);
+        setTimeout(() => s.remove(), 400);
+    }
+
+    function resetTimer() {
+        clearInterval(timerId);
+        timeLeft = parseInt(c.tm) || 15;
+        const fill = document.getElementById('timer-fill');
+        fill.style.transition = 'none';
+        fill.style.width = '100%';
+        
+        setTimeout(() => {
+            fill.style.transition = `width ${timeLeft}s linear`;
+            fill.style.width = '0%';
+        }, 50);
+
+        timerId = setInterval(() => {
+            timeLeft--;
+            if(timeLeft <= 0) {
+                lives--;
+                updateHp();
+                snd(c.s[1]);
+                applyShock();
+                if(lives <= 0) finish("ВРЕМЯ ВЫШЛО!", c.s[3]);
+                else renderQuestion();
+            }
+        }, 1000);
     }
 
     function updateHp() {
@@ -93,15 +222,14 @@
     }
 
     function snd(url) { if(url) new Audio(url).play().catch(()=>{}); }
-    function shock() { 
-        document.getElementById('frog').classList.add('shock'); 
-        setTimeout(() => document.getElementById('frog').classList.remove('shock'), 500); 
-    }
+    
     function finish(t, sUrl) {
+        clearInterval(timerId);
         document.getElementById('overlay').style.display = 'flex';
         document.getElementById('msg').innerText = t;
         snd(sUrl);
     }
+
     init();
 </script>
 </body>
