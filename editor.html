@@ -1,103 +1,169 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Froggy Quest Editor</title>
-<style>
-body{
-  margin:0;
-  display:flex;
-  height:100vh;
-  font-family:Arial;
-  background:#1e1e2f;
-  color:#fff;
-}
-.panel{
-  width:380px;
-  padding:15px;
-  overflow:auto;
-  background:#26263a;
-}
-h2{color:#6cff9c}
-label{display:block;margin-top:12px;font-size:14px}
-textarea,input,select{
-  width:100%;
-  background:#111;
-  color:#fff;
-  border:1px solid #444;
-  padding:6px;
-}
-button{
-  margin-top:15px;
-  padding:10px;
-  width:100%;
-  background:#6cff9c;
-  border:0;
-  cursor:pointer;
-  font-weight:bold;
-}
-.preview{
-  flex:1;
-  background:#000;
-}
-iframe{
-  width:100%;
-  height:100%;
-  border:0;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>Froggy Quest Builder 2026</title>
+    <style>
+        body { margin:0; display:flex; height:100vh; font-family:sans-serif; background:#1e1e2f; color:#fff; }
+        .panel { width:400px; padding:20px; overflow:auto; background:#26263a; border-right:3px solid #6cff9c; }
+        .card { background:#32324d; padding:15px; border-radius:10px; margin-bottom:15px; }
+        h2 { color:#6cff9c; margin-top:0; font-size:18px; }
+        label { display:block; margin-top:10px; font-size:12px; color:#aaa; }
+        textarea, input { width:100%; background:#111; color:#fff; border:1px solid #444; padding:8px; box-sizing:border-box; border-radius:4px; }
+        button { margin-top:15px; padding:12px; width:100%; background:#6cff9c; border:0; cursor:pointer; font-weight:bold; border-radius:5px; transition:0.3s; }
+        button:hover { background:#4cd17a; transform: scale(1.02); }
+        .preview { flex:1; background:#000; position:relative; }
+        iframe { width:100%; height:100%; border:0; }
+    </style>
 </head>
 <body>
 
 <div class="panel">
-  <h2>FROGGY QUEST</h2>
+    <h2>FROGGY BUILDER v3</h2>
 
-  <label>Заголовок игры</label>
-  <input id="title" value="Froggy Quest">
+    <div class="card">
+        <label>Заголовок игры</label>
+        <input id="v-title" value="PAST SIMPLE QUEST">
+        
+        <label>Вопросы (Вопрос|Верный|Ложный|Ложный)</label>
+        <textarea id="v-questions" rows="5">Yesterday I ___|watched|watch|watches
+She ___ home|went|go|goes</textarea>
+    </div>
 
-  <label>Задания (1 строка = 1 уровень)</label>
-  <textarea id="tasks" rows="6">
-Jump on the correct word
-Choose the right answer
-Complete the sentence
-  </textarea>
+    <div class="card">
+        <h2>ГРАФИКА (PNG)</h2>
+        <label>Герой:</label> <input type="file" onchange="encode('hero', this)">
+        <label>Лилия:</label> <input type="file" onchange="encode('plat', this)">
+        <label>Фон:</label> <input type="file" onchange="encode('bg', this)">
+    </div>
 
-  <label>Скорость (таймер)</label>
-  <input id="speed" type="number" value="60">
+    <div class="card">
+        <h2>ЗВУКИ (7 шт)</h2>
+        <label>1. Прыжок | 2. Шок | 3. Победа</label>
+        <input type="file" onchange="aud('s1', this)">
+        <input type="file" onchange="aud('s2', this)">
+        <input type="file" onchange="aud('s3', this)">
+        <label>4. Финал (4.mp3) | 5. Старт</label>
+        <input type="file" onchange="aud('s4', this)">
+        <input type="file" onchange="aud('s5', this)">
+    </div>
 
-  <label>Количество уровней</label>
-  <input id="levels" type="number" value="3">
-
-  <label>Цвет текста</label>
-  <input id="color" type="color" value="#ffffff">
-
-  <button onclick="update()">Обновить предпросмотр</button>
-  <button onclick="copy()">Копировать iframe</button>
+    <button onclick="updatePreview()">ОБНОВИТЬ ПРЕДПРОСМОТР</button>
+    <button style="background:#ff9f43" onclick="copyForGenially()">КОПИРОВАТЬ КОД ДЛЯ GENIALLY</button>
 </div>
 
 <div class="preview">
-  <iframe id="frame"></iframe>
+    <iframe id="frame"></iframe>
 </div>
 
 <script>
-function update(){
-  const data = {
-    title: title.value,
-    tasks: tasks.value.split('\n'),
-    speed: speed.value,
-    levels: levels.value,
-    color: color.value
-  }
-  frame.src = "index.html#"+encodeURIComponent(JSON.stringify(data))
-}
-function copy(){
-  navigator.clipboard.writeText(
-    `<iframe src="index.html" width="800" height="600"></iframe>`
-  )
-  alert("iframe скопирован")
-}
-update()
-</script>
+    let assets = { hero:'', plat:'', bg:'', s1:'', s2:'', s3:'', s4:'', s5:'' };
 
+    function encode(k, i) {
+        const r = new FileReader();
+        r.onload = (e) => { assets[k] = e.target.result; };
+        r.readAsDataURL(i.files[0]);
+    }
+    function aud(k, i) {
+        const r = new FileReader();
+        r.onload = (e) => { assets[k] = e.target.result; };
+        r.readAsDataURL(i.files[0]);
+    }
+
+    function generateFullHTML() {
+        const title = document.getElementById('v-title').value;
+        const qRaw = document.getElementById('v-questions').value.split('\n').filter(l => l.includes('|'));
+        const qJson = qRaw.map(l => {
+            const p = l.split('|');
+            const o = [p[1], p[2], p[3]].sort(() => Math.random() - 0.5);
+            return { q: p[0], opt: o, ok: o.indexOf(p[1]) };
+        });
+
+        return `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { margin:0; background:url(${assets.bg}) center/cover no-repeat fixed #000; font-family:sans-serif; overflow:hidden; }
+        #start { position:fixed; inset:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:100; color:#6cff9c; cursor:pointer; }
+        #q-box { background:white; width:80%; margin:20px auto; padding:20px; border-radius:15px; text-align:center; color:#333; font-weight:bold; }
+        #hero { position:absolute; width:80px; height:80px; background:url(${assets.hero}) no-repeat center/contain; transition:0.5s; z-index:10; }
+        .leaf { position:absolute; width:120px; height:80px; background:url(${assets.plat}) no-repeat center/contain; display:flex; align-items:center; justify-content:center; color:white; font-size:12px; cursor:pointer; text-align:center; padding:10px; }
+        .shock { animation: shake 0.1s infinite; filter: brightness(2) sepia(1); }
+        @keyframes shake { 0% { transform:translate(-2px,0); } 100% { transform:translate(2px,0); } }
+    </style>
+</head>
+<body>
+    <div id="start" onclick="init()"><h1>НАЖМИ ЧТОБЫ НАЧАТЬ</h1></div>
+    <div id="q-box">ЗАГРУЗКА...</div>
+    <div id="pond" style="height:100vh; position:relative;">
+        <div id="hero" style="bottom:20px; left:50%; transform:translateX(-50%);"></div>
+    </div>
+
+    <script>
+        const quest = ${JSON.stringify(qJson)};
+        const sounds = {
+            jump: new Audio("${assets.s1}"), shock: new Audio("${assets.s2}"),
+            win: new Audio("${assets.s3}"), fail: new Audio("${sounds.s4}"), start: new Audio("${sounds.s5}")
+        };
+        let step = 0;
+        let lastPos = { x: 50, y: 20 };
+
+        function init() {
+            document.getElementById('start').remove();
+            sounds.start.play();
+            loadLevel();
+        }
+
+        function loadLevel() {
+            if(step >= quest.length) { sounds.win.play(); alert("ПОБЕДА!"); return; }
+            document.getElementById('q-box').innerText = quest[step].q;
+            const pond = document.getElementById('pond');
+            document.querySelectorAll('.leaf').forEach(e => e.remove());
+            
+            quest[step].opt.forEach((t, i) => {
+                const l = document.createElement('div');
+                l.className = 'leaf';
+                l.innerText = t;
+                l.style.left = (20 + i*30) + '%';
+                l.style.top = '40%';
+                l.onclick = () => jump(i, 20 + i*30, 40);
+                pond.appendChild(l);
+            });
+        }
+
+        function jump(idx, x, y) {
+            const h = document.getElementById('hero');
+            h.style.left = x + '%'; h.style.top = y + '%';
+            
+            if(idx === quest[step].ok) {
+                sounds.jump.play();
+                lastPos = {x, y};
+                setTimeout(() => { step++; loadLevel(); }, 600);
+            } else {
+                sounds.shock.play();
+                h.classList.add('shock');
+                setTimeout(() => {
+                    h.classList.remove('shock');
+                    h.style.left = lastPos.x + '%'; h.style.top = lastPos.y + '%';
+                }, 600);
+            }
+        }
+    <\/script>
+</body>
+</html>`;
+    }
+
+    function updatePreview() {
+        document.getElementById('frame').srcdoc = generateFullHTML();
+    }
+
+    function copyForGenially() {
+        const fullCode = generateFullHTML();
+        const iframe = `<iframe srcdoc='${fullCode.replace(/'/g, "&apos;")}' width="800" height="600" frameborder="0" allow="autoplay"></iframe>`;
+        navigator.clipboard.writeText(iframe);
+        alert("Код для Genially скопирован! Вставляй через 'Insert' -> 'Others'");
+    }
+</script>
 </body>
 </html>
