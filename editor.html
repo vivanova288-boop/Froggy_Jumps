@@ -2,145 +2,188 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Froggy Master Editor</title>
+    <title>Froggy Quest Master</title>
     <style>
-        :root { --green: #6ab04c; --bg: #1e272e; --panel: #2f3640; }
-        body { margin: 0; display: flex; height: 100vh; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; overflow: hidden; }
+        :root { --accent: #6ab04c; --bg: #1e272e; --panel: #2f3640; }
+        body { margin: 0; display: flex; height: 100vh; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; }
         
-        /* Sidebar */
-        #sidebar { width: 400px; background: var(--panel); padding: 20px; overflow-y: auto; border-right: 3px solid #000; }
-        .card { background: #353b48; padding: 15px; margin-bottom: 20px; border-radius: 10px; border-left: 5px solid var(--green); }
-        h2 { color: var(--green); margin-top: 0; font-size: 20px; border-bottom: 1px solid #444; padding-bottom: 10px; }
-        h3 { font-size: 12px; color: #aaa; text-transform: uppercase; margin-top: 0; }
+        /* Панель управления */
+        #sidebar { width: 420px; background: var(--panel); padding: 20px; overflow-y: auto; border-right: 2px solid #111; box-shadow: 5px 0 15px rgba(0,0,0,0.3); }
+        .section { background: #353b48; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 4px solid var(--accent); }
+        h2 { font-size: 18px; margin: 0 0 15px 0; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
         
-        label { display: block; font-size: 11px; margin: 10px 0 5px; color: #dcdde1; }
-        input, select, textarea { width: 100%; padding: 8px; background: #191e24; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; }
+        label { display: block; font-size: 11px; margin-bottom: 5px; color: #aaa; text-transform: uppercase; }
+        input[type="text"], textarea, input[type="file"], select { width: 100%; padding: 10px; background: #191e24; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; margin-bottom: 10px; }
         
-        .btn-copy { background: #eb4d4b; color: white; border: none; width: 100%; padding: 18px; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 16px; margin-top: 10px; transition: 0.3s; }
-        .btn-copy:hover { background: #ff5e57; box-shadow: 0 0 15px rgba(235, 77, 75, 0.4); }
+        textarea { height: 100px; resize: none; font-family: monospace; font-size: 12px; }
+        .sound-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: #2f3640; padding: 5px; border-radius: 4px; }
+        .sound-row span { font-size: 11px; flex: 1; }
+        .sound-row input { width: 180px; margin: 0; font-size: 10px; }
 
-        /* Preview Area */
-        #preview-cont { flex: 1; display: flex; flex-direction: column; background: #000; }
-        iframe { flex: 1; border: none; width: 100%; height: 100%; background: #fff; }
-        #status-bar { padding: 8px; font-size: 12px; text-align: center; background: #111; color: #555; }
+        .btn-main { background: #27ae60; color: white; border: none; width: 100%; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 14px; transition: 0.3s; margin-top: 10px; }
+        .btn-main:hover { background: #2ecc71; transform: translateY(-2px); }
+
+        /* Предпросмотр */
+        #preview { flex: 1; display: flex; flex-direction: column; background: #111; }
+        iframe { flex: 1; border: none; background: #fff; }
+        .preview-label { padding: 10px; text-align: center; font-size: 12px; color: #666; background: #000; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h2>FROGGY BUILDER</h2>
+    <h2>Мастерская Квестов</h2>
 
-    <div class="card">
-        <h3>1. Графика (PNG)</h3>
-        <label>Лягушка (2.png)</label><input type="file" onchange="encode('frog', this)">
-        <label>Лист (1.png)</label><input type="file" onchange="encode('leaf', this)">
-        <label>Жизнь (3.png)</label><input type="file" onchange="encode('life', this)">
-        <label>Фон (bg.png)</label><input type="file" onchange="encode('bg', this)">
-        <label>Размер героя (%)</label><input type="range" id="v-size" min="30" max="150" value="90" oninput="update()">
+    <div class="section">
+        <label>1. Текстовые настройки</label>
+        <input type="text" id="v-title" placeholder="Заголовок игры" value="PAST SIMPLE CHALLENGE" oninput="update()">
+        <label>Вопросы (Вопрос|Верный|Ложный|Ложный)</label>
+        <textarea id="v-questions" oninput="update()">Yesterday I ___ my room.|cleaned|clean|cleans
+They ___ at the cinema.|were|was|are
+He ___ a cake.|bought|buy|buyed</textarea>
     </div>
 
-    <div class="card">
-        <h3>2. Звуки (1-7.mp3)</h3>
-        <label>1. Splash / 2. Shock / 3. Victory</label>
-        <input type="file" multiple onchange="encodeAudio(this)">
-        <p style="font-size: 9px; color: #777;">*Выберите сразу несколько файлов .mp3</p>
+    <div class="section">
+        <label>2. Визуальные ассеты (PNG/JPG)</label>
+        <label>Фон игры:</label><input type="file" onchange="encode('bg', this)">
+        <label>Лягушка:</label><input type="file" onchange="encode('frog', this)">
+        <label>Лилия:</label><input type="file" onchange="encode('leaf', this)">
+        <label>Жизнь:</label><input type="file" onchange="encode('life', this)">
     </div>
 
-    <div class="card">
-        <h3>3. Настройки UI</h3>
-        <label>Цвет шапки</label><input type="color" id="v-color" value="#6ab04c" oninput="update()">
-        <label>Заголовок</label><input type="text" id="v-title" value="PAST SIMPLE CHALLENGE" oninput="update()">
-        <label><input type="checkbox" id="v-glow" checked onchange="update()"> Свечение героя</label>
+    <div class="section">
+        <label>3. Звуковые ассеты (MP3)</label>
+        <div class="sound-row"><span>Прыжок:</span><input type="file" onchange="encodeAudio('splash', this)"></div>
+        <div class="sound-row"><span>Шок (ошибка):</span><input type="file" onchange="encodeAudio('shock', this)"></div>
+        <div class="sound-row"><span>Победа:</span><input type="file" onchange="encodeAudio('victory', this)"></div>
+        <div class="sound-row"><span>Финал (4.mp3):</span><input type="file" onchange="encodeAudio('gameOver', this)"></div>
+        <div class="sound-row"><span>Старт:</span><input type="file" onchange="encodeAudio('start', this)"></div>
     </div>
 
-    <button class="btn-copy" onclick="copyCode()">КОПИРОВАТЬ КОД ДЛЯ GENIALLY</button>
+    <button class="btn-main" onclick="copyResult()">СКОПИРОВАТЬ IFRAME ДЛЯ GENIALLY</button>
 </div>
 
-<div id="preview-cont">
-    <div id="status-bar">ПРЕДПРОСМОТР ДВИЖКА</div>
+<div id="preview">
+    <div class="preview-label">ПРЕДПРОСМОТР В РЕАЛЬНОМ ВРЕМЕНИ</div>
     <iframe id="target"></iframe>
 </div>
 
 <script>
-    let assets = { frog: '', leaf: '', life: '', bg: '' };
-    let sounds = {};
+    let data = { frog: '', leaf: '', life: '', bg: '' };
+    let audios = { splash: '', shock: '', victory: '', gameOver: '', start: '' };
 
     function encode(key, input) {
+        const file = input.files[0];
         const reader = new FileReader();
-        reader.onload = (e) => { assets[key] = e.target.result; update(); };
-        reader.readAsDataURL(input.files[0]);
+        reader.onload = (e) => { data[key] = e.target.result; update(); };
+        reader.readAsDataURL(file);
     }
 
-    function encodeAudio(input) {
-        Array.from(input.files).forEach((file, index) => {
-            const reader = new FileReader();
-            reader.onload = (e) => { sounds['s' + (index + 1)] = e.target.result; };
-            reader.readAsDataURL(file);
-        });
+    function encodeAudio(key, input) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => { audios[key] = e.target.result; update(); };
+        reader.readAsDataURL(file);
     }
 
     function update() {
-        const frame = document.getElementById('target');
-        const color = document.getElementById('v-color').value;
         const title = document.getElementById('v-title').value;
-        const size = document.getElementById('v-size').value;
-        const glow = document.getElementById('v-glow').checked;
+        const rawQ = document.getElementById('v-questions').value.split('\n');
+        
+        // Превращаем текст в массив объектов для движка
+        const questionBank = rawQ.filter(line => line.includes('|')).map(line => {
+            const parts = line.split('|');
+            return {
+                q: parts[0],
+                options: [parts[1], parts[2], parts[3]].sort(() => Math.random() - 0.5),
+                get correct() { return this.options.indexOf(parts[1]); }
+            };
+        });
 
-        // Здесь мы внедряем твой JS код, заменяя пути на base64 переменные
-        const finalHTML = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                /* Вставляем твои стили */
-                :root { --ui-bg: ${color}; }
-                body { margin: 0; background: url(${assets.bg}) no-repeat center/cover fixed; font-family: Arial; overflow: hidden; }
-                #header { background: var(--ui-bg); color: white; padding: 10px; text-align: center; font-weight: bold; }
-                .life-icon { width: 52px; height: 52px; background: url(${assets.life}) no-repeat center / contain; }
-                .leaf { position: absolute; width: 150px; height: 120px; background: url(${assets.leaf}) no-repeat center / contain; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; font-weight: bold; text-shadow: 2px 2px 4px #000; cursor: pointer; transition: 0.3s; }
-                #frog { position: absolute; width: ${size}px; height: ${size}px; background: url(${assets.frog}) no-repeat center / contain; transform: translate(-50%, -50%); z-index: 1000; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); ${glow ? 'filter: drop-shadow(0 0 15px #fff);' : ''} pointer-events: none;}
-                /* Твои анимации shock, sink и т.д. */
-                @keyframes electric-shock { 0% { filter: brightness(2) hue-rotate(90deg); transform: translate(-50%, -55%) scale(1.2); } 100% { filter: brightness(1); } }
-                .shock { animation: electric-shock 0.1s infinite; }
-                #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 5000; }
-                #question-box { background: white; width: 80%; margin: 10px auto; padding: 15px; border-radius: 15px; text-align: center; color: #333; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-            </style>
-        </head>
-        <body>
-            <div id="header">${title}</div>
-            <div id="lives-container" style="display:flex; padding: 10px;"></div>
-            <div id="question-box"><div id="q-text">Ready?</div></div>
-            <div id="pond" style="position:relative; height:80vh;">
-                <div id="frog"></div>
-            </div>
-            <div id="overlay"><h1 id="msg"></h1><button onclick="location.reload()">Try Again</button><canvas id="fireworksCanvas"></canvas></div>
+        const frame = document.getElementById('target');
+        
+        const finalCode = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { margin: 0; background: url(${data.bg}) center/cover no-repeat fixed; font-family: sans-serif; overflow: hidden; height: 100vh; }
+        #header { background: #6ab04c; color: white; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        #lives-container { position: absolute; top: 70px; left: 20px; display: flex; gap: 5px; }
+        .life-icon { width: 40px; height: 40px; background: url(${data.life}) no-repeat center/contain; }
+        #frog { position: absolute; width: 80px; height: 80px; background: url(${data.frog}) no-repeat center/contain; transform: translate(-50%, -50%); z-index: 100; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .leaf { position: absolute; width: 140px; height: 100px; background: url(${data.leaf}) no-repeat center/contain; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; text-shadow: 1px 1px 3px #000; text-align: center; padding: 10px; font-size: 14px; }
+        #question-box { width: 80%; max-width: 600px; background: white; margin: 20px auto; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2); position: relative; z-index: 10; }
+        .shock { animation: shake 0.1s infinite; filter: brightness(2) sepia(1) hue-rotate(100deg) !important; }
+        @keyframes shake { 0% { margin-left: 0; } 25% { margin-left: 5px; } 50% { margin-left: 0; } 75% { margin-left: -5px; } 100% { margin-left: 0; } }
+        #overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000; flex-direction:column; align-items:center; justify-content:center; color:white; }
+    </style>
+</head>
+<body>
+    <div id="header">${title}</div>
+    <div id="lives-container"></div>
+    <div id="question-box"><h3 id="q-text">Loading...</h3></div>
+    <div id="pond">
+        <div id="frog"></div>
+        </div>
+    <div id="overlay"><h1 id="msg"></h1><button onclick="location.reload()">TRY AGAIN</button></div>
 
-            <script>
-                // ТВОЯ ЛОГИКА (из присланного кода)
-                const sounds = {
-                    start: new Audio("${sounds.s5 || ''}"),
-                    shock: new Audio("${sounds.s2 || ''}"),
-                    splash: new Audio("${sounds.s1 || ''}"),
-                    victory: new Audio("${sounds.s3 || ''}"),
-                    gameOver: new Audio("${sounds.s4 || ''}")
-                };
-                
-                // Вставь сюда все функции из своего кода: handleJump, updateLives, createPond и т.д.
-                // Для теста я добавлю базовую инициализацию:
-                document.getElementById('q-text').onclick = () => alert('Game Started with your logic!');
-            <\/script>
-        </body>
-        </html>`;
+    <script>
+        const questData = ${JSON.stringify(questionBank)};
+        const sounds = {
+            start: new Audio("${audios.start}"),
+            shock: new Audio("${audios.shock}"),
+            splash: new Audio("${audios.splash}"),
+            victory: new Audio("${audios.victory}"),
+            gameOver: new Audio("${audios.gameOver}")
+        };
 
-        frame.srcdoc = finalHTML;
+        let step = 0;
+        let lives = 3;
+        let lastLeaf = null;
+
+        // Вставь сюда свою логику handleJump и updateFrog из прошлого сообщения
+        // Я упростил для теста, чтобы ты видела работу:
+        function init() {
+            updateLives();
+            loadQuestion();
+            // ... остальной твой код
+        }
+        
+        function updateLives() {
+            const c = document.getElementById('lives-container');
+            c.innerHTML = '';
+            for(let i=0; i<lives; i++) c.innerHTML += '<div class="life-icon"></div>';
+        }
+
+        function loadQuestion() {
+            if(step >= questData.length) { showEnd("VICTORY!"); return; }
+            document.getElementById('q-text').innerText = questData[step].q;
+            // Логика отрисовки лилий...
+        }
+
+        function showEnd(txt) {
+            document.getElementById('overlay').style.display='flex';
+            document.getElementById('msg').innerText = txt;
+            if(txt === "VICTORY!") sounds.victory.play();
+            else sounds.gameOver.play();
+        }
+
+        window.onload = init;
+    <\/script>
+</body>
+</html>`;
+        frame.srcdoc = finalCode;
     }
 
-    function copyCode() {
-        const iframeCode = `<iframe srcdoc='${document.getElementById('target').srcdoc.replace(/'/g, "&apos;")}' width="100%" height="600px" frameborder="0" scrolling="no"></iframe>`;
-        navigator.clipboard.writeText(iframeCode);
-        alert("КОД СКОПИРОВАН! Вставь его в Genially (Insert -> Others)");
+    function copyResult() {
+        const iframe = `<iframe srcdoc='${document.getElementById('target').srcdoc.replace(/'/g, "&apos;")}' width="100%" height="600px" frameborder="0"></iframe>`;
+        navigator.clipboard.writeText(iframe);
+        alert("Код готов! Вставляй в Genially через 'Insert' -> 'Others'");
     }
+
+    update();
 </script>
 </body>
 </html>
