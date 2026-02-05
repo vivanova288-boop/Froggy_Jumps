@@ -2,101 +2,228 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Froggy Editor - LZMA Version</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+    <title>Froggy Quest Builder - Full Variables</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        .editor { width: 420px; background: #34495e; padding: 20px; box-shadow: 2px 0 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; z-index: 10; }
-        .tabs { display: flex; gap: 4px; margin-bottom: 15px; }
-        .tab { flex: 1; padding: 12px 5px; background: #2c3e50; text-align: center; cursor: pointer; font-size: 10px; font-weight: bold; color: #bdc3c7; border-radius: 5px; }
-        .tab.active { background: #27ae60; color: #fff; }
-        .pane { display: none; flex-grow: 1; overflow-y: auto; padding-right: 10px; }
-        .pane.active { display: block; }
-        label { display: block; margin-top: 15px; font-size: 11px; color: #95a5a6; text-transform: uppercase; }
-        input, textarea { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid #2c3e50; background: #ecf0f1; color: #2c3e50; font-size: 13px; box-sizing: border-box; }
-        .preview { flex-grow: 1; background: #1e1e1e; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative; }
-        .window { width: 100%; height: 100%; max-width: 900px; max-height: 600px; border: 3px solid #27ae60; border-radius: 12px; background: #000; overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
-        .btn { background: #e74c3c; color: #fff; padding: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; font-size: 14px; }
-        #res-box { margin-top: 15px; padding: 12px; background: #1a1a1a; border-radius: 6px; font-family: monospace; font-size: 10px; word-break: break-all; color: #2ecc71; border: 1px solid #27ae60; display: none; }
+        :root { --panel-w: 400px; --accent: #6ab04c; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; background: #1e1e1e; color: white; }
+        
+        /* Layout */
+        #main-container { display: flex; height: 100vh; }
+        #editor-panel { width: var(--panel-w); background: #2d2d2d; border-right: 2px solid #444; overflow-y: auto; padding: 20px; box-sizing: border-box; z-index: 10; }
+        #preview-panel { flex-grow: 1; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+        
+        /* Editor Styles */
+        h2 { color: var(--accent); margin-top: 0; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .section { margin-bottom: 25px; background: #383838; padding: 15px; border-radius: 8px; }
+        label { display: block; margin-bottom: 5px; font-size: 12px; color: #bbb; text-transform: uppercase; }
+        input[type="text"], textarea, select { width: 100%; background: #222; border: 1px solid #555; color: white; padding: 8px; border-radius: 4px; margin-bottom: 10px; box-sizing: border-box; }
+        input[type="color"] { width: 100%; height: 30px; border: none; cursor: pointer; background: none; }
+        .file-input-group { background: #444; padding: 10px; border-radius: 5px; margin-bottom: 5px; font-size: 13px; }
+        
+        /* Game Frame Preview */
+        #game-frame { width: 100%; height: 100%; border: none; background: white; }
+        
+        /* Buttons */
+        .btn-build { background: var(--accent); color: white; border: none; padding: 15px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .btn-build:hover { background: #58933f; }
     </style>
 </head>
 <body>
 
-<div class="editor">
-    <div class="tabs">
-        <div class="tab active" onclick="tab(0)">КОНТЕНТ</div>
-        <div class="tab" onclick="tab(1)">МЕХАНИКА</div>
-        <div class="tab" onclick="tab(2)">ВИЗУАЛ</div>
-        <div class="tab" onclick="tab(3)">АУДИО</div>
+<div id="main-container">
+    <div id="editor-panel">
+        <h2>КОНСТРУКТОР КВЕСТА</h2>
+        
+        <div class="section">
+            <label>Текстовые настройки</label>
+            <input type="text" id="v-title" value="PAST SIMPLE CHALLENGE" placeholder="Заголовок игры">
+            <label>Цвет заголовка (плашка)</label>
+            <input type="color" id="v-color-ui" value="#6ab04c">
+            <label>Цвет текста на листиках</label>
+            <input type="color" id="v-color-text" value="#ffffff">
+            <label>Вопросы (Вопрос|Верно|Ложь|Ложь)</label>
+            <textarea id="v-questions" rows="5">Yesterday I ___ my room.|cleaned|clean|cleans
+They ___ at the cinema.|were|was|are</textarea>
+        </div>
+
+        <div class="section">
+            <label>Визуальные ассеты (PNG/JPG)</label>
+            <div class="file-input-group">Фон: <input type="file" id="f-bg" accept="image/*"></div>
+            <div class="file-input-group">Лягушка: <input type="file" id="f-frog" accept="image/*"></div>
+            <div class="file-input-group">Лилия: <input type="file" id="f-leaf" accept="image/*"></div>
+            <div class="file-input-group">Жизнь: <input type="file" id="f-life" accept="image/*"></div>
+        </div>
+
+        <div class="section">
+            <label>Аудио ассеты (MP3)</label>
+            <div class="file-input-group">1. Всплеск: <input type="file" id="s-1" accept="audio/*"></div>
+            <div class="file-input-group">2. Ток (шок): <input type="file" id="s-2" accept="audio/*"></div>
+            <div class="file-input-group">3. Победа: <input type="file" id="s-3" accept="audio/*"></div>
+            <div class="file-input-group">4. Проигрыш: <input type="file" id="s-4" accept="audio/*"></div>
+            <div class="file-input-group">5. Старт: <input type="file" id="s-5" accept="audio/*"></div>
+            <div class="file-input-group">6. Уровень: <input type="file" id="s-6" accept="audio/*"></div>
+            <div class="file-input-group">7. Отсчет: <input type="file" id="s-7" accept="audio/*"></div>
+        </div>
+
+        <button class="btn-build" onclick="generateGame()">СГЕНЕРИРОВАТЬ КВЕСТ</button>
+        <p style="font-size: 10px; color: #888; text-align: center; margin-top: 10px;">Все файлы будут вшиты в финальный HTML код</p>
     </div>
 
-    <div class="pane active">
-        <label>Заголовок квеста</label>
-        <input type="text" id="t" value="FROGGY QUEST" oninput="liveUpdate()">
-        <label>Вопросы (Вопрос|Верно|Ложь|Ложь)</label>
-        <textarea id="qs" style="height:200px;" oninput="liveUpdate()">2+2?|4|5|6&#10;Лягушки летают?|Нет|Да|Иногда</textarea>
+    <div id="preview-panel">
+        <iframe id="game-frame"></iframe>
     </div>
-
-    <div class="pane">
-        <label>Жизни</label><input type="number" id="li" value="5" oninput="liveUpdate()">
-        <label>Время (сек)</label><input type="number" id="tm" value="15" oninput="liveUpdate()">
-    </div>
-
-    <div class="pane">
-        <label>Фон (URL)</label><input type="text" id="bg" value="https://vivanova288-boop.github.io/Froggy_Jumps/bg.png" oninput="liveUpdate()">
-        <label>Лягушка (URL)</label><input type="text" id="fr" value="https://vivanova288-boop.github.io/Froggy_Jumps/2.png" oninput="liveUpdate()">
-        <label>Лилия (URL)</label><input type="text" id="le" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.png" oninput="liveUpdate()">
-        <label>Жизнь (URL)</label><input type="text" id="ic" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.png" oninput="liveUpdate()">
-    </div>
-
-    <div class="pane">
-        <label>Звук 1.mp3 (Верно)</label><input type="text" id="s1" value="https://vivanova288-boop.github.io/Froggy_Jumps/1.mp3">
-        <label>Звук 2.mp3 (Шок)</label><input type="text" id="s2" value="https://vivanova288-boop.github.io/Froggy_Jumps/2.mp3">
-        <label>Звук 3.mp3 (Победа)</label><input type="text" id="s3" value="https://vivanova288-boop.github.io/Froggy_Jumps/3.mp3">
-        <label>Звук 4.mp3 (Финал)</label><input type="text" id="s4" value="https://vivanova288-boop.github.io/Froggy_Jumps/4.mp3">
-    </div>
-
-    <button class="btn" onclick="copyLink()">СКОПИРОВАТЬ ДЛЯ GENIALLY</button>
-    <div id="res-box"></div>
-</div>
-
-<div class="preview">
-    <div class="window" id="view"></div>
 </div>
 
 <script>
-    function tab(i){
-        document.querySelectorAll('.tab').forEach((t,n)=>t.classList.toggle('active',i===n));
-        document.querySelectorAll('.pane').forEach((p,n)=>p.classList.toggle('active',i===n));
-    }
+    // Функция превращения файла в строку Base64
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
 
-    function buildUrl() {
-        const qLines = document.getElementById('qs').value.split('\n').filter(l=>l.includes('|'));
-        const config = {
-            t: document.getElementById('t').value,
-            li: document.getElementById('li').value,
-            v: [document.getElementById('bg').value, document.getElementById('fr').value, document.getElementById('le').value, document.getElementById('ic').value],
-            s: [document.getElementById('s1').value, document.getElementById('s2').value, document.getElementById('s3').value, document.getElementById('s4').value],
-            q: qLines.map(l => { const p = l.split('|'); return [p[0], p[1], p[2], p[3]]; })
+    async function generateGame() {
+        const getVal = (id) => document.getElementById(id).value;
+        const getFile = async (id) => {
+            const el = document.getElementById(id);
+            if(el.files[0]) return await toBase64(el.files[0]);
+            return ""; // Если файл не выбран
         };
-        // Используем сжатие LZ-String (URL Safe)
-        const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(config));
-        return `https://vivanova288-boop.github.io/Froggy_Jumps/index.html?z=${compressed}`;
-    }
 
-    function liveUpdate() {
-        document.getElementById('view').innerHTML = `<iframe src="${buildUrl()}" style="width:100%; height:100%; border:none;"></iframe>`;
-    }
+        // Собираем все переменные
+        const data = {
+            title: getVal('v-title'),
+            uiColor: getVal('v-color-ui'),
+            textColor: getVal('v-color-text'),
+            questions: getVal('v-questions'),
+            img: {
+                bg: await getFile('f-bg'),
+                frog: await getFile('f-frog'),
+                leaf: await getFile('f-leaf'),
+                life: await getFile('f-life')
+            },
+            snd: {
+                s1: await getFile('s-1'),
+                s2: await getFile('s-2'),
+                s3: await getFile('s-3'),
+                s4: await getFile('s-4'),
+                s5: await getFile('s-5'),
+                s6: await getFile('s-6'),
+                s7: await getFile('s-7')
+            }
+        };
 
-    function copyLink() {
-        const url = buildUrl();
-        navigator.clipboard.writeText(url);
-        const res = document.getElementById('res-box');
-        res.style.display = 'block';
-        res.innerText = "Ссылка сжата и скопирована!";
-    }
+        // Генерируем полный код игры с вшитыми данными
+        const fullHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { margin:0; overflow:hidden; font-family:Arial; background:#000; }
+        #game-container { width:100vw; height:100vh; background:url('\${data.img.bg}') no-repeat center/cover; position:relative; }
+        #header { background:\${data.uiColor}; color:white; padding:15px; text-align:center; font-weight:bold; font-size:24px; }
+        .life-icon { width:40px; height:40px; background:url('\${data.img.life}') no-repeat center/contain; display:inline-block; margin:5px; }
+        #lives { position:absolute; top:60px; left:20px; }
+        #q-box { background:white; width:70%; margin:20px auto; padding:15px; border-radius:15px; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.3); }
+        .leaf { position:absolute; width:150px; height:120px; background:url('\${data.img.leaf}') no-repeat center/contain; 
+                display:flex; align-items:center; justify-content:center; color:\${data.textColor}; font-weight:bold; cursor:pointer; text-align:center; padding:10px; box-sizing:border-box; transition:0.3s; }
+        #frog { position:absolute; width:80px; height:80px; background:url('\${data.img.frog}') no-repeat center/contain; z-index:100; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events:none; }
+        .shock { animation: shake 0.1s infinite; filter: brightness(2) hue-rotate(180deg); }
+        @keyframes shake { 0% { transform: translate(2px, 2px); } 100% { transform: translate(-2px, -2px); } }
+        #overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); display:none; flex-direction:column; align-items:center; justify-content:center; color:white; z-index:1000; }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="header">\${data.title}</div>
+        <div id="lives"></div>
+        <div id="q-box"><div id="q-text">Грузим...</div></div>
+        <div id="pond"></div>
+        <div id="frog"></div>
+    </div>
+    <div id="overlay"><h1 id="msg"></h1><button onclick="location.reload()">ЗАНОВО</button></div>
 
-    window.onload = liveUpdate;
+    <script>
+        const config = \${JSON.stringify(data)};
+        let step = 0, lives = 5, lastLeaf;
+        const sounds = {};
+        Object.keys(config.snd).forEach(k => { if(config.snd[k]) sounds[k] = new Audio(config.snd[k]); });
+
+        function play(k) { if(sounds[k]) { sounds[k].currentTime=0; sounds[k].play(); } }
+
+        function init() {
+            const pond = document.getElementById('pond');
+            const lDiv = document.getElementById('lives');
+            for(let i=0; i<5; i++) lDiv.innerHTML += '<div class="life-icon"></div>';
+            
+            // Создаем сетку лилий
+            for(let r=0; r<6; r++) {
+                for(let c=0; c<3; c++) {
+                    let leaf = document.createElement('div');
+                    leaf.className = 'leaf';
+                    leaf.id = 'L-'+r+'-'+c;
+                    leaf.style.left = (25 + c*25) + '%';
+                    leaf.style.top = (20 + r*12) + '%';
+                    pond.appendChild(leaf);
+                }
+            }
+            lastLeaf = document.getElementById('L-5-1');
+            moveFrog(lastLeaf);
+            loadQ();
+        }
+
+        function moveFrog(leaf) {
+            const f = document.getElementById('frog');
+            f.style.left = (leaf.offsetLeft + leaf.offsetWidth/2 - 40) + 'px';
+            f.style.top = (leaf.offsetTop + leaf.offsetHeight/2 - 40) + 'px';
+        }
+
+        function loadQ() {
+            const lines = config.questions.split('\\n').filter(l => l.includes('|'));
+            if(step >= lines.length) { document.getElementById('overlay').style.display='flex'; document.getElementById('msg').innerText='ПОБЕДА!'; play('s3'); return; }
+            
+            const [q, a, w1, w2] = lines[step].split('|');
+            document.getElementById('q-text').innerText = q;
+            const opts = [{t:a, ok:true}, {t:w1}, {t:w2}].sort(() => Math.random()-0.5);
+            
+            const row = 4 - step;
+            for(let i=0; i<3; i++) {
+                const el = document.getElementById('L-'+row+'-'+i);
+                el.innerText = opts[i].t;
+                el.onclick = () => {
+                    moveFrog(el);
+                    if(opts[i].ok) { play('s1'); lastLeaf = el; step++; setTimeout(loadQ, 600); }
+                    else { 
+                        play('s2'); 
+                        document.getElementById('frog').classList.add('shock');
+                        lives--; 
+                        document.querySelectorAll('.life-icon')[lives].style.opacity = '0.2';
+                        setTimeout(() => {
+                            moveFrog(lastLeaf);
+                            document.getElementById('frog').classList.remove('shock');
+                            if(lives <= 0) { document.getElementById('overlay').style.display='flex'; document.getElementById('msg').innerText='ИГРА ОКОНЧЕНА'; play('s4'); }
+                        }, 600);
+                    }
+                }
+            }
+        }
+        window.onload = init;
+    <\/script>
+</body>
+</html>`;
+
+        // Загружаем результат в iframe (превью)
+        const blob = new Blob([fullHTML], {type: 'text/html'});
+        document.getElementById('game-frame').src = URL.createObjectURL(blob);
+        
+        // Также предлагаем скачать этот файл
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = "my_frog_quest.html";
+        // a.click(); // Раскомментируй, чтобы сразу скачивалось
+    }
 </script>
 </body>
 </html>
