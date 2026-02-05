@@ -2,257 +2,326 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Master Quest Builder 2026</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Froggy Quest Builder v4.0</title>
     <style>
-        :root { --bg: #0f172a; --panel: #1e293b; --accent: #38bdf8; }
-        body { margin: 0; display: flex; height: 100vh; font-family: 'Inter', sans-serif; background: var(--bg); color: #f1f5f9; overflow: hidden; }
+        :root { --bg: #0f172a; --panel: #1e293b; --accent: #22c55e; --text: #f1f5f9; }
+        body { margin: 0; display: flex; height: 100vh; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
         
-        /* Интерфейс Редактора */
-        #editor-panel { width: 420px; background: var(--panel); padding: 20px; overflow-y: auto; border-right: 2px solid #334155; box-shadow: 10px 0 15px rgba(0,0,0,0.3); z-index: 10; }
-        .section { background: #0f172a; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #334155; }
-        h2 { font-size: 14px; margin: 0 0 15px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        /* ЛЕВАЯ ПАНЕЛЬ РЕДАКТОРА */
+        #sidebar { width: 450px; background: var(--panel); padding: 25px; overflow-y: auto; border-right: 2px solid #334155; box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 10; }
+        .group { background: #0f172a; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #334155; transition: 0.3s; }
+        .group:hover { border-color: var(--accent); }
+        h2 { font-size: 14px; margin: 0 0 15px; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
         
-        label { display: block; font-size: 11px; margin: 10px 0 5px; color: #94a3b8; }
-        input, textarea, select { width: 100%; padding: 10px; background: #1e293b; border: 1px solid #475569; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 13px; }
+        label { display: block; font-size: 11px; margin: 12px 0 6px; color: #94a3b8; font-weight: 600; }
+        input[type="text"], input[type="number"], textarea, select { width: 100%; padding: 12px; background: #1e293b; border: 1px solid #475569; color: #fff; border-radius: 8px; box-sizing: border-box; font-size: 13px; }
+        input[type="file"] { font-size: 11px; color: #94a3b8; }
         
-        .row { display: flex; gap: 10px; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 10px; text-transform: uppercase; }
-        .btn-preview { background: #0ea5e9; color: white; }
-        .btn-copy { background: #10b981; color: white; }
-        .btn:hover { opacity: 0.8; transform: translateY(-2px); }
+        .sound-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .sound-item { background: #1e293b; padding: 8px; border-radius: 6px; border: 1px solid #334155; }
+        
+        .row { display: flex; gap: 15px; align-items: center; }
+        .btn-container { margin-top: 25px; display: flex; flex-direction: column; gap: 12px; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-upd { background: var(--accent); color: #052e16; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
+        .btn-upd:hover { background: #16a34a; transform: translateY(-2px); }
+        .btn-copy { background: #3b82f6; color: white; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
+        .btn-copy:hover { background: #2563eb; transform: translateY(-2px); }
 
-        /* Предпросмотр */
-        #preview-box { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
+        /* ПРАВАЯ ПАНЕЛЬ ПРЕДПРОСМОТРА */
+        #preview-area { flex: 1; background: #000; position: relative; display: flex; flex-direction: column; }
+        .preview-header { padding: 10px; background: #0f172a; text-align: center; font-size: 12px; color: #64748b; border-bottom: 1px solid #334155; }
         iframe { flex: 1; border: none; width: 100%; height: 100%; }
-        .preview-label { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 5px 10px; font-size: 10px; border-radius: 4px; pointer-events: none; }
     </style>
 </head>
 <body>
 
-<div id="editor-panel">
-    <div class="section">
-        <h2>1. Графика и Герой</h2>
-        <label>Персонаж (PNG):</label>
-        <input type="file" id="f-hero" onchange="encode('hero', this)">
+<div id="sidebar">
+    <div class="group">
+        <h2>1. ГРАФИКА И ОБЪЕКТЫ</h2>
+        <label>Персонаж (PNG):</label><input type="file" id="f-hero" onchange="encode('hero', this)">
         <div class="row">
-            <div><label>Размер (%)</label><input type="number" id="v-size" value="100"></div>
-            <div><label>Прыжок (сек)</label><input type="text" id="v-speed" value="0.4"></div>
+            <div style="flex:1"><label>Размер героя (%)</label><input type="number" id="v-size" value="85"></div>
+            <div style="flex:1"><label>Скорость прыжка</label><input type="text" id="v-speed" value="0.4"></div>
         </div>
-        <label><input type="checkbox" id="v-glow" checked style="width:auto"> Добавить свечение</label>
-        <label>Лист (платформа):</label><input type="file" onchange="encode('leaf', this)">
-        <label>Фон (картинка):</label><input type="file" onchange="encode('bg', this)">
-        <label>Жизнь (сердце):</label><input type="file" onchange="encode('life', this)">
+        <label>Лист / Платформа:</label><input type="file" onchange="encode('plat', this)">
+        <label>Фон игрового поля:</label><input type="file" onchange="encode('bg', this)">
+        <label>Иконка жизни (сердце):</label><input type="file" onchange="encode('life', this)">
+        <label><input type="checkbox" id="v-glow" checked style="width:auto"> Эффект свечения героя</label>
     </div>
 
-    <div class="section">
-        <h2>2. Тексты и Таймер</h2>
-        <label>Заголовок квеста:</label>
-        <input type="text" id="v-title" value="LEVEL 1: PAST SIMPLE">
-        <label>Вопросы (Вопрос|Верно|Нет|Нет):</label>
-        <textarea id="v-questions" style="height:120px">I ___ to school.|went|go|gone
-She ___ a cake.|made|make|maked
-They ___ happy.|were|was|is</textarea>
-        <label>Время на игру (сек):</label>
-        <input type="number" id="v-time" value="60">
+    <div class="group">
+        <h2>2. ТЕКСТЫ И ТАЙМЕРЫ</h2>
+        <label>Название квеста:</label><input type="text" id="v-title" value="LEVEL 1: ENGLISH QUEST">
+        <label>Секунд на один вопрос:</label><input type="number" id="v-qtime" value="15">
+        <label>Вопросы (Формат: Вопрос|Верно|Нет|Нет):</label>
+        <textarea id="v-qs" style="height:150px">Where is London?|UK|France|USA
+2 + 2 * 2 = ?|6|8|4
+Cat name?|Tom|Rex|Goldie
+Sky color?|Blue|Green|Red
+Frog says...|Ribbit|Woof|Moo</textarea>
     </div>
 
-    <div class="section">
-        <h2>3. Аудио (7 слотов)</h2>
-        <label>Выберите файлы сразу (1-7):</label>
-        <input type="file" id="f-sounds" multiple onchange="encodeSounds(this)">
-        <p style="font-size: 9px; color: #64748b;">1:Старт, 2:Прыжок, 3:Шок, 4:Финал, 5:Победа, 6:Уровень, 7:Тик</p>
+    <div class="group">
+        <h2>3. ЗВУКОВАЯ ПАНЕЛЬ</h2>
+        <div class="sound-grid">
+            <div class="sound-item"><label>1. Старт</label><input type="file" onchange="encS(0,this)"></div>
+            <div class="sound-item"><label>2. Прыжок</label><input type="file" onchange="encS(1,this)"></div>
+            <div class="sound-item"><label>3. Шок</label><input type="file" onchange="encS(2,this)"></div>
+            <div class="sound-item"><label>4. Финал (4.mp3)</label><input type="file" onchange="encS(3,this)"></div>
+            <div class="sound-item"><label>5. Победа</label><input type="file" onchange="encS(4,this)"></div>
+            <div class="sound-item"><label>6. Уровень</label><input type="file" onchange="encS(5,this)"></div>
+            <div class="sound-item"><label>7. Тик таймера</label><input type="file" onchange="encS(6,this)"></div>
+        </div>
     </div>
 
-    <button class="btn btn-preview" onclick="updatePreview()">Обновить предпросмотр</button>
-    <button class="btn btn-copy" onclick="copyCode()">Скопировать код Genially</button>
+    <div class="btn-container">
+        <button class="btn btn-upd" onclick="refreshPreview()">Обновить предпросмотр</button>
+        <button class="btn btn-copy" onclick="copyIframe()">Скопировать код для Genially</button>
+    </div>
 </div>
 
-<div id="preview-box">
-    <div class="preview-label">LIVE PREVIEW</div>
+<div id="preview-area">
+    <div class="preview-header">ОКНО ЖИВОГО ПРЕДПРОСМОТРА (16:9)</div>
     <iframe id="target"></iframe>
 </div>
 
 <script>
-    let store = { s: [] };
+    let assets = { s: [] };
 
+    // Кодирование картинок
     function encode(key, input) {
+        if (!input.files[0]) return;
         const reader = new FileReader();
-        reader.onload = (e) => store[key] = e.target.result;
+        reader.onload = (e) => assets[key] = e.target.result;
         reader.readAsDataURL(input.files[0]);
     }
 
-    function encodeSounds(input) {
-        Array.from(input.files).forEach((file, i) => {
-            const reader = new FileReader();
-            reader.onload = (e) => store.s[i] = e.target.result;
-            reader.readAsDataURL(file);
-        });
+    // Кодирование звуков по слотам
+    function encS(idx, input) {
+        if (!input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = (e) => assets.s[idx] = e.target.result;
+        reader.readAsDataURL(input.files[0]);
     }
 
-    function buildEngine() {
+    function buildGameHTML() {
         const title = document.getElementById('v-title').value;
-        const speed = document.getElementById('v-speed').value;
+        const qTime = document.getElementById('v-qtime').value;
         const size = document.getElementById('v-size').value;
+        const speed = document.getElementById('v-speed').value;
         const glow = document.getElementById('v-glow').checked;
-        const timeLimit = document.getElementById('v-time').value;
-
-        const questionsRaw = document.getElementById('v-questions').value.split('\n').filter(l => l.includes('|'));
-        const questJSON = JSON.stringify(questionsRaw.map(line => {
-            const parts = line.split('|');
-            const options = [parts[1], parts[2], parts[3]].sort(() => Math.random() - 0.5);
-            return { q: parts[0], o: options, a: options.indexOf(parts[1]) };
+        
+        const rawQs = document.getElementById('v-qs').value.split('\n').filter(l => l.includes('|'));
+        const qs = JSON.stringify(rawQs.map(line => {
+            const p = line.split('|');
+            const opts = [p[1], p[2], p[3]].sort(() => Math.random() - 0.5);
+            return { q: p[0], o: opts, a: opts.indexOf(p[1]) };
         }));
 
         return `<!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
+    <meta charset="UTF-8">
     <style>
-        body { margin:0; background:url(${store.bg || ''}) center/cover no-repeat fixed #000; font-family:sans-serif; overflow:hidden; height:100vh; color:white; }
-        #ui-top { position:fixed; top:0; width:100%; display:flex; justify-content:space-between; padding:15px; background:rgba(0,0,0,0.6); z-index:200; box-sizing:border-box; }
-        #q-area { position:fixed; top:70px; left:50%; transform:translateX(-50%); width:80%; background:white; color:#333; padding:20px; border-radius:15px; text-align:center; font-weight:bold; z-index:200; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+        body { margin:0; background:url(${assets.bg || ''}) center/cover no-repeat fixed #000; font-family:sans-serif; overflow:hidden; height:100vh; }
+        #ui-layer { position:fixed; top:0; width:100%; z-index:500; pointer-events:none; }
+        #q-card { background:rgba(255,255,255,0.95); color:#111; margin:15px auto; width:85%; padding:20px; border-radius:25px; text-align:center; font-weight:bold; pointer-events:auto; box-shadow:0 15px 35px rgba(0,0,0,0.5); border:3px solid #fff; }
+        #t-wrap { width:100%; height:8px; background:#e2e8f0; border-radius:4px; margin-top:12px; overflow:hidden; }
+        #t-bar { height:100%; background:#22c55e; width:100%; transition:1s linear; }
         
+        #game-space { position:relative; width:100%; height:100vh; z-index:10; }
         #hero { 
             position:absolute; width:${size}px; height:${size}px; 
-            background:url(${store.hero || ''}) no-repeat center/contain; 
-            transition: all ${speed}s cubic-bezier(0.4, 0, 0.2, 1); 
-            z-index:100; transform: translate(-50%, -100%);
-            ${glow ? 'filter: drop-shadow(0 0 15px #fff);' : ''}
+            background:url(${assets.hero || ''}) no-repeat center/contain; 
+            z-index:100; transform:translate(-50%, -100%); 
+            transition: all ${speed}s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            ${glow ? 'filter: drop-shadow(0 0 20px rgba(255,255,255,0.8));' : ''}
         }
         
         .leaf { 
             position:absolute; width:120px; height:80px; 
-            background:url(${store.leaf || ''}) no-repeat center/contain; 
+            background:url(${assets.plat || ''}) no-repeat center/contain; 
             display:flex; align-items:center; justify-content:center; 
-            padding:10px; box-sizing:border-box; text-align:center;
-            font-size:13px; font-weight:bold; cursor:pointer; 
-            transform: translate(-50%, -50%); text-shadow:1px 1px 2px #000;
+            color:white; font-size:13px; font-weight:bold; text-align:center; padding:10px;
+            transform:translate(-50%, -50%); cursor:pointer; z-index:20; text-shadow:2px 2px 4px #000;
+            transition: 0.3s;
         }
+        .leaf:hover { filter: brightness(1.2); }
 
-        #lives { display:flex; gap:5px; }
-        .heart { width:25px; height:25px; background:url(${store.life || ''}) no-repeat center/contain; }
+        .lives-box { position:fixed; bottom:20px; left:20px; display:flex; gap:10px; z-index:500; }
+        .heart { width:40px; height:40px; background:url(${assets.life || ''}) no-repeat center/contain; }
         
-        .shock { animation: shake 0.1s infinite; filter: brightness(3) sepia(1); }
-        @keyframes shake { 0%{margin-left:-10px} 100%{margin-left:10px} }
+        .shock-anim { animation: shock-play 0.1s infinite; filter: brightness(3) invert(1); }
+        @keyframes shock-play { 0%{margin-left:-12px} 100%{margin-left:12px} }
         
-        #start-scr { position:fixed; inset:0; background:rgba(0,0,0,0.9); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; cursor:pointer; }
+        #start-scr { position:fixed; inset:0; background:rgba(0,0,0,0.95); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; cursor:pointer; color:white; text-align:center; padding:20px; }
+        #start-scr h1 { font-size: 40px; color: #22c55e; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <div id="start-scr" onclick="launch()"><h1>${title}</h1><p>КЛИКНИ ДЛЯ СТАРТА</p></div>
-    
-    <div id="ui-top">
-        <div id="lives"></div>
-        <div id="timer">${timeLimit}s</div>
+    <div id="start-scr" onclick="startGame()">
+        <h1>${title}</h1>
+        <p>ПРИГОТОВЬСЯ ПРЫГАТЬ!<br>НАЖМИ ДЛЯ СТАРТА</p>
     </div>
 
-    <div id="q-area">Загрузка...</div>
+    <div id="ui-layer">
+        <div id="q-card">
+            <div id="q-text" style="font-size:18px">...</div>
+            <div id="t-wrap"><div id="t-bar"></div></div>
+        </div>
+    </div>
 
-    <div id="game-map" style="position:relative; width:100%; height:100%;">
+    <div id="game-space">
         <div id="hero"></div>
-        <div id="plat-container"></div>
+        <div id="map"></div>
     </div>
+
+    <div class="lives-box" id="hp-bar"></div>
 
     <script>
-        const quest = ${questJSON};
-        const sounds = {
-            start: new Audio("${store.s[0] || ''}"),
-            jump: new Audio("${store.s[1] || ''}"),
-            shock: new Audio("${store.s[2] || ''}"),
-            end: new Audio("${store.s[3] || ''}")
+        const quest = ${qs};
+        const snd = { 
+            start: new Audio("${assets.s[0] || ''}"), 
+            jump: new Audio("${assets.s[1] || ''}"), 
+            shock: new Audio("${assets.s[2] || ''}"), 
+            end: new Audio("${assets.s[3] || ''}"),
+            win: new Audio("${assets.s[4] || ''}"),
+            level: new Audio("${assets.s[5] || ''}"),
+            tick: new Audio("${assets.s[6] || ''}")
         };
+        
+        let step = 0, timer, timeLeft, hp = 3, lastPos = {x:50, y:92};
 
-        let step = 0;
-        let hp = 3;
-        let lastPos = {x: 50, y: 88};
-
-        function launch() {
-            document.getElementById('start-scr').remove();
-            sounds.start.play();
+        function startGame() {
+            document.getElementById('start-scr').style.display = 'none';
+            snd.start.play();
             updateHP();
-            renderStep();
-            move(50, 88);
+            moveHero(50, 92);
+            renderMap();
+            resetTimer();
         }
 
         function updateHP() {
-            const container = document.getElementById('lives');
-            container.innerHTML = '';
-            for(let i=0; i<hp; i++) container.innerHTML += '<div class="heart"></div>';
+            const bar = document.getElementById('hp-bar');
+            bar.innerHTML = '';
+            for(let i=0; i<hp; i++) bar.innerHTML += '<div class="heart"></div>';
         }
 
-        function renderStep() {
-            if(step >= quest.length) { sounds.end.play(); alert("ПОБЕДА!"); return; }
+        function resetTimer() {
+            clearInterval(timer);
+            timeLeft = ${qTime};
+            const bar = document.getElementById('t-bar');
+            bar.style.transition = 'none';
+            bar.style.width = '100%';
+            setTimeout(() => {
+                bar.style.transition = '1s linear';
+                timer = setInterval(() => {
+                    timeLeft--;
+                    bar.style.width = (timeLeft / ${qTime} * 100) + '%';
+                    if(timeLeft <= 3 && timeLeft > 0) snd.tick.play();
+                    if(timeLeft <= 0) { 
+                        clearInterval(timer);
+                        onWrong(); 
+                    }
+                }, 1000);
+            }, 50);
+        }
+
+        function renderMap() {
+            if(step >= quest.length) { 
+                clearInterval(timer);
+                snd.win.play(); 
+                setTimeout(() => { snd.end.play(); alert("КВЕСТ ВЫПОЛНЕН!"); }, 500);
+                return; 
+            }
+            document.getElementById('q-text').innerText = quest[step].q;
+            const map = document.getElementById('map');
+            map.innerHTML = '';
             
-            document.getElementById('q-area').innerText = quest[step].q;
-            const container = document.getElementById('plat-container');
-            container.innerHTML = '';
+            // Расчет вертикальной шахматки для умещения на экран
+            const totalSteps = quest.length;
+            const vGap = 80 / totalSteps;
 
-            // Рисуем шахматную сетку из 15 уровней (всего пути)
-            for(let r=0; r < quest.length; r++) {
+            for(let r=0; r < totalSteps; r++) {
                 quest[r].o.forEach((txt, i) => {
-                    const l = document.createElement('div');
-                    l.className = 'leaf';
-                    l.innerText = txt;
+                    const leaf = document.createElement('div');
+                    leaf.className = 'leaf';
+                    leaf.innerText = txt;
                     
-                    // Шахматка: каждый ряд смещается
-                    let x = (20 + i*30) + (r % 2 * 6);
-                    let y = 85 - (r * 22); // Движение вверх по экрану
-
-                    l.style.left = x + '%';
-                    l.style.top = y + '%';
+                    let x = (20 + i * 30) + (r % 2 * 6);
+                    let y = 90 - (r * vGap);
+                    
+                    leaf.style.left = x + '%';
+                    leaf.style.top = y + '%';
                     
                     if(r === step) {
-                        l.onclick = () => handleJump(i, x, y);
+                        leaf.onclick = () => onJump(i, x, y);
                     } else {
-                        l.style.opacity = (r < step) ? '0.2' : '0.5';
+                        leaf.style.opacity = (r < step) ? '0.2' : '0.5';
                     }
-                    container.appendChild(l);
+                    map.appendChild(leaf);
                 });
             }
         }
 
-        function handleJump(idx, tx, ty) {
+        function onJump(idx, x, y) {
             const h = document.getElementById('hero');
-            h.style.left = tx + '%';
-            h.style.top = ty + '%';
+            h.style.left = x + '%';
+            h.style.top = y + '%';
 
             if(idx === quest[step].a) {
-                sounds.jump.play();
-                lastPos = {x: tx, y: ty};
+                snd.jump.play();
+                lastPos = {x, y};
                 step++;
-                setTimeout(renderStep, 500);
+                setTimeout(() => { 
+                    renderMap(); 
+                    resetTimer();
+                }, 400);
             } else {
-                sounds.shock.play();
-                h.classList.add('shock');
-                hp--;
-                updateHP();
-                setTimeout(() => {
-                    h.classList.remove('shock');
-                    move(lastPos.x, lastPos.y);
-                    if(hp <= 0) { sounds.end.play(); alert("ИГРА ОКОНЧЕНА"); location.reload(); }
-                }, 600);
+                onWrong();
             }
         }
 
-        function move(x,y) {
+        function onWrong() {
+            const h = document.getElementById('hero');
+            snd.shock.play();
+            h.classList.add('shock-anim');
+            hp--;
+            updateHP();
+            setTimeout(() => {
+                h.classList.remove('shock-anim');
+                moveHero(lastPos.x, lastPos.y);
+                if(hp <= 0) {
+                    snd.end.play();
+                    alert("ИГРА ОКОНЧЕНА!");
+                    location.reload();
+                } else {
+                    resetTimer();
+                }
+            }, 700);
+        }
+
+        function moveHero(x, y) {
             const h = document.getElementById('hero');
             h.style.left = x + '%'; h.style.top = y + '%';
         }
     <\/script>
-</body>
-</html>`;
+</body></html>`;
     }
 
-    function updatePreview() {
-        const doc = buildEngine();
+    function refreshPreview() {
+        const doc = buildGameHTML();
         const blob = new Blob([doc], {type: 'text/html'});
         document.getElementById('target').src = URL.createObjectURL(blob);
     }
 
-    function copyCode() {
-        const code = buildEngine();
-        const iframe = `<iframe srcdoc='${code.replace(/'/g, "&apos;")}' width="100%" height="600" frameborder="0" allow="autoplay"></iframe>`;
-        navigator.clipboard.writeText(iframe);
-        alert("Код для Genially скопирован!");
+    function copyIframe() {
+        const code = buildGameHTML();
+        const output = `<iframe srcdoc='${code.replace(/'/g, "&apos;")}' width="100%" height="600" frameborder="0" allow="autoplay"></iframe>`;
+        navigator.clipboard.writeText(output);
+        alert("Код успешно скопирован в буфер обмена!");
     }
 </script>
 </body>
