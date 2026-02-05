@@ -2,162 +2,129 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Froggy Quest Builder - Genially Edition</title>
+    <title>Ultimate Quest Builder</title>
     <style>
-        :root { --accent: #2ecc71; --dark-bg: #1a1a1d; --panel: #252529; }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: var(--dark-bg); color: #fff; display: flex; }
-        
-        /* Панель управления */
-        #controls { width: 450px; background: var(--panel); border-right: 2px solid #000; display: flex; flex-direction: column; overflow-y: auto; padding: 20px; box-sizing: border-box; }
-        h2 { color: var(--accent); font-size: 18px; margin-top: 0; text-transform: uppercase; border-bottom: 1px solid #444; padding-bottom: 10px; }
-        
-        .section { margin-bottom: 25px; background: #2d2d33; padding: 15px; border-radius: 8px; }
-        .section h3 { font-size: 12px; color: #888; margin-top: 0; text-transform: uppercase; margin-bottom: 15px; }
-        
-        .input-group { margin-bottom: 12px; }
-        label { display: block; font-size: 11px; color: #aaa; margin-bottom: 5px; }
-        input[type="text"], input[type="number"], textarea, select { width: 100%; background: #111; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 4px; box-sizing: border-box; }
-        .row { display: flex; gap: 10px; }
-        
-        /* Кнопка */
-        .btn-gen { background: #e74c3c; color: #fff; border: none; padding: 18px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.3s; margin-top: 20px; }
-        .btn-gen:hover { background: #ff5e4d; transform: scale(1.02); }
-
-        /* Превью */
-        #preview-zone { flex-grow: 1; display: flex; flex-direction: column; background: #111; position: relative; }
-        #preview-label { background: #000; padding: 10px; text-align: center; font-size: 12px; color: #555; }
-        #game-frame { flex-grow: 1; border: none; width: 100%; height: 100%; background: #000; }
+        :root { --bg: #1e1e24; --panel: #2a2a30; --accent: #27ae60; }
+        body { margin: 0; display: flex; height: 100vh; font-family: sans-serif; background: var(--bg); color: white; overflow: hidden; }
+        #setup { width: 400px; padding: 20px; background: var(--panel); overflow-y: auto; border-right: 2px solid #000; }
+        #preview { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; position: relative; }
+        .group { background: #34343d; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 4px solid var(--accent); }
+        .group h3 { margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: #bbb; }
+        input, select, textarea { width: 100%; margin-bottom: 10px; background: #111; border: 1px solid #444; color: #fff; padding: 8px; box-sizing: border-box; }
+        .btn-copy { background: var(--accent); color: white; border: none; padding: 15px; width: 100%; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        label { font-size: 11px; color: #888; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
-<div id="controls">
-    <h2>МАСТЕРСКАЯ КВЕСТОВ</h2>
-
-    <div class="section">
-        <h3>1. Герой и Механика</h3>
-        <div class="input-group">
-            <label>Персонаж (Файл)</label>
-            <input type="file" id="hero-img" onchange="updateAsset('hero', this)">
-        </div>
-        <div class="row">
-            <div class="input-group">
-                <label>Размер (%)</label>
-                <input type="number" id="hero-size" value="100" oninput="liveRefresh()">
-            </div>
-            <div class="input-group">
-                <label>Скорость (сек)</label>
-                <input type="number" id="hero-speed" value="0.3" step="0.1" oninput="liveRefresh()">
-            </div>
-        </div>
-        <div class="input-group">
-            <label>
-                <input type="checkbox" id="hero-glow" onchange="liveRefresh()"> Добавить свечение
-            </label>
-        </div>
+<div id="setup">
+    <h2 style="color:var(--accent)">МАСТЕРСКАЯ КВЕСТОВ</h2>
+    
+    <div class="group">
+        <h3>1. Персонажи</h3>
+        <label>Герой (PNG)</label>
+        <input type="file" onchange="encodeFile(this, 'hero')">
+        <label>Босс (PNG)</label>
+        <input type="file" onchange="encodeFile(this, 'boss')">
+        <label>Размер героя (%)</label>
+        <input type="range" id="size" min="50" max="200" value="100" oninput="updatePreview()">
+        <label>Скорость прыжка (сек)</label>
+        <input type="number" id="speed" value="0.3" step="0.1" oninput="updatePreview()">
+        <label><input type="checkbox" id="glow" onchange="updatePreview()"> Добавить свечение</label>
     </div>
 
-    <div class="section">
-        <h3>2. Визуал и Эффекты</h3>
-        <div class="row">
-            <div class="input-group">
-                <label>Цвет заголовка</label>
-                <input type="color" id="color-title" value="#2ecc71" oninput="liveRefresh()">
-            </div>
-            <div class="input-group">
-                <label>Цвет рамки</label>
-                <input type="color" id="color-border" value="#1da85a" oninput="liveRefresh()">
-            </div>
-        </div>
-        <div class="input-group">
-            <label>Фон (Файл)</label>
-            <input type="file" onchange="updateAsset('bg', this)">
-        </div>
-        <div class="input-group">
-            <label>Эффект частиц</label>
-            <select id="effect-type" onchange="liveRefresh()">
-                <option value="none">Нет</option>
-                <option value="snow">Снег (Particles)</option>
-                <option value="stars">Звезды</option>
-            </select>
-        </div>
+    <div class="group">
+        <h3>2. Визуал и Частицы</h3>
+        <label>Эффект фона</label>
+        <select id="particles" onchange="updatePreview()">
+            <option value="none">Нет</option>
+            <option value="snow">Снег</option>
+            <option value="stars">Космос</option>
+        </select>
+        <label>Цвет заголовка</label>
+        <input type="color" id="c1" value="#27ae60" oninput="updatePreview()">
+        <label>Цвет рамки</label>
+        <input type="color" id="c2" value="#1e8449" oninput="updatePreview()">
     </div>
 
-    <div class="section">
-        <h3>3. Вопросы</h3>
-        <textarea id="questions" rows="5" oninput="liveRefresh()">2+2?|4|5|6
-Как зовут героя?|Босс|Миньон|Крот</textarea>
+    <div class="group">
+        <h3>3. Звуки (7 шт)</h3>
+        <label>1. Старт</label><input type="file" onchange="encodeAudio(1, this)">
+        <label>2. Прыжок</label><input type="file" onchange="encodeAudio(2, this)">
+        <label>3. Шок (ошибка)</label><input type="file" onchange="encodeAudio(3, this)">
+        <label>4. Финал (Победа)</label><input type="file" onchange="encodeAudio(4, this)">
+        <label>5. Клик</label><input type="file" onchange="encodeAudio(5, this)">
+        <label>6. Уровень</label><input type="file" onchange="encodeAudio(6, this)">
+        <label>7. Время истекло</label><input type="file" onchange="encodeAudio(7, this)">
     </div>
 
-    <div class="section">
-        <h3>4. Звуки (7 шт)</h3>
-        <input type="file" accept="audio/*" onchange="updateAudio(1, this)"><label>1. Старт</label>
-        <input type="file" accept="audio/*" onchange="updateAudio(2, this)"><label>2. Прыжок</label>
-        <input type="file" accept="audio/*" onchange="updateAudio(3, this)"><label>3. Шок</label>
-        <input type="file" accept="audio/*" onchange="updateAudio(4, this)"><label>4. Финал (4.mp3)</label>
-        </div>
+    <div class="group">
+        <h3>4. Задания</h3>
+        <textarea id="qs" rows="4" oninput="updatePreview()">I ___ a movie.|watched|watch|watches</textarea>
+    </div>
 
-    <button class="btn-gen" onclick="copyIframe()">СКОПИРОВАТЬ IFRAME ДЛЯ GENIALLY</button>
+    <button class="btn-copy" onclick="copyIframe()">СКОПИРОВАТЬ IFRAME</button>
 </div>
 
-<div id="preview-zone">
-    <div id="preview-label">ПРЕДПРОСМОТР В РЕАЛЬНОМ ВРЕМЕНИ</div>
-    <iframe id="game-frame"></iframe>
+<div id="preview">
+    <div id="status">ПРЕДПРОСМОТР (РЕЖИМ РЕДАКТИРОВАНИЯ)</div>
+    <iframe id="game-view" style="width:100%; height:100%; border:none;"></iframe>
 </div>
 
 <script>
-    let assets = { hero: '', bg: '', leaf: '' };
-    let sounds = {};
+    let storage = { hero: '', boss: '', sounds: {} };
 
-    function updateAsset(type, input) {
+    function encodeFile(input, key) {
         const reader = new FileReader();
-        reader.onload = (e) => { assets[type] = e.target.result; liveRefresh(); };
+        reader.onload = (e) => { storage[key] = e.target.result; updatePreview(); };
         reader.readAsDataURL(input.files[0]);
     }
 
-    function updateAudio(id, input) {
+    function encodeAudio(id, input) {
         const reader = new FileReader();
-        reader.onload = (e) => { sounds['s'+id] = e.target.result; };
+        reader.onload = (e) => { storage.sounds['s'+id] = e.target.result; };
         reader.readAsDataURL(input.files[0]);
     }
 
-    function liveRefresh() {
-        const frame = document.getElementById('game-frame');
-        const config = {
-            titleColor: document.getElementById('color-title').value,
-            borderColor: document.getElementById('color-border').value,
-            heroSize: document.getElementById('hero-size').value,
-            speed: document.getElementById('hero-speed').value,
-            glow: document.getElementById('hero-glow').checked,
-            questions: document.getElementById('questions').value.split('\n'),
-            effect: document.getElementById('effect-type').value,
-            assets: assets
-        };
-
-        // Генерируем HTML код для вставки в iframe
-        const doc = `
-            <html>
-            <body style="margin:0; background:#000; color:white; font-family:sans-serif; overflow:hidden;">
-                <div id="header" style="background:${config.titleColor}; border-bottom:5px solid ${config.borderColor}; padding:10px; text-align:center;">QUEST</div>
-                <div id="game-area" style="height:100vh; background:url(${config.assets.bg}) center/cover;">
-                    <div id="hero" style="
-                        position:absolute; bottom:20%; left:50%; transform:translateX(-50%);
-                        width:${config.heroSize}px; height:${config.heroSize}px;
-                        background:url(${config.assets.hero}) no-repeat center/contain;
-                        transition:${config.speed}s;
-                        ${config.glow ? 'filter: drop-shadow(0 0 15px white);' : ''}
-                    "></div>
-                </div>
-            </body>
-            </html>
-        `;
-        frame.srcdoc = doc;
+    function updatePreview() {
+        const frame = document.getElementById('game-view');
+        const qData = document.getElementById('qs').value.split('\n').map(line => line.split('|'));
+        
+        const gameCode = `
+        <!DOCTYPE html>
+        <html>
+        <body style="margin:0; background:#000; overflow:hidden; font-family:sans-serif;">
+            <div style="background:${document.getElementById('c1').value}; border-bottom:5px solid ${document.getElementById('c2').value}; padding:15px; text-align:center; font-weight:bold; color:white;">
+                ${qData[0][0]}
+            </div>
+            <div id="hero" style="position:absolute; bottom:50px; left:50%; width:${document.getElementById('size').value}px; height:${document.getElementById('size').value}px; background:url(${storage.hero}) center/contain no-repeat; transition:${document.getElementById('speed').value}s; transform:translateX(-50%); ${document.getElementById('glow').checked ? 'filter:drop-shadow(0 0 10px #fff)' : ''}"></div>
+            <div style="position:absolute; bottom:150px; width:100%; display:flex; justify-content:space-around;">
+                <button onclick="jump(true)" style="padding:10px 20px;">${qData[0][1]}</button>
+                <button onclick="jump(false)" style="padding:10px 20px;">${qData[0][2]}</button>
+            </div>
+            <script>
+                function jump(correct) {
+                    const h = document.getElementById('hero');
+                    if(correct) {
+                        h.style.bottom = '300px';
+                        setTimeout(() => alert('Верно!'), 300);
+                    } else {
+                        h.style.transform = 'translateX(-50%) rotate(10deg)';
+                        setTimeout(() => { h.style.transform = 'translateX(-50%)'; }, 200);
+                        alert('ШОК! Возврат назад');
+                    }
+                }
+            <\/script>
+        </body>
+        </html>`;
+        
+        frame.srcdoc = gameCode;
     }
 
     function copyIframe() {
-        const code = `<iframe srcdoc='${document.getElementById('game-frame').srcdoc}' width="800" height="600" frameborder="0"></iframe>`;
-        navigator.clipboard.writeText(code);
-        alert("Код iFrame скопирован! Вставляй в Genially через Insert -> Others");
+        const iframe = `<iframe srcdoc='${document.getElementById('game-view').srcdoc.replace(/'/g, "&apos;")}' width="800" height="600" frameborder="0"></iframe>`;
+        navigator.clipboard.writeText(iframe);
+        alert("Код скопирован! Вставляй в Genially.");
     }
 </script>
 </body>
