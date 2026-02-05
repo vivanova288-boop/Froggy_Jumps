@@ -2,182 +2,163 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Froggy Builder PRO</title>
+    <title>Froggy Quest Builder - Genially Edition</title>
     <style>
-        :root { --accent: #2ecc71; --dark: #1e1e26; }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: #0f0f12; color: #fff; overflow: hidden; }
-        #app { display: flex; height: 100vh; }
+        :root { --accent: #2ecc71; --dark-bg: #1a1a1d; --panel: #252529; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: var(--dark-bg); color: #fff; display: flex; }
         
-        /* Стили Редактора (Слева) */
-        #controls { width: 400px; background: #252529; border-right: 2px solid #000; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; }
-        .group { margin-bottom: 15px; }
-        label { display: block; font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
-        input, textarea { width: 100%; background: #111; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 6px; box-sizing: border-box; }
-        .btn-gen { background: #e74c3c; color: white; border: none; padding: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; margin-top: 20px; font-size: 16px; }
+        /* Панель управления */
+        #controls { width: 450px; background: var(--panel); border-right: 2px solid #000; display: flex; flex-direction: column; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        h2 { color: var(--accent); font-size: 18px; margin-top: 0; text-transform: uppercase; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        
+        .section { margin-bottom: 25px; background: #2d2d33; padding: 15px; border-radius: 8px; }
+        .section h3 { font-size: 12px; color: #888; margin-top: 0; text-transform: uppercase; margin-bottom: 15px; }
+        
+        .input-group { margin-bottom: 12px; }
+        label { display: block; font-size: 11px; color: #aaa; margin-bottom: 5px; }
+        input[type="text"], input[type="number"], textarea, select { width: 100%; background: #111; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 4px; box-sizing: border-box; }
+        .row { display: flex; gap: 10px; }
+        
+        /* Кнопка */
+        .btn-gen { background: #e74c3c; color: #fff; border: none; padding: 18px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.3s; margin-top: 20px; }
+        .btn-gen:hover { background: #ff5e4d; transform: scale(1.02); }
 
-        /* Стили Предпросмотра (Справа) */
-        #preview { flex-grow: 1; background: #111; display: flex; align-items: center; justify-content: center; }
-        #mockup { 
-            width: 800px; height: 500px; position: relative; border-radius: 15px; 
-            overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); background-size: cover; background-position: center;
-        }
-        #m-header { position: absolute; top: 0; width: 100%; height: 50px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        #m-q { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); width: 75%; background: #fff; color: #000; padding: 15px; border-radius: 12px; text-align: center; font-weight: bold; }
-        #m-frog { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background-size: contain; background-repeat: no-repeat; z-index: 5; }
-        .m-leaf { position: absolute; bottom: 30px; width: 110px; height: 85px; background-size: contain; background-repeat: no-repeat; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; }
+        /* Превью */
+        #preview-zone { flex-grow: 1; display: flex; flex-direction: column; background: #111; position: relative; }
+        #preview-label { background: #000; padding: 10px; text-align: center; font-size: 12px; color: #555; }
+        #game-frame { flex-grow: 1; border: none; width: 100%; height: 100%; background: #000; }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <div id="controls">
-        <h2 style="color: var(--accent); margin: 0 0 20px 0;">🐸 МАСТЕРСКАЯ</h2>
-        
-        <div class="group"><label>Заголовок квеста</label>
-        <input type="text" id="v-title" value="PAST SIMPLE CHALLENGE" oninput="upd()"></div>
+<div id="controls">
+    <h2>МАСТЕРСКАЯ КВЕСТОВ</h2>
 
-        <div class="group"><label>Цвет заголовка</label>
-        <input type="color" id="v-color" value="#27ae60" oninput="upd()"></div>
-
-        <div class="group"><label>Вопросы (Вопрос|Верно|Нет|Нет)</label>
-        <textarea id="v-qs" rows="5" oninput="upd()">I ___ a movie.|watched|watch|watches</textarea></div>
-
-        <div class="group"><label>Фон</label><input type="file" onchange="read(this, 'bg')"></div>
-        <div class="group"><label>Лягушка</label><input type="file" onchange="read(this, 'frog')"></div>
-        <div class="group"><label>Лилия</label><input type="file" onchange="read(this, 'leaf')"></div>
-
-        <button class="btn-gen" onclick="exportGame()">СГЕНЕРИРОВАТЬ INDEX.HTML</button>
-    </div>
-
-    <div id="preview">
-        <div id="mockup">
-            <div id="m-header">TITLE</div>
-            <div id="m-q">QUESTION</div>
-            <div class="m-leaf" style="left: 10%;" id="l1"></div>
-            <div class="m-leaf" style="left: 40%;" id="l2"></div>
-            <div class="m-leaf" style="left: 70%;" id="l3"></div>
-            <div id="m-frog"></div>
+    <div class="section">
+        <h3>1. Герой и Механика</h3>
+        <div class="input-group">
+            <label>Персонаж (Файл)</label>
+            <input type="file" id="hero-img" onchange="updateAsset('hero', this)">
+        </div>
+        <div class="row">
+            <div class="input-group">
+                <label>Размер (%)</label>
+                <input type="number" id="hero-size" value="100" oninput="liveRefresh()">
+            </div>
+            <div class="input-group">
+                <label>Скорость (сек)</label>
+                <input type="number" id="hero-speed" value="0.3" step="0.1" oninput="liveRefresh()">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>
+                <input type="checkbox" id="hero-glow" onchange="liveRefresh()"> Добавить свечение
+            </label>
         </div>
     </div>
+
+    <div class="section">
+        <h3>2. Визуал и Эффекты</h3>
+        <div class="row">
+            <div class="input-group">
+                <label>Цвет заголовка</label>
+                <input type="color" id="color-title" value="#2ecc71" oninput="liveRefresh()">
+            </div>
+            <div class="input-group">
+                <label>Цвет рамки</label>
+                <input type="color" id="color-border" value="#1da85a" oninput="liveRefresh()">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Фон (Файл)</label>
+            <input type="file" onchange="updateAsset('bg', this)">
+        </div>
+        <div class="input-group">
+            <label>Эффект частиц</label>
+            <select id="effect-type" onchange="liveRefresh()">
+                <option value="none">Нет</option>
+                <option value="snow">Снег (Particles)</option>
+                <option value="stars">Звезды</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>3. Вопросы</h3>
+        <textarea id="questions" rows="5" oninput="liveRefresh()">2+2?|4|5|6
+Как зовут героя?|Босс|Миньон|Крот</textarea>
+    </div>
+
+    <div class="section">
+        <h3>4. Звуки (7 шт)</h3>
+        <input type="file" accept="audio/*" onchange="updateAudio(1, this)"><label>1. Старт</label>
+        <input type="file" accept="audio/*" onchange="updateAudio(2, this)"><label>2. Прыжок</label>
+        <input type="file" accept="audio/*" onchange="updateAudio(3, this)"><label>3. Шок</label>
+        <input type="file" accept="audio/*" onchange="updateAudio(4, this)"><label>4. Финал (4.mp3)</label>
+        </div>
+
+    <button class="btn-gen" onclick="copyIframe()">СКОПИРОВАТЬ IFRAME ДЛЯ GENIALLY</button>
+</div>
+
+<div id="preview-zone">
+    <div id="preview-label">ПРЕДПРОСМОТР В РЕАЛЬНОМ ВРЕМЕНИ</div>
+    <iframe id="game-frame"></iframe>
 </div>
 
 <script>
-    let assets = {
-        bg: 'https://vivanova288-boop.github.io/Froggy_Jumps/bg.png',
-        frog: 'https://vivanova288-boop.github.io/Froggy_Jumps/2.png',
-        leaf: 'https://vivanova288-boop.github.io/Froggy_Jumps/1.png'
-    };
+    let assets = { hero: '', bg: '', leaf: '' };
+    let sounds = {};
 
-    function read(input, type) {
-        if (input.files && input.files[0]) {
-            const r = new FileReader();
-            r.onload = (e) => { assets[type] = e.target.result; upd(); };
-            r.readAsDataURL(input.files[0]);
-        }
+    function updateAsset(type, input) {
+        const reader = new FileReader();
+        reader.onload = (e) => { assets[type] = e.target.result; liveRefresh(); };
+        reader.readAsDataURL(input.files[0]);
     }
 
-    function upd() {
-        document.getElementById('m-header').innerText = document.getElementById('v-title').value;
-        document.getElementById('m-header').style.backgroundColor = document.getElementById('v-color').value;
-        const q = document.getElementById('v-qs').value.split('\n')[0].split('|');
-        document.getElementById('m-q').innerText = q[0] || "...";
-        document.getElementById('l1').innerText = q[1] || "";
-        document.getElementById('l2').innerText = q[2] || "";
-        document.getElementById('l3').innerText = q[3] || "";
-        document.getElementById('mockup').style.backgroundImage = `url(${assets.bg})`;
-        document.getElementById('m-frog').style.backgroundImage = `url(${assets.frog})`;
-        document.querySelectorAll('.m-leaf').forEach(l => l.style.backgroundImage = `url(${assets.leaf})`);
+    function updateAudio(id, input) {
+        const reader = new FileReader();
+        reader.onload = (e) => { sounds['s'+id] = e.target.result; };
+        reader.readAsDataURL(input.files[0]);
     }
 
-    function exportGame() {
-        const title = document.getElementById('v-title').value;
-        const color = document.getElementById('v-color').value;
-        const questions = document.getElementById('v-qs').value;
+    function liveRefresh() {
+        const frame = document.getElementById('game-frame');
+        const config = {
+            titleColor: document.getElementById('color-title').value,
+            borderColor: document.getElementById('color-border').value,
+            heroSize: document.getElementById('hero-size').value,
+            speed: document.getElementById('hero-speed').value,
+            glow: document.getElementById('hero-glow').checked,
+            questions: document.getElementById('questions').value.split('\n'),
+            effect: document.getElementById('effect-type').value,
+            assets: assets
+        };
 
-        // ЭТОТ КОД БУДЕТ ВНУТРИ ВАШЕГО ИНДЕКСА
-        const finalCode = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>\${title}</title>
-    <style>
-        body { margin:0; overflow:hidden; background:#000; font-family:sans-serif; }
-        #pond { width:100vw; height:100vh; background:url('\${assets.bg}') center/cover; position:relative; }
-        #header { background:\${color}; color:#fff; padding:15px; text-align:center; font-size:22px; font-weight:bold; }
-        #frog { position:absolute; width:80px; height:80px; background:url('\${assets.frog}') no-repeat center/contain; z-index:100; transition:0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .leaf { position:absolute; width:140px; height:90px; background:url('\${assets.leaf}') no-repeat center/contain; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; cursor:pointer; }
-        .shock { animation: shake 0.1s infinite; filter: brightness(2) hue-rotate(180deg); }
-        @keyframes shake { 0%{transform:translate(2px,2px)} 100%{transform:translate(-2px,-2px)} }
-        #q-box { background:#fff; color:#000; width:70%; margin:20px auto; padding:15px; border-radius:15px; text-align:center; font-weight:bold; box-shadow:0 5px 15px rgba(0,0,0,0.5); }
-    </style>
-</head>
-<body>
-    <div id="pond">
-        <div id="header">\${title}</div>
-        <div id="q-box"></div>
-        <div id="frog"></div>
-        <div id="leaves"></div>
-    </div>
-    <script>
-        const rawQs = \${JSON.stringify(questions.split('\\n'))};
-        let step = 0, lastLeaf;
-        const frog = document.getElementById('frog');
-
-        function init() {
-            // Создаем безопасную лилию старта
-            const startLeaf = { offsetLeft: window.innerWidth/2 - 70, offsetTop: window.innerHeight - 150, offsetWidth: 140, offsetHeight: 90 };
-            lastLeaf = startLeaf;
-            moveFrog(startLeaf);
-            loadQ();
-        }
-
-        function moveFrog(l) {
-            frog.style.left = (l.offsetLeft + l.offsetWidth/2 - 40) + 'px';
-            frog.style.top = (l.offsetTop + l.offsetHeight/2 - 40) + 'px';
-        }
-
-        function loadQ() {
-            if(step >= rawQs.length) return alert("ПОБЕДА!");
-            const [q, a, w1, w2] = rawQs[step].split('|');
-            document.getElementById('q-box').innerText = q;
-            const container = document.getElementById('leaves');
-            container.innerHTML = '';
-            
-            const opts = [{t:a, ok:true}, {t:w1, ok:false}, {t:w2, ok:false}].sort(()=>Math.random()-0.5);
-            opts.forEach((opt, i) => {
-                const l = document.createElement('div');
-                l.className = 'leaf';
-                l.innerText = opt.t;
-                l.style.left = (15 + i*30) + '%';
-                l.style.top = '50%';
-                l.onclick = () => {
-                    moveFrog(l);
-                    if(opt.ok) { step++; lastLeaf = l; setTimeout(loadQ, 600); }
-                    else {
-                        frog.classList.add('shock');
-                        setTimeout(() => { 
-                            moveFrog(lastLeaf); 
-                            frog.classList.remove('shock');
-                        }, 500);
-                    }
-                };
-                container.appendChild(l);
-            });
-        }
-        init();
-    <\/script>
-</body>
-</html>`;
-
-        const blob = new Blob([finalCode], {type: 'text/html'});
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = "index.html"; // ВОТ ЭТОТ ФАЙЛ СКАЧАЕТСЯ
-        link.click();
+        // Генерируем HTML код для вставки в iframe
+        const doc = `
+            <html>
+            <body style="margin:0; background:#000; color:white; font-family:sans-serif; overflow:hidden;">
+                <div id="header" style="background:${config.titleColor}; border-bottom:5px solid ${config.borderColor}; padding:10px; text-align:center;">QUEST</div>
+                <div id="game-area" style="height:100vh; background:url(${config.assets.bg}) center/cover;">
+                    <div id="hero" style="
+                        position:absolute; bottom:20%; left:50%; transform:translateX(-50%);
+                        width:${config.heroSize}px; height:${config.heroSize}px;
+                        background:url(${config.assets.hero}) no-repeat center/contain;
+                        transition:${config.speed}s;
+                        ${config.glow ? 'filter: drop-shadow(0 0 15px white);' : ''}
+                    "></div>
+                </div>
+            </body>
+            </html>
+        `;
+        frame.srcdoc = doc;
     }
 
-    window.onload = upd;
+    function copyIframe() {
+        const code = `<iframe srcdoc='${document.getElementById('game-frame').srcdoc}' width="800" height="600" frameborder="0"></iframe>`;
+        navigator.clipboard.writeText(code);
+        alert("Код iFrame скопирован! Вставляй в Genially через Insert -> Others");
+    }
 </script>
 </body>
 </html>
