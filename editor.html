@@ -3,64 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Froggy Quest Builder v5.0 PRO</title>
+    <title>Professional Froggy Quest Builder v7.0</title>
     <style>
         :root { --bg: #0f172a; --panel: #1e293b; --accent: #22c55e; --text: #f1f5f9; }
-        body { margin: 0; display: flex; height: 100vh; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
-        #sidebar { width: 450px; background: var(--panel); padding: 20px; overflow-y: auto; border-right: 2px solid #334155; }
-        .group { background: #0f172a; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; }
-        h2 { font-size: 12px; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; }
-        label { display: block; font-size: 10px; margin: 8px 0 4px; color: #94a3b8; }
-        input, textarea, select { width: 100%; padding: 10px; background: #1e293b; border: 1px solid #475569; color: #fff; border-radius: 6px; font-size: 12px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; margin-top: 10px; text-transform: uppercase; }
-        .btn-upd { background: var(--accent); color: #052e16; }
-        .btn-copy { background: #3b82f6; color: white; }
-        #preview-area { flex: 1; background: #000; display: flex; flex-direction: column; }
-        iframe { flex: 1; border: none; }
+        body { margin: 0; display: flex; height: 100vh; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+        
+        /* ЛЕВАЯ ПАНЕЛЬ РЕДАКТОРА */
+        #sidebar { width: 450px; background: var(--panel); padding: 25px; overflow-y: auto; border-right: 2px solid #334155; box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 10; }
+        .group { background: #0f172a; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #334155; transition: 0.3s; }
+        .group:hover { border-color: var(--accent); }
+        h2 { font-size: 14px; margin: 0 0 15px; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        
+        label { display: block; font-size: 11px; margin: 12px 0 6px; color: #94a3b8; font-weight: 600; }
+        input[type="text"], input[type="number"], textarea, select { width: 100%; padding: 12px; background: #1e293b; border: 1px solid #475569; color: #fff; border-radius: 8px; box-sizing: border-box; font-size: 13px; }
+        input[type="file"] { font-size: 11px; color: #94a3b8; }
+        
+        .sound-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+        .sound-item { background: #1e293b; padding: 12px; border-radius: 8px; border: 1px solid #334155; }
+        
+        .row { display: flex; gap: 15px; align-items: center; }
+        .btn-container { margin-top: 25px; display: flex; flex-direction: column; gap: 12px; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-upd { background: var(--accent); color: #052e16; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
+        .btn-upd:hover { background: #16a34a; transform: translateY(-2px); }
+        .btn-copy { background: #3b82f6; color: white; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
+        .btn-copy:hover { background: #2563eb; transform: translateY(-2px); }
+
+        /* ПРАВАЯ ПАНЕЛЬ ПРЕДПРОСМОТРА */
+        #preview-area { flex: 1; background: #000; position: relative; display: flex; flex-direction: column; }
+        .preview-header { padding: 10px; background: #0f172a; text-align: center; font-size: 12px; color: #64748b; border-bottom: 1px solid #334155; }
+        iframe { flex: 1; border: none; width: 100%; height: 100%; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
     <div class="group">
-        <h2>1. ГРАФИКА</h2>
-        <label>Герой / Космонавт:</label><input type="file" onchange="encode('hero', this)">
-        <label>Платформа / Астероид:</label><input type="file" onchange="encode('plat', this)">
-        <label>Фон (Космос/Город):</label><input type="file" onchange="encode('bg', this)">
-        <label>Жизнь (Иконка):</label><input type="file" onchange="encode('life', this)">
+        <h2>1. ГРАФИКА И ОБЪЕКТЫ</h2>
+        <label>Персонаж (Космонавт):</label><input type="file" id="f-hero" onchange="encode('hero', this)">
+        <div class="row">
+            <div style="flex:1"><label>Размер героя</label><input type="number" id="v-size" value="85"></div>
+            <div style="flex:1"><label>Скорость</label><input type="text" id="v-speed" value="0.5"></div>
+        </div>
+        <label>Платформа (Астероид):</label><input type="file" onchange="encode('plat', this)">
+        <label>Фон игрового поля:</label><input type="file" onchange="encode('bg', this)">
+        <label>Иконка жизни:</label><input type="file" onchange="encode('life', this)">
     </div>
 
     <div class="group">
-        <h2>2. ЛОКАЛИЗАЦИЯ И ТЕКСТЫ</h2>
-        <label>Язык по умолчанию:</label>
-        <select id="v-lang">
-            <option value="ru">Русский</option>
-            <option value="en">English</option>
-            <option value="de">Deutsch</option>
-        </select>
-        <label>Текст победы:</label><input type="text" id="t-win" value="ПОБЕДА! КВЕСТ ПРОЙДЕН">
-        <label>Текст проигрыша:</label><input type="text" id="t-lose" value="ИГРА ОКОНЧЕНА!">
-        <label>Кнопка старта:</label><input type="text" id="t-start" value="НАЖМИ ЧТОБЫ НАЧАТЬ">
+        <h2>2. ЛОКАЛИЗАЦИЯ (ТЕКСТЫ)</h2>
+        <label>Заголовок игры:</label><input type="text" id="t-title" value="LEVEL 1: SPACE QUEST">
+        <label>Кнопка старта:</label><input type="text" id="t-btn-start" value="НАЖМИ ЧТОБЫ НАЧАТЬ">
+        <label>Слово "Уровень":</label><input type="text" id="t-label-lvl" value="УРОВЕНЬ">
+        <label>Слово "Вопрос":</label><input type="text" id="t-label-q" value="ВОПРОС">
+        <label>Текст при победе:</label><input type="text" id="t-win" value="ПОБЕДА! ВЫ ПРОШЛИ КВЕСТ">
+        <label>Текст при проигрыше:</label><input type="text" id="t-lose" value="ИГРА ОКОНЧЕНА!">
+        <label>Переход уровня:</label><input type="text" id="t-next" value="ПЕРЕХОДИМ К СЛЕДУЮЩЕМУ">
     </div>
 
     <div class="group">
-        <h2>3. ВОПРОСЫ (Уровень|Вопрос|Верно|Нет|Нет)</h2>
-        <textarea id="v-qs" style="height:120px">1|I ___ a movie last night.|watched|watch|watches
-1|She ___ to the park.|went|go|goes
-2|Where is London?|UK|USA|France</textarea>
+        <h2>3. ВОПРОСЫ (lvl|q|ans|wrong|wrong)</h2>
+        <textarea id="v-qs" style="height:150px">1|London location?|UK|France|USA
+1|2 + 2 * 2 = ?|6|8|4
+2|Sky color?|Blue|Green|Red</textarea>
     </div>
 
     <div class="group">
-        <h2>4. АУДИО (7 СЛОТОВ)</h2>
-        <input type="file" id="audio-input" multiple onchange="encodeAudioBatch(this)">
-        <p style="font-size:9px; color:#64748b">Загрузите 7 файлов сразу (Старт, Прыжок, Шок, Финал, Виза, Уровень, Тик)</p>
+        <h2>4. ЗВУКОВАЯ ПАНЕЛЬ</h2>
+        <div class="sound-grid">
+            <div class="sound-item"><label>1. Старт игры</label><input type="file" onchange="encS(0,this)"></div>
+            <div class="sound-item"><label>2. Прыжок</label><input type="file" onchange="encS(1,this)"></div>
+            <div class="sound-item"><label>3. Шок/Ошибка</label><input type="file" onchange="encS(2,this)"></div>
+            <div class="sound-item"><label>4. Финал (4.mp3)</label><input type="file" onchange="encS(3,this)"></div>
+            <div class="sound-item"><label>5. Победа</label><input type="file" onchange="encS(4,this)"></div>
+            <div class="sound-item"><label>6. Новый уровень</label><input type="file" onchange="encS(5,this)"></div>
+            <div class="sound-item"><label>7. Тик таймера</label><input type="file" onchange="encS(6,this)"></div>
+        </div>
     </div>
 
-    <button class="btn btn-upd" onclick="refreshPreview()">Обновить предпросмотр</button>
-    <button class="btn btn-copy" onclick="copyIframe()">Скопировать код</button>
+    <div class="btn-container">
+        <button class="btn btn-upd" onclick="refreshPreview()">Обновить предпросмотр</button>
+        <button class="btn btn-copy" onclick="copyIframe()">Скопировать код для Genially</button>
+    </div>
 </div>
 
 <div id="preview-area">
+    <div class="preview-header">ОКНО ЖИВОГО ПРЕДПРОСМОТРА (16:9)</div>
     <iframe id="target"></iframe>
 </div>
 
@@ -68,104 +96,145 @@
     let assets = { s: [] };
 
     function encode(key, input) {
+        if (!input.files[0]) return;
         const reader = new FileReader();
         reader.onload = (e) => assets[key] = e.target.result;
         reader.readAsDataURL(input.files[0]);
     }
 
-    function encodeAudioBatch(input) {
-        const files = Array.from(input.files).slice(0, 7);
-        files.forEach((file, idx) => {
-            const reader = new FileReader();
-            reader.onload = (e) => assets.s[idx] = e.target.result;
-            reader.readAsDataURL(file);
-        });
+    function encS(idx, input) {
+        if (!input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = (e) => assets.s[idx] = e.target.result;
+        reader.readAsDataURL(input.files[0]);
     }
 
     function buildGameHTML() {
-        const lang = document.getElementById('v-lang').value;
         const rawQs = document.getElementById('v-qs').value.split('\n').filter(l => l.includes('|'));
         const qsJSON = JSON.stringify(rawQs.map(line => {
-            const [lvl, q, a, n1, n2] = line.split('|');
-            const opts = [a, n1, n2].sort(() => Math.random() - 0.5);
-            return { lvl, q, o: opts, a: opts.indexOf(a) };
+            const p = line.split('|');
+            const opts = [p[2], p[3], p[4]].sort(() => Math.random() - 0.5);
+            return { lvl: p[0], q: p[1], o: opts, a: opts.indexOf(p[2]) };
         }));
 
+        const loc = {
+            title: document.getElementById('t-title').value,
+            startBtn: document.getElementById('t-btn-start').value,
+            lvl: document.getElementById('t-label-lvl').value,
+            q: document.getElementById('t-label-q').value,
+            win: document.getElementById('t-win').value,
+            lose: document.getElementById('t-lose').value,
+            next: document.getElementById('t-next').value
+        };
+
         return `<!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
+    <meta charset="UTF-8">
     <style>
-        body { margin:0; background:url(${assets.bg || ''}) center/cover no-repeat fixed #000; font-family:sans-serif; overflow:hidden; height:100vh; color:#fff; }
-        #ui { position:fixed; top:0; width:100%; z-index:500; text-align:center; pointer-events:none; }
-        #q-card { background:rgba(255,255,255,0.95); color:#111; margin:15px auto; width:85%; padding:20px; border-radius:20px; border:4px solid #fff; pointer-events:auto; }
-        #t-bar { height:8px; background:#22c55e; width:100%; transition: 1s linear; margin-top:10px; border-radius:4px; }
-        #hero { position:absolute; width:80px; height:80px; background:url(${assets.hero || ''}) no-repeat center/contain; z-index:100; transition:0.5s cubic-bezier(0.34, 1.56, 0.64, 1); transform:translate(-50%, -100%); }
-        .leaf { position:absolute; width:120px; height:80px; background:url(${assets.plat || ''}) no-repeat center/contain; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer; transform:translate(-50%, -50%); text-shadow:1px 1px 3px #000; font-size:14px; }
-        .hp-box { position:fixed; bottom:20px; left:20px; display:flex; gap:10px; }
+        body { margin:0; background:url(${assets.bg || ''}) center/cover no-repeat fixed #000; font-family:sans-serif; overflow:hidden; height:100vh; }
+        #ui-layer { position:fixed; top:0; width:100%; z-index:500; pointer-events:none; }
+        #q-card { background:rgba(255,255,255,0.95); color:#111; margin:15px auto; width:85%; padding:20px; border-radius:25px; text-align:center; font-weight:bold; pointer-events:auto; box-shadow:0 15px 35px rgba(0,0,0,0.5); border:4px solid #fff; }
+        #t-wrap { width:100%; height:8px; background:#e2e8f0; border-radius:4px; margin-top:12px; overflow:hidden; }
+        #t-bar { height:100%; background:#22c55e; width:100%; transition:1s linear; }
+        
+        #game-space { position:relative; width:100%; height:100vh; z-index:10; }
+        #hero { 
+            position:absolute; width:${document.getElementById('v-size').value}px; height:${document.getElementById('v-size').value}px; 
+            background:url(${assets.hero || ''}) no-repeat center/contain; 
+            z-index:100; transform:translate(-50%, -100%); 
+            transition: all ${document.getElementById('v-speed').value}s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            filter: drop-shadow(0 0 20px rgba(255,255,255,0.8));
+        }
+        
+        .leaf { 
+            position:absolute; width:120px; height:80px; 
+            background:url(${assets.plat || ''}) no-repeat center/contain; 
+            display:flex; align-items:center; justify-content:center; 
+            color:white; font-size:13px; font-weight:bold; text-align:center; padding:10px;
+            transform:translate(-50%, -50%); cursor:pointer; z-index:20; text-shadow:2px 2px 4px #000;
+        }
+
+        .lives-box { position:fixed; bottom:20px; left:20px; display:flex; gap:10px; z-index:500; }
         .heart { width:40px; height:40px; background:url(${assets.life || ''}) no-repeat center/contain; }
-        #modal { position:fixed; inset:0; background:rgba(0,0,0,0.9); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; text-align:center; cursor:pointer; }
-        .shock { animation: shake 0.1s infinite; filter: brightness(2) red; }
-        @keyframes shake { 0%{margin-left:-5px} 100%{margin-left:5px} }
+        
+        .shock-anim { animation: shock-play 0.1s infinite; filter: brightness(3) invert(1); }
+        @keyframes shock-play { 0%{margin-left:-12px} 100%{margin-left:12px} }
+        
+        #start-scr { position:fixed; inset:0; background:rgba(0,0,0,0.95); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; cursor:pointer; color:white; text-align:center; padding:20px; }
+        #start-scr h1 { font-size: 40px; color: #22c55e; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <div id="modal" onclick="startSequence()">
-        <h1 id="m-title">${document.getElementById('t-start').value}</h1>
+    <div id="start-scr" onclick="preStart()">
+        <h1>${loc.title}</h1>
+        <p id="start-desc">${loc.startBtn}</p>
     </div>
 
-    <div id="ui">
+    <div id="ui-layer">
         <div id="q-card">
-            <div id="q-lvl" style="font-size:12px; color:#666"></div>
-            <div id="q-txt" style="font-size:20px"></div>
-            <div id="t-bar"></div>
+            <div id="q-lvl" style="font-size:12px; color:#666; margin-bottom:5px"></div>
+            <div id="q-text" style="font-size:18px">...</div>
+            <div id="t-wrap"><div id="t-bar"></div></div>
         </div>
     </div>
 
-    <div id="map"></div>
-    <div id="hero"></div>
-    <div class="hp-box" id="hp"></div>
+    <div id="game-space">
+        <div id="hero"></div>
+        <div id="map"></div>
+    </div>
+
+    <div class="lives-box" id="hp-bar"></div>
 
     <script>
         const quest = ${qsJSON};
-        const snd = { start: new Audio("${assets.s[0] || ''}"), jump: new Audio("${assets.s[1] || ''}"), shock: new Audio("${assets.s[2] || ''}"), end: new Audio("${assets.s[3] || ''}"), win: new Audio("${assets.s[4] || ''}"), lvl: new Audio("${assets.s[5] || ''}"), tick: new Audio("${assets.s[6] || ''}") };
+        const loc = ${JSON.stringify(loc)};
+        const snd = { 
+            start: new Audio("${assets.s[0] || ''}"), 
+            jump: new Audio("${assets.s[1] || ''}"), 
+            shock: new Audio("${assets.s[2] || ''}"), 
+            end: new Audio("${assets.s[3] || ''}"),
+            win: new Audio("${assets.s[4] || ''}"),
+            level: new Audio("${assets.s[5] || ''}"),
+            tick: new Audio("${assets.s[6] || ''}")
+        };
         
-        let step = 0, hp = 3, timer, timeLeft;
-        let lastPos = {x:50, y:85};
+        let step = 0, timer, timeLeft, hp = 3, lastPos = {x:50, y:85};
 
-        function startSequence() {
+        function preStart() {
             let count = 3;
-            const modal = document.getElementById('modal');
-            const title = document.getElementById('m-title');
-            let cd = setInterval(() => {
-                if(count > 0) { title.innerText = count; snd.tick.play(); }
-                else if(count === 0) { title.innerText = "GO!"; snd.start.play(); }
-                else { clearInterval(cd); modal.style.display='none'; initGame(); }
+            const desc = document.getElementById('start-desc');
+            const h1 = document.querySelector('#start-scr h1');
+            const cd = setInterval(() => {
+                if(count > 0) { h1.innerText = count; snd.tick.play(); }
+                else if(count === 0) { h1.innerText = "GO!"; snd.start.play(); }
+                else { clearInterval(cd); startGame(); }
                 count--;
             }, 1000);
         }
 
-        function initGame() {
+        function startGame() {
+            document.getElementById('start-scr').style.display = 'none';
             updateHP();
+            moveHero(50, 85);
             renderMap();
-            moveHero(50, 85); // Стартовая платформа
-            startTimer();
         }
 
         function renderMap() {
             const map = document.getElementById('map');
             map.innerHTML = '';
             
-            // 1. Рисуем стартовую платформу (база)
+            // СТАРТОВАЯ ПЛАТФОРМА
             const base = document.createElement('div');
             base.className = 'leaf'; base.style.left = '50%'; base.style.top = '85%';
             map.appendChild(base);
 
-            // 2. Рисуем 5 рядов (шахматный порядок)
+            // 5 РЯДОВ В ШАХМАТНОМ ПОРЯДКЕ
             for(let r=0; r<5; r++) {
-                const isCurrentRow = (r === 0);
-                const qIdx = step + r;
+                let qIdx = step + r;
                 if(qIdx >= quest.length) break;
 
+                const isCurrent = (r === 0);
                 quest[qIdx].o.forEach((txt, i) => {
                     const leaf = document.createElement('div');
                     leaf.className = 'leaf';
@@ -173,75 +242,66 @@
                     let x = 20 + (i * 30) + (qIdx % 2 * 5);
                     let y = 65 - (r * 15);
                     leaf.style.left = x + '%'; leaf.style.top = y + '%';
-                    leaf.style.opacity = isCurrentRow ? '1' : '0.3';
-                    
-                    if(isCurrentRow) {
-                        leaf.onclick = () => jump(i, x, y);
-                    }
+                    leaf.style.opacity = isCurrent ? '1' : '0.3';
+                    if(isCurrent) leaf.onclick = () => onJump(i, x, y);
                     map.appendChild(leaf);
                 });
             }
-            document.getElementById('q-txt').innerText = quest[step].q;
-            document.getElementById('q-lvl').innerText = "Level " + quest[step].lvl;
+            
+            document.getElementById('q-text').innerText = quest[step].q;
+            document.getElementById('q-lvl').innerText = loc.lvl + " " + quest[step].lvl + " | " + loc.q + " " + (step+1);
+            resetTimer();
         }
 
-        function jump(idx, x, y) {
+        function onJump(idx, x, y) {
             moveHero(x, y);
             if(idx === quest[step].a) {
                 snd.jump.play();
-                step++;
-                lastPos = {x, y};
+                step++; lastPos = {x, y};
                 setTimeout(() => {
-                    if(step >= quest.length) { victory(); }
-                    else { 
-                        if(quest[step].lvl !== quest[step-1].lvl) snd.lvl.play();
-                        renderMap(); 
-                        startTimer(); 
+                    if(step >= quest.length) {
+                        snd.win.play(); alert(loc.win); location.reload();
+                    } else {
+                        if(quest[step].lvl !== quest[step-1].lvl) snd.level.play();
+                        renderMap();
                     }
                 }, 500);
-            } else { fail(); }
+            } else { onWrong(); }
         }
 
-        function startTimer() {
+        function onWrong() {
+            clearInterval(timer);
+            snd.shock.play();
+            const h = document.getElementById('hero');
+            h.classList.add('shock-anim');
+            hp--; updateHP();
+            setTimeout(() => {
+                h.classList.remove('shock-anim');
+                moveHero(lastPos.x, lastPos.y);
+                if(hp <= 0) {
+                    snd.end.play(); alert(loc.lose); location.reload();
+                } else { resetTimer(); }
+            }, 800);
+        }
+
+        function resetTimer() {
             clearInterval(timer);
             timeLeft = 15;
             const bar = document.getElementById('t-bar');
             bar.style.transition = 'none'; bar.style.width = '100%';
             setTimeout(() => {
-                bar.style.transition = '15s linear';
-                bar.style.width = '0%';
+                bar.style.transition = '15s linear'; bar.style.width = '0%';
             }, 50);
             timer = setInterval(() => {
                 timeLeft--;
-                if(timeLeft <= 0) fail();
+                if(timeLeft <= 0) onWrong();
             }, 1000);
         }
 
-        function fail() {
-            clearInterval(timer);
-            snd.shock.play();
-            document.getElementById('hero').classList.add('shock');
-            hp--; updateHP();
-            setTimeout(() => {
-                document.getElementById('hero').classList.remove('shock');
-                moveHero(lastPos.x, lastPos.y);
-                if(hp <= 0) {
-                    snd.end.play();
-                    alert("${document.getElementById('t-lose').value}");
-                    location.reload();
-                } else { startTimer(); }
-            }, 800);
-        }
-
-        function victory() {
-            snd.win.play();
-            document.getElementById('hero').style.top = "-20%";
-            setTimeout(() => alert("${document.getElementById('t-win').value}"), 1000);
-        }
-
         function updateHP() {
-            const h = document.getElementById('hp'); h.innerHTML = '';
-            for(let i=0; i<hp; i++) h.innerHTML += '<div class="heart"></div>';
+            const bar = document.getElementById('hp-bar');
+            bar.innerHTML = '';
+            for(let i=0; i<hp; i++) bar.innerHTML += '<div class="heart"></div>';
         }
 
         function moveHero(x, y) {
@@ -262,7 +322,7 @@
         const code = buildGameHTML();
         const output = `<iframe srcdoc='${code.replace(/'/g, "&apos;")}' width="100%" height="600" frameborder="0" allow="autoplay"></iframe>`;
         navigator.clipboard.writeText(output);
-        alert("Код скопирован!");
+        alert("Код успешно скопирован!");
     }
 </script>
 </body>
