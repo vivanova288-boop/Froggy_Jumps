@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Froggy Quest Builder v4.0</title>
+    <title>Professional Froggy Quest Builder v5.0</title>
     <style>
         :root { --bg: #0f172a; --panel: #1e293b; --accent: #22c55e; --text: #f1f5f9; }
         body { margin: 0; display: flex; height: 100vh; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
         
-        /* ЛЕВАЯ ПАНЕЛЬ РЕДАКТОРА */
         #sidebar { width: 450px; background: var(--panel); padding: 25px; overflow-y: auto; border-right: 2px solid #334155; box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 10; }
         .group { background: #0f172a; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #334155; transition: 0.3s; }
         .group:hover { border-color: var(--accent); }
@@ -29,7 +28,6 @@
         .btn-copy { background: #3b82f6; color: white; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
         .btn-copy:hover { background: #2563eb; transform: translateY(-2px); }
 
-        /* ПРАВАЯ ПАНЕЛЬ ПРЕДПРОСМОТРА */
         #preview-area { flex: 1; background: #000; position: relative; display: flex; flex-direction: column; }
         .preview-header { padding: 10px; background: #0f172a; text-align: center; font-size: 12px; color: #64748b; border-bottom: 1px solid #334155; }
         iframe { flex: 1; border: none; width: 100%; height: 100%; }
@@ -47,20 +45,31 @@
         </div>
         <label>Лист / Платформа:</label><input type="file" onchange="encode('plat', this)">
         <label>Фон игрового поля:</label><input type="file" onchange="encode('bg', this)">
-        <label>Иконка жизни (сердце):</label><input type="file" onchange="encode('life', this)">
-        <label><input type="checkbox" id="v-glow" checked style="width:auto"> Эффект свечения героя</label>
+        <label>Иконка жизни:</label><input type="file" onchange="encode('life', this)">
+        <div class="row">
+           <div style="flex:1"><label>Свечение (px)</label><input type="number" id="v-glow-val" value="20"></div>
+           <div style="flex:1"><label>Жизни</label><input type="number" id="v-lives" value="3"></div>
+        </div>
+        <label><input type="checkbox" id="v-glow" checked style="width:auto"> Включить свечение</label>
     </div>
 
     <div class="group">
-        <h2>2. ТЕКСТЫ И ТАЙМЕРЫ</h2>
-        <label>Название квеста:</label><input type="text" id="v-title" value="LEVEL 1: ENGLISH QUEST">
-        <label>Секунд на один вопрос:</label><input type="number" id="v-qtime" value="15">
-        <label>Вопросы (Формат: Вопрос|Верно|Нет|Нет):</label>
-        <textarea id="v-qs" style="height:150px">Where is London?|UK|France|USA
-2 + 2 * 2 = ?|6|8|4
-Cat name?|Tom|Rex|Goldie
-Sky color?|Blue|Green|Red
-Frog says...|Ribbit|Woof|Moo</textarea>
+        <h2>2. НАСТРОЙКИ И ТЕКСТЫ</h2>
+        <label>Название квеста:</label><input type="text" id="v-title" value="FROGGY QUEST">
+        <label>Приветствие:</label><input type="text" id="v-welcome" value="ПРИГОТОВЬСЯ ПРЫГАТЬ!">
+        <div class="row">
+            <div style="flex:1"><label>Таймер (сек)</label><input type="number" id="v-qtime" value="15"></div>
+            <div style="flex:1"><label>Цвет рамки</label><input type="color" id="v-border-color" value="#ffffff" style="height:40px"></div>
+        </div>
+        <label>Цвет прогрессбара:</label><input type="color" id="v-progress-color" value="#22c55e" style="height:40px">
+        <div class="row" style="margin-top:10px">
+            <label><input type="checkbox" id="v-use-timer" checked style="width:auto"> Использовать таймер</label>
+            <label><input type="checkbox" id="v-use-cd" checked style="width:auto"> Обратный отсчет</label>
+        </div>
+        <label>Вопросы (Уровень|Вопрос|Верно|Нет|Нет):</label>
+        <textarea id="v-qs" style="height:150px">1|London?|UK|France|USA
+1|2+2?|4|6|8
+2|Frog says?|Ribbit|Moo|Woof</textarea>
     </div>
 
     <div class="group">
@@ -69,10 +78,10 @@ Frog says...|Ribbit|Woof|Moo</textarea>
             <div class="sound-item"><label>1. Старт</label><input type="file" onchange="encS(0,this)"></div>
             <div class="sound-item"><label>2. Прыжок</label><input type="file" onchange="encS(1,this)"></div>
             <div class="sound-item"><label>3. Шок</label><input type="file" onchange="encS(2,this)"></div>
-            <div class="sound-item"><label>4. Финал (4.mp3)</label><input type="file" onchange="encS(3,this)"></div>
+            <div class="sound-item"><label>4. Проигрыш</label><input type="file" onchange="encS(3,this)"></div>
             <div class="sound-item"><label>5. Победа</label><input type="file" onchange="encS(4,this)"></div>
-            <div class="sound-item"><label>6. Уровень</label><input type="file" onchange="encS(5,this)"></div>
-            <div class="sound-item"><label>7. Тик таймера</label><input type="file" onchange="encS(6,this)"></div>
+            <div class="sound-item"><label>6. Уровень (Супер прыжок)</label><input type="file" onchange="encS(5,this)"></div>
+            <div class="sound-item"><label>7. Тик (Обратный отсчет)</label><input type="file" onchange="encS(6,this)"></div>
         </div>
     </div>
 
@@ -90,7 +99,6 @@ Frog says...|Ribbit|Woof|Moo</textarea>
 <script>
     let assets = { s: [] };
 
-    // Кодирование картинок
     function encode(key, input) {
         if (!input.files[0]) return;
         const reader = new FileReader();
@@ -98,7 +106,6 @@ Frog says...|Ribbit|Woof|Moo</textarea>
         reader.readAsDataURL(input.files[0]);
     }
 
-    // Кодирование звуков по слотам
     function encS(idx, input) {
         if (!input.files[0]) return;
         const reader = new FileReader();
@@ -107,18 +114,29 @@ Frog says...|Ribbit|Woof|Moo</textarea>
     }
 
     function buildGameHTML() {
-        const title = document.getElementById('v-title').value;
-        const qTime = document.getElementById('v-qtime').value;
-        const size = document.getElementById('v-size').value;
-        const speed = document.getElementById('v-speed').value;
-        const glow = document.getElementById('v-glow').checked;
+        const config = {
+            title: document.getElementById('v-title').value,
+            welcome: document.getElementById('v-welcome').value,
+            qTime: document.getElementById('v-qtime').value,
+            size: document.getElementById('v-size').value,
+            speed: document.getElementById('v-speed').value,
+            glow: document.getElementById('v-glow').checked,
+            glowVal: document.getElementById('v-glow-val').value,
+            lives: document.getElementById('v-lives').value,
+            borderColor: document.getElementById('v-border-color').value,
+            barColor: document.getElementById('v-progress-color').value,
+            useTimer: document.getElementById('v-use-timer').checked,
+            useCD: document.getElementById('v-use-cd').checked
+        };
         
-        const rawQs = document.getElementById('v-qs').value.split('\n').filter(l => l.includes('|'));
-        const qs = JSON.stringify(rawQs.map(line => {
-            const p = line.split('|');
-            const opts = [p[1], p[2], p[3]].sort(() => Math.random() - 0.5);
-            return { q: p[0], o: opts, a: opts.indexOf(p[1]) };
-        }));
+        const rawLines = document.getElementById('v-qs').value.split('\n').filter(l => l.includes('|'));
+        const levelData = {};
+        rawLines.forEach(line => {
+            const [lvl, q, a, n1, n2] = line.split('|');
+            if(!levelData[lvl]) levelData[lvl] = [];
+            const opts = [a, n1, n2].sort(() => Math.random() - 0.5);
+            levelData[lvl].push({ q, o: opts, a: opts.indexOf(a) });
+        });
 
         return `<!DOCTYPE html>
 <html lang="ru">
@@ -126,51 +144,54 @@ Frog says...|Ribbit|Woof|Moo</textarea>
     <meta charset="UTF-8">
     <style>
         body { margin:0; background:url(${assets.bg || ''}) center/cover no-repeat fixed #000; font-family:sans-serif; overflow:hidden; height:100vh; }
-        /* Исправление: pointer-events:none позволяет кликать сквозь UI слой по листикам */
         #ui-layer { position:fixed; top:0; width:100%; z-index:500; pointer-events:none; }
-        #q-card { background:rgba(255,255,255,0.95); color:#111; margin:15px auto; width:85%; padding:20px; border-radius:25px; text-align:center; font-weight:bold; pointer-events:auto; box-shadow:0 15px 35px rgba(0,0,0,0.5); border:3px solid #fff; }
-        #t-wrap { width:100%; height:8px; background:#e2e8f0; border-radius:4px; margin-top:12px; overflow:hidden; }
-        #t-bar { height:100%; background:#22c55e; width:100%; transition:1s linear; }
+        #q-card { 
+            background:rgba(255,255,255,0.95); color:#111; margin:15px auto; width:85%; padding:20px; 
+            border-radius:25px; text-align:center; font-weight:bold; pointer-events:auto; 
+            box-shadow:0 15px 35px rgba(0,0,0,0.5); border:4px solid ${config.borderColor}; 
+        }
+        #t-wrap { width:100%; height:8px; background:#e2e8f0; border-radius:4px; margin-top:12px; overflow:hidden; display:${config.useTimer ? 'block' : 'none'}; }
+        #t-bar { height:100%; background:red; width:100%; }
+        #p-bar-outer { width:100%; height:10px; background:rgba(0,0,0,0.1); border-radius:10px; margin-top:10px; }
+        #p-bar-inner { height:100%; background:${config.barColor}; width:0%; transition:0.3s; border-radius:10px; }
         
         #game-space { position:relative; width:100%; height:100vh; z-index:10; }
         #hero { 
-            position:absolute; width:${size}px; height:${size}px; 
+            position:absolute; width:${config.size}px; height:${config.size}px; 
             background:url(${assets.hero || ''}) no-repeat center/contain; 
             z-index:100; transform:translate(-50%, -100%); 
-            transition: all ${speed}s cubic-bezier(0.34, 1.56, 0.64, 1); 
-            ${glow ? 'filter: drop-shadow(0 0 20px rgba(255,255,255,0.8));' : ''}
+            transition: all ${config.speed}s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            ${config.glow ? 'filter: drop-shadow(0 0 ' + config.glowVal + 'px rgba(255,255,255,0.8));' : ''}
         }
         
         .leaf { 
-            position:absolute; width:120px; height:80px; 
+            position:absolute; width:125px; height:85px; 
             background:url(${assets.plat || ''}) no-repeat center/contain; 
             display:flex; align-items:center; justify-content:center; 
             color:white; font-size:13px; font-weight:bold; text-align:center; padding:10px;
             transform:translate(-50%, -50%); cursor:pointer; z-index:20; text-shadow:2px 2px 4px #000;
-            transition: 0.3s;
         }
-        .leaf:hover { filter: brightness(1.2); }
 
         .lives-box { position:fixed; bottom:20px; left:20px; display:flex; gap:10px; z-index:500; }
         .heart { width:40px; height:40px; background:url(${assets.life || ''}) no-repeat center/contain; }
-        
         .shock-anim { animation: shock-play 0.1s infinite; filter: brightness(3) invert(1); }
         @keyframes shock-play { 0%{margin-left:-12px} 100%{margin-left:12px} }
         
         #start-scr { position:fixed; inset:0; background:rgba(0,0,0,0.95); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; cursor:pointer; color:white; text-align:center; padding:20px; }
-        #start-scr h1 { font-size: 40px; color: #22c55e; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <div id="start-scr" onclick="startGame()">
-        <h1>${title}</h1>
-        <p>ПРИГОТОВЬСЯ ПРЫГАТЬ!<br>НАЖМИ ДЛЯ СТАРТА</p>
+    <div id="start-scr" onclick="handleStart()">
+        <h1 id="screen-title">${config.title}</h1>
+        <p id="screen-desc">${config.welcome}<br>НАЖМИ ДЛЯ СТАРТА</p>
     </div>
 
     <div id="ui-layer">
         <div id="q-card">
+            <div id="lvl-tag" style="font-size:12px; color:#666; margin-bottom:5px;">УРОВЕНЬ 1</div>
             <div id="q-text" style="font-size:18px">...</div>
             <div id="t-wrap"><div id="t-bar"></div></div>
+            <div id="p-bar-outer"><div id="p-bar-inner"></div></div>
         </div>
     </div>
 
@@ -182,127 +203,137 @@ Frog says...|Ribbit|Woof|Moo</textarea>
     <div class="lives-box" id="hp-bar"></div>
 
     <script>
-        const quest = ${qs};
+        const levelData = ${JSON.stringify(levelData)};
         const snd = { 
-            start: new Audio("${assets.s[0] || ''}"), 
-            jump: new Audio("${assets.s[1] || ''}"), 
-            shock: new Audio("${assets.s[2] || ''}"), 
-            end: new Audio("${assets.s[3] || ''}"),
-            win: new Audio("${assets.s[4] || ''}"),
-            level: new Audio("${assets.s[5] || ''}"),
-            tick: new Audio("${assets.s[6] || ''}")
+            start: new Audio("${assets.s[0] || ''}"), jump: new Audio("${assets.s[1] || ''}"), 
+            shock: new Audio("${assets.s[2] || ''}"), end: new Audio("${assets.s[3] || ''}"),
+            win: new Audio("${assets.s[4] || ''}"), level: new Audio("${assets.s[5] || ''}"), tick: new Audio("${assets.s[6] || ''}")
         };
         
-        let step = 0, timer, timeLeft, hp = 3, lastPos = {x:50, y:92};
+        let levels = Object.keys(levelData).sort((a,b)=>a-b);
+        let curLvlIdx = 0, curQIdx = 0, hp = ${config.lives}, timer, timeLeft;
+        let lastPos = {x:50, y:92};
+
+        function handleStart() {
+            if(${config.useCD}) {
+                let count = 3;
+                document.getElementById('screen-title').innerText = count;
+                document.getElementById('screen-desc').innerText = "ПРИГОТОВЬСЯ...";
+                let cd = setInterval(() => {
+                    count--;
+                    if(count > 0) {
+                        document.getElementById('screen-title').innerText = count;
+                        snd.tick.play();
+                    } else {
+                        clearInterval(cd);
+                        startGame();
+                    }
+                }, 1000);
+            } else { startGame(); }
+        }
 
         function startGame() {
             document.getElementById('start-scr').style.display = 'none';
             snd.start.play();
             updateHP();
             moveHero(50, 92);
-            renderMap();
-            resetTimer();
+            renderStep();
         }
 
-        function updateHP() {
-            const bar = document.getElementById('hp-bar');
-            bar.innerHTML = '';
-            for(let i=0; i<hp; i++) bar.innerHTML += '<div class="heart"></div>';
-        }
+        function renderStep() {
+            const lvlKey = levels[curLvlIdx];
+            const questions = levelData[lvlKey];
+            const curQ = questions[curQIdx];
+            
+            document.getElementById('lvl-tag').innerText = "УРОВЕНЬ " + lvlKey + " | ВОПРОС " + (curQIdx + 1);
+            document.getElementById('q-text').innerText = curQ.q;
+            document.getElementById('p-bar-inner').style.width = (curQIdx / questions.length * 100) + "%";
 
-        function resetTimer() {
-            clearInterval(timer);
-            timeLeft = ${qTime};
-            const bar = document.getElementById('t-bar');
-            bar.style.transition = 'none';
-            bar.style.width = '100%';
-            setTimeout(() => {
-                bar.style.transition = '1s linear';
-                timer = setInterval(() => {
-                    timeLeft--;
-                    bar.style.width = (timeLeft / ${qTime} * 100) + '%';
-                    if(timeLeft <= 3 && timeLeft > 0) snd.tick.play();
-                    if(timeLeft <= 0) { 
-                        clearInterval(timer);
-                        onWrong(); 
-                    }
-                }, 1000);
-            }, 50);
-        }
-
-        function renderMap() {
-            if(step >= quest.length) { 
-                clearInterval(timer);
-                snd.win.play(); 
-                setTimeout(() => { snd.end.play(); alert("КВЕСТ ВЫПОЛНЕН!"); }, 500);
-                return; 
-            }
-            document.getElementById('q-text').innerText = quest[step].q;
             const map = document.getElementById('map');
             map.innerHTML = '';
             
-            const totalSteps = quest.length;
-            const vGap = 80 / totalSteps;
-
-            for(let r=0; r < totalSteps; r++) {
-                quest[r].o.forEach((txt, i) => {
-                    const leaf = document.createElement('div');
-                    leaf.className = 'leaf';
-                    leaf.innerText = txt;
-                    
-                    let x = (20 + i * 30) + (r % 2 * 6);
-                    let y = 90 - (r * vGap);
-                    
-                    leaf.style.left = x + '%';
-                    leaf.style.top = y + '%';
-                    
-                    if(r === step) {
-                        // Исправлено: передаем x и y для точного прыжка
-                        leaf.onclick = (e) => { e.stopPropagation(); onJump(i, x, y); };
-                    } else {
-                        leaf.style.opacity = (r < step) ? '0.2' : '0.5';
-                        leaf.style.pointerEvents = 'none';
-                    }
-                    map.appendChild(leaf);
-                });
-            }
+            // Шахматный порядок: 3 платформы перед игроком
+            curQ.o.forEach((txt, i) => {
+                const leaf = document.createElement('div');
+                leaf.className = 'leaf';
+                leaf.innerText = txt;
+                let x = 20 + (i * 30);
+                let y = 65; // Ряд перед персонажем
+                leaf.style.left = x + '%'; leaf.style.top = y + '%';
+                leaf.onclick = () => onJump(i, x, y);
+                map.appendChild(leaf);
+            });
+            
+            if(${config.useTimer}) resetTimer();
         }
 
         function onJump(idx, x, y) {
             const h = document.getElementById('hero');
-            h.style.left = x + '%';
-            h.style.top = y + '%';
+            const questions = levelData[levels[curLvlIdx]];
+            
+            h.style.left = x + '%'; h.style.top = y + '%';
 
-            if(idx === quest[step].a) {
+            if(idx === questions[curQIdx].a) {
                 snd.jump.play();
                 lastPos = {x, y};
-                step++;
-                setTimeout(() => { 
-                    renderMap(); 
-                    resetTimer();
-                }, 400);
+                curQIdx++;
+                setTimeout(() => {
+                    if(curQIdx >= questions.length) {
+                        nextLevel();
+                    } else {
+                        renderStep();
+                    }
+                }, 500);
             } else {
-                onWrong();
+                snd.shock.play();
+                h.classList.add('shock-anim');
+                hp--; updateHP();
+                setTimeout(() => {
+                    h.classList.remove('shock-anim');
+                    moveHero(lastPos.x, lastPos.y);
+                    if(hp <= 0) { snd.end.play(); alert("ИГРА ОКОНЧЕНА!"); location.reload(); }
+                }, 700);
             }
         }
 
-        function onWrong() {
+        function nextLevel() {
+            clearInterval(timer);
+            snd.level.play();
             const h = document.getElementById('hero');
-            snd.shock.play();
-            h.classList.add('shock-anim');
-            hp--;
-            updateHP();
+            h.style.top = "-20%"; // Супер прыжок вверх
+            
             setTimeout(() => {
-                h.classList.remove('shock-anim');
-                moveHero(lastPos.x, lastPos.y);
-                if(hp <= 0) {
-                    snd.end.play();
-                    alert("ИГРА ОКОНЧЕНА!");
+                curLvlIdx++;
+                curQIdx = 0;
+                if(curLvlIdx >= levels.length) {
+                    snd.win.play();
+                    alert("КВЕСТ ПОЛНОСТЬЮ ПРОЙДЕН!");
                     location.reload();
                 } else {
-                    resetTimer();
+                    document.getElementById('start-scr').style.display = 'flex';
+                    document.getElementById('screen-title').innerText = "УРОВЕНЬ ПРОЙДЕН!";
+                    document.getElementById('screen-desc').innerText = "ПЕРЕХОДИМ К СЛЕДУЮЩЕМУ";
+                    moveHero(50, 92);
+                    lastPos = {x:50, y:92};
                 }
-            }, 700);
+            }, 1000);
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            timeLeft = ${config.qTime};
+            const bar = document.getElementById('t-bar');
+            bar.style.width = '100%';
+            timer = setInterval(() => {
+                timeLeft--;
+                bar.style.width = (timeLeft / ${config.qTime} * 100) + '%';
+                if(timeLeft <= 0) { clearInterval(timer); onJump(-1, 50, 90); }
+            }, 1000);
+        }
+
+        function updateHP() {
+            const b = document.getElementById('hp-bar'); b.innerHTML = '';
+            for(let i=0; i<hp; i++) b.innerHTML += '<div class="heart"></div>';
         }
 
         function moveHero(x, y) {
@@ -323,7 +354,7 @@ Frog says...|Ribbit|Woof|Moo</textarea>
         const code = buildGameHTML();
         const output = `<iframe srcdoc='${code.replace(/'/g, "&apos;")}' width="100%" height="600" frameborder="0" allow="autoplay"></iframe>`;
         navigator.clipboard.writeText(output);
-        alert("Код успешно скопирован в буфер обмена!");
+        alert("Код успешно скопирован!");
     }
 </script>
 </body>
